@@ -1,0 +1,2680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hierarchy Builder v3</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --line-color: #cbd5e1;
+            --line-width: 2px;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --chapter-color: #4f46e5;
+            --chapter-bg: #fff;
+            --level1-color: #d63384;
+            --level2-color: #e67e22;
+            --level3-color: #059669;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            background: white;
+            padding: 0.8rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 20;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            flex-shrink: 0; /* Prevent header from shrinking */
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .brand h1 {
+            font-size: 1.4rem;
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        /* Subject Dropdown Styling */
+        .subject-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafc;
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .subject-select {
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #334155;
+            padding: 4px 8px;
+            outline: none;
+            cursor: pointer;
+            max-width: 200px;
+        }
+
+        .btn-subject-settings {
+            background: white;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            border-radius: 4px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .btn-subject-settings:hover { background: #e2e8f0; color: #334155; }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-action {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: all 0.2s;
+        }
+
+        /* Undo/Redo Buttons */
+        .btn-history {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            font-size: 1.1rem;
+            padding: 4px 10px;
+        }
+        .btn-history:hover:not(:disabled) {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+        .btn-history:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: #f8fafc;
+            border-color: #f1f5f9;
+        }
+
+        .btn-save {
+            background: #ecfdf5;
+            color: #059669;
+            border-color: #a7f3d0;
+        }
+        .btn-save:hover { background: #d1fae5; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+        .btn-reset {
+            background: #fef2f2;
+            color: #ef4444;
+            border-color: #fca5a5;
+        }
+        .btn-reset:hover { background: #fee2e2; }
+
+        .btn-import {
+            background: #eff6ff;
+            color: #2563eb;
+            border-color: #bfdbfe;
+        }
+        .btn-import:hover { background: #dbeafe; }
+
+        /* JSON Action Buttons */
+        .btn-json {
+            background: #f3e8ff;
+            color: #7e22ce;
+            border-color: #d8b4fe;
+        }
+        .btn-json:hover { background: #e9d5ff; }
+
+        /* CENTER NAV GROUP */
+        .center-nav-group {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+
+        /* NOTE & ADD TOOLS STYLES */
+        .tool-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .drag-tool {
+            cursor: grab;
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: transform 0.2s;
+            user-select: none;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .drag-tool:hover {
+            transform: scale(1.1);
+        }
+        .drag-tool:active {
+            cursor: grabbing;
+        }
+        
+        /* Specific Tool Colors */
+        .note-tool:hover { background: #fffbeb; border-color: #fcd34d; }
+        .add-tool:hover { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+
+        .tool-separator {
+            width: 1px;
+            height: 20px;
+            background: #cbd5e1;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-tab {
+            padding: 8px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748b;
+            background: transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #4f46e5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* --- View Container --- */
+        .view-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex; /* Ensure it works as a flex parent */
+            flex-direction: column;
+        }
+
+        .view-section {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-color);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .view-section.active-view {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        /* --- INPUT VIEW (3 Columns) --- */
+        .input-wrapper {
+            display: flex;
+            height: 100%;
+            padding: 1.5rem;
+            gap: 1.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Column 1 & 2 Sidebar Styling */
+        .col-chapters, .col-level1 {
+            width: 280px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .col-header {
+            padding: 1rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        /* Draggable Items */
+        .chapter-item, .level1-item {
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.5rem;
+            background: #fff;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #eee;
+            color: #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .chapter-item:hover, .level1-item:hover {
+            background: #f1f5f9;
+            transform: translateX(2px);
+        }
+
+        .chapter-item.active {
+            background: #eef2ff;
+            color: #4f46e5;
+            border-color: #c7d2fe;
+            font-weight: 600;
+        }
+
+        .level1-item.active {
+            background: #fff0f7;
+            border-color: #fce7f3;
+            border-left: 4px solid var(--level1-color);
+            color: #be185d;
+            font-weight: 600;
+        }
+
+        /* Drag & Drop Visuals */
+        .draggable-item {
+            cursor: default; /* Default is non-drag */
+        }
+        
+        .drag-handle {
+            cursor: grab;
+            color: #cbd5e1;
+            margin-right: 8px;
+            font-size: 1.2rem;
+            line-height: 1;
+            user-select: none;
+        }
+        
+        .drag-handle:hover {
+            color: #94a3b8;
+        }
+        
+        .draggable-item.dragging {
+            opacity: 0.5;
+            background: #f8fafc;
+            border: 1px dashed #94a3b8;
+        }
+        
+        .draggable-item.drag-over {
+            border-top: 2px solid #4f46e5;
+        }
+
+        /* Inline Edit Input */
+        .inline-edit-input {
+            width: 100%;
+            padding: 4px 8px;
+            border: 1px solid #4f46e5;
+            border-radius: 4px;
+            font-size: inherit;
+            font-family: inherit;
+            color: inherit;
+        }
+
+        /* Column 3: Editor Area */
+        .col-editor {
+            flex: 1;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .editor-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            background: #fafbfc;
+        }
+
+        /* Inputs & Forms */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Specific Colored Inputs for Editor */
+        .text-input.chapter-input { border-left: 4px solid var(--chapter-color); color: #4f46e5; font-weight: 700; }
+        .text-input.level-1-input { border-left: 4px solid var(--level1-color); color: #be185d; font-weight: 600; }
+        .text-input.level-2-input { border-left: 4px solid var(--level2-color); color: #c2410c; font-weight: 600; }
+        .text-input.level-3-input { border-left: 4px solid var(--level3-color); color: var(--level3-color); font-weight: 600; }
+        
+        .desc-input { font-size: 0.9rem; color: #666; background: #fafafa; }
+
+        .section-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Level 2 & 3 Nesting */
+        .level2-block {
+            margin-bottom: 1.5rem;
+        }
+
+        .level2-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .level2-title-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .level3-list {
+            padding-left: 1.5rem;
+        }
+
+        .level3-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            align-items: flex-start;
+        }
+
+        /* Buttons */
+        .btn-add {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: transform 0.2s;
+        }
+        .btn-add:hover { background: #4338ca; transform: scale(1.1); }
+        .btn-add.pink { background: var(--level1-color); }
+        .btn-add.orange { background: var(--level2-color); width: auto; height: auto; padding: 0.2rem 0.8rem; border-radius: 4px; font-size: 0.8rem; }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        .btn-icon:hover { color: #ef4444; }
+
+        .empty-msg {
+            text-align: center;
+            color: #94a3b8;
+            padding: 2rem;
+        }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(2px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        
+        .modal {
+            background: white;
+            width: 600px;
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* Specific Larger Modal for Markdown Notes */
+        .modal.large-modal {
+            width: 90vw;
+            height: 90vh;
+            max-width: 1400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal h2 { color: #334155; font-size: 1.5rem; }
+        .modal p { color: #64748b; font-size: 0.95rem; line-height: 1.5; }
+        .fmt-hint { 
+            background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 0.85rem !important; color: #475569 !important;
+        }
+
+        .import-textarea {
+            width: 100%;
+            height: 300px;
+            padding: 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+        .import-textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        /* Subjects Modal List */
+        .subject-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            background: #fff;
+        }
+        .subject-list-item:hover {
+            background: #f8fafc;
+        }
+        .subject-list-item.active-sub {
+            border-left: 4px solid #4f46e5;
+            background: #eff6ff;
+        }
+
+        /* Single Pane View for Notes Modal */
+        .modal-body-single {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0; /* Important for flex nested scrolling */
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        /* Both textarea and preview take full space, JS toggles visibility */
+        .notes-textarea, .markdown-preview {
+            width: 100%;
+            flex: 1;
+            height: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .notes-textarea {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.95rem;
+            resize: none;
+            line-height: 1.5;
+        }
+        .notes-textarea:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        /* Markdown Preview Styling */
+        .markdown-preview {
+            overflow-y: auto;
+            background: #fdfdfd;
+            color: #334155;
+            line-height: 1.6;
+            font-family: 'Segoe UI', sans-serif;
+            display: none; /* Hidden by default */
+        }
+        /* Show when active */
+        .markdown-preview.active-pane { display: block; }
+        .notes-textarea.active-pane { display: block; }
+        .hidden-pane { display: none !important; }
+
+        /* Typography for rendered markdown */
+        .markdown-preview h1 { font-size: 1.8em; margin-bottom: 0.5em; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.2em; color: #1e293b; }
+        .markdown-preview h2 { font-size: 1.5em; margin-top: 1em; margin-bottom: 0.5em; color: #1e293b; }
+        .markdown-preview h3 { font-size: 1.2em; margin-top: 1em; margin-bottom: 0.5em; font-weight: 600; color: #334155; }
+        .markdown-preview p { margin-bottom: 1em; }
+        .markdown-preview ul, .markdown-preview ol { padding-left: 1.5em; margin-bottom: 1em; }
+        .markdown-preview li { margin-bottom: 0.3em; }
+        .markdown-preview blockquote { border-left: 4px solid #4f46e5; padding-left: 1em; margin: 1em 0; color: #64748b; font-style: italic; background: #f8fafc; padding: 1rem; border-radius: 0 8px 8px 0; }
+        .markdown-preview code { background: #e2e8f0; padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; font-family: monospace; color: #d63384; }
+        .markdown-preview pre { background: #1e293b; color: #f1f5f9; padding: 1em; border-radius: 8px; overflow-x: auto; margin-bottom: 1em; }
+        .markdown-preview pre code { background: none; color: inherit; padding: 0; color: #f1f5f9; }
+        .markdown-preview a { color: #2563eb; text-decoration: underline; }
+        .markdown-preview img { max-width: 100%; border-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 1em 0; }
+        .markdown-preview hr { border: 0; border-top: 2px solid #e2e8f0; margin: 2em 0; }
+        .markdown-preview table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
+        .markdown-preview th, .markdown-preview td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
+        .markdown-preview th { background: #f1f5f9; font-weight: 600; }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: auto; /* Push to bottom if needed */
+        }
+        
+        .mode-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .badge-edit { background: #fff1f2; color: #e11d48; border: 1px solid #fda4af; }
+        .badge-view { background: #ecfdf5; color: #059669; border: 1px solid #6ee7b7; }
+
+        /* --- RESULT VIEW (Left-to-Right Tree) --- */
+        #result-view {
+            padding: 0; 
+            overflow: hidden; /* Prevent the container itself from scrolling */
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 24px 24px;
+            display: flex;
+            flex-direction: column;
+            position: relative; /* Anchor for absolute children (toolbar) */
+        }
+
+        /* Scrolable area INSIDE result view where scale happens */
+        #result-viewport {
+            flex: 1; /* Fill remaining space exactly */
+            width: 100%;
+            height: 100%; /* Fallback */
+            overflow: auto; /* Scrollbars appear here */
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 0; /* Critical flex fix for scrolling */
+        }
+
+        /* Toolbar Top Right - FIXED POSITION RELATIVE TO CONTAINER */
+        .result-toolbar {
+            position: absolute; 
+            top: 20px;        
+            right: 20px;
+            z-index: 100;   
+            background: transparent;
+            padding: 0;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 15px;
+            pointer-events: none; /* Let clicks pass through the container */
+        }
+
+        /* Re-enable pointer events for buttons */
+        .result-toolbar button, .result-toolbar .toggle-icon-btn, .result-toolbar .zoom-controls {
+            pointer-events: auto;
+        }
+
+        .toolbar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: flex-end;
+        }
+
+        .toggle-icon-btn {
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 0;
+            border: 2px solid white;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            line-height: 1;
+            color: #64748b; /* Grey default */
+        }
+
+        .toggle-icon-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            color: #334155;
+        }
+        
+        .toggle-icon-btn.btn-trash:hover { color: #ef4444; border-color: #fecaca; background: #fef2f2; }
+        .toggle-icon-btn.btn-trash { color: #ef4444; }
+
+        /* State: Collapsed (Grey Clover) */
+        .toggle-icon-btn.state-collapsed {
+            filter: grayscale(100%);
+            opacity: 0.7;
+            color: #64748b;
+        }
+        
+        /* State: Expanded (Green Clover) */
+        .toggle-icon-btn.state-expanded {
+            filter: grayscale(0%);
+            opacity: 1;
+            color: #10b981; /* Green tint */
+        }
+
+        /* Multi Select Default State (Greyed out until active) */
+        #select-mode-btn {
+            filter: grayscale(100%);
+            opacity: 0.7;
+        }
+        /* Multi Select Active State */
+        #select-mode-btn.selection-mode-active {
+            filter: grayscale(0%);
+            opacity: 1;
+            /* background: #eff6ff; */
+            color: #2563eb;
+            border-color: #2563eb;
+        }
+
+        /* Zoom specific styles */
+        .zoom-controls {
+            background: white;
+            border-radius: 30px;
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        .btn-zoom {
+            width: 35px; 
+            height: 35px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-zoom:hover { background: #f1f5f9; color: #334155; }
+
+        /* Label for the button on hover */
+        .toggle-label {
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            white-space: nowrap;
+            position: absolute;
+            right: 55px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .btn-wrapper { position: relative; }
+        .btn-wrapper:hover .toggle-label { opacity: 1; }
+
+        .chapters-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4rem; 
+            padding-bottom: 4rem;
+            padding-top: 3rem; 
+            margin: 0 auto; 
+            align-items: flex-start; 
+            width: fit-content; 
+            min-width: min-content;
+            transform-origin: top left;
+            transition: transform 0.2s ease-out;
+        }
+
+        /* Tree CSS - Left to Right Direction */
+        .tree-ltr { display: flex; align-items: center; }
+        .tree-ltr ul { display: flex; flex-direction: column; padding-left: 40px; position: relative; margin: 0; }
+        .tree-ltr li { list-style-type: none; position: relative; padding: 10px 0; display: flex; align-items: center; }
+        .tree-ltr li::before { content: ''; position: absolute; left: -40px; top: 50%; border-top: var(--line-width) solid var(--line-color); width: 40px; height: 0; }
+        .tree-ltr li::after { content: ''; position: absolute; left: -40px; top: 0; bottom: 0; border-left: var(--line-width) solid var(--line-color); width: 0; }
+        .tree-ltr > ul > li::before, .tree-ltr > ul > li::after { display: none; }
+        .tree-ltr li:first-child::after { top: 50%; }
+        .tree-ltr li:last-child::after { bottom: 50%; }
+        .tree-ltr li:only-child::after { display: none; }
+        .tree-ltr li:only-child::before { border-top-left-radius: 0; }
+
+        /* Node Card Styling */
+        .node {
+            padding: 12px 16px;
+            /* Added extra padding-left to make room for the bulb on the left */
+            padding-left: 36px;
+            border-radius: 8px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 140px;
+            text-align: left;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            border: 2px solid transparent; /* Prepared for selection border */
+        }
+        .node:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); z-index: 5; }
+        .node h4 { font-size: 0.95rem; margin-bottom: 0.2rem; pointer-events: none; }
+        .node p { font-size: 0.8rem; color: #fff; opacity: 0.9; margin: 0; pointer-events: none; }
+
+        /* Selected Node State (Multi-Select) */
+        .node.node-selected {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2);
+            transform: scale(1.02);
+        }
+
+        /* Level Specific Styles */
+        .node.level-0 { background: var(--primary-gradient); color: white; font-size: 1.1rem; padding: 16px 24px; padding-left: 42px; }
+        .node.level-1 { background: white; border-left: 4px solid var(--level1-color); }
+        .node.level-1 h4 { color: #be185d; }
+        .node.level-1 p { color: #64748b; }
+        .node.level-2 { background: white; border-left: 4px solid var(--level2-color); }
+        .node.level-2 h4 { color: #c2410c; }
+        .node.level-2 p { color: #64748b; }
+        .node.level-3 { background: white; border-left: 4px solid var(--level3-color); }
+        .node.level-3 h4 { color: var(--level3-color); }
+        
+        /* Drag & Drop in Visualization */
+        .node[draggable="true"] { cursor: grab; }
+        .node[draggable="true"]:active { cursor: grabbing; }
+        .node.dragging-vis { opacity: 0.5; border: 2px dashed #94a3b8; background: #f1f5f9; }
+        .node.drag-target { background: #d1fae5 !important; border-color: #059669 !important; box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.2); transform: scale(1.02); z-index: 10; }
+
+        /* Highlight when dragging the NOTE emoji over a node */
+        .node.note-drag-target {
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.4); /* Yellow glow */
+            border-color: #f59e0b !important;
+            transform: scale(1.05);
+            z-index: 15;
+            background: #fffbeb !important;
+            /* If level 0 (gradient) override bg */
+        }
+        .node.level-0.note-drag-target {
+             background: var(--primary-gradient) !important;
+             filter: brightness(1.1);
+        }
+
+        /* Highlight for ADD Item Tool drag */
+        .node.add-drag-target {
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.4); /* Green glow */
+            border-color: #22c55e !important;
+            transform: scale(1.05);
+            z-index: 15;
+            background: #f0fdf4 !important;
+        }
+        .node.level-0.add-drag-target {
+            background: var(--primary-gradient) !important;
+            filter: hue-rotate(90deg);
+        }
+
+
+        .expander {
+            display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+            background: #fff; border: 1px solid #ccc; border-radius: 50%; position: absolute;
+            right: -10px; top: 50%; transform: translateY(-50%); font-size: 10px; color: #555; z-index: 10;
+        }
+        .node.collapsed .expander { background: #eee; }
+        .hidden { display: none !important; }
+
+        /* Notes Bulb - UPDATED STYLES FOR DRAG LOGIC */
+        .bulb-btn {
+            position: absolute;
+            top: 4px;
+            left: 4px; 
+            right: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            
+            /* HIDDEN BY DEFAULT (Changed from opacity 0 to display none) */
+            display: none;
+            opacity: 0;
+            filter: grayscale(100%); 
+            
+            transition: all 0.2s;
+            z-index: 20;
+        }
+        
+        /* Existing Notes: Always Visible & Colored */
+        .bulb-btn.has-notes {
+            display: block;
+            opacity: 1;
+            filter: grayscale(0%);
+            text-shadow: 0 0 5px white;
+        }
+        
+        .bulb-btn.has-notes:hover {
+            transform: scale(1.2);
+        }
+
+        /* Removes box, background, and border for the emoji buttons */
+        .emoji-btn {
+            background: none !important;
+            border: none !important;
+            box-shadow: none !important;
+            font-size: 1.5rem; /* Make emoji larger */
+            padding: 0 8px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .emoji-btn:hover {
+            transform: scale(1.1);
+        }
+        .emoji-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand-group">
+        <div class="brand">
+            <h1>Hierarchy Builder v3</h1>
+        </div>
+        <div class="subject-group">
+            <select id="subject-selector" class="subject-select" onchange="switchSubject(this.value)">
+            </select>
+            <button class="btn-subject-settings" onclick="openSubjectModal()" title="Manage Subjects">⚙️</button>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-action btn-history" id="btn-undo" onclick="undo()" disabled title="Undo (Ctrl+Z)">
+                ↩
+            </button>
+            <button class="btn-action btn-history" id="btn-redo" onclick="redo()" disabled title="Redo (Ctrl+Y)">
+                ↪
+            </button>
+            
+            <button class="btn-action btn-import" onclick="openImportChoiceModal()">
+                <span>📥</span> Import
+            </button>
+
+            <button class="btn-action btn-save" onclick="openExportChoiceModal()">
+                <span>📤</span> Export
+            </button>
+            
+            <!-- Hidden File Input for JSON Import -->
+            <input type="file" id="json-upload" style="display:none" accept=".json" onchange="handleJSONImport(this)">
+
+            <button class="btn-action btn-reset" onclick="resetAllData()">Reset</button>
+        </div>
+    </div>
+    
+    <div class="center-nav-group">
+        <div class="tool-container">
+            <div class="drag-tool note-tool" id="draggable-note-tool" draggable="true" title="Drag onto a Node to add Note">
+                🪶
+            </div>
+            <div class="drag-tool add-tool" id="draggable-add-tool" draggable="true" title="Drag onto a Node to add a Child (New Tab/Topic)">
+                ➕
+            </div>
+        </div>
+        <div class="tool-separator"></div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchView('input')">1. Data Entry</button>
+            <button class="nav-tab" onclick="switchView('result')">2. Visualization</button>
+        </div>
+    </div>
+</header>
+
+<div class="view-container">
+
+    <div id="input-view" class="view-section active-view">
+        <div class="input-wrapper">
+            
+            <div class="col-chapters">
+                <div class="col-header">
+                    <span>Chapters</span>
+                    <div class="header-actions">
+                        <button class="btn-add" onclick="addChapter()">+</button>
+                    </div>
+                </div>
+                <div class="list-container" id="chapters-list">
+                </div>
+            </div>
+
+            <div class="col-level1">
+                <div class="col-header">
+                    <span>Level 1 Tabs</span>
+                    <div class="header-actions">
+                        <button class="btn-add pink" onclick="addLevel1()">+</button>
+                    </div>
+                </div>
+                <div class="list-container" id="level1-list">
+                    <div class="empty-msg">Select a Chapter</div>
+                </div>
+            </div>
+
+            <div class="col-editor">
+                <div class="col-header">
+                    <span>Content Editor</span>
+                    <span id="editor-status" style="font-weight:400; font-size:0.9rem; color:#64748b;"></span>
+                </div>
+                <div class="editor-content" id="editor-area">
+                    <div class="empty-msg">Select a Level 1 Tab to edit details</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="result-view" class="view-section">
+        
+        <div class="result-toolbar">
+            
+            <!-- Zoom Controls -->
+            <div class="toolbar-group">
+                <div class="zoom-controls">
+                    <button class="btn-zoom" onclick="zoomIn()" title="Zoom In">+</button>
+                    <button class="btn-zoom" onclick="resetZoom()" title="Reset Zoom">⟲</button>
+                    <button class="btn-zoom" onclick="zoomOut()" title="Zoom Out">-</button>
+                </div>
+            </div>
+
+            <!-- Collapse/Expand -->
+            <div class="btn-wrapper">
+                <button id="tree-toggle-btn" class="toggle-icon-btn state-collapsed" onclick="toggleTreeState()" title="Toggle Tree">
+                    🍁
+                </button>
+                <div class="toggle-label" id="toggle-label-text">Expand All</div>
+            </div>
+
+            <!-- Multi Select Toggle -->
+            <div class="btn-wrapper">
+                <button id="select-mode-btn" class="toggle-icon-btn" onclick="toggleSelectionMode()" title="Toggle Select Mode">
+                    ☑️
+                </button>
+                <div class="toggle-label">Select Mode</div>
+            </div>
+
+            <!-- Multi Delete Action (Hidden unless selected) -->
+            <div class="btn-wrapper" id="delete-selected-wrapper" style="display:none;">
+                <button class="toggle-icon-btn btn-trash" onclick="deleteSelectedNodes()" title="Delete Selected Items">
+                    🗑️
+                </button>
+                <div class="toggle-label">Delete Selected</div>
+            </div>
+
+        </div>
+
+        <div id="result-viewport">
+            <div id="result-container" class="chapters-container">
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- NEW: IMPORT CHOICE MODAL -->
+<div id="import-choice-modal" class="modal-overlay">
+    <div class="modal" style="width: 400px; text-align: center;">
+        <h2>Import Data</h2>
+        <p>Choose an import method:</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+            <button class="btn-action btn-import" onclick="chooseImport('bulk')">
+                <span>📋</span> Text / Bulk
+            </button>
+            <button class="btn-action btn-json" onclick="chooseImport('json')">
+                <span>📄</span> JSON File
+            </button>
+        </div>
+        <div class="modal-actions" style="justify-content: center; margin-top: 1.5rem;">
+            <button class="btn-action btn-reset" onclick="closeImportChoiceModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- NEW: EXPORT CHOICE MODAL -->
+<div id="export-choice-modal" class="modal-overlay">
+    <div class="modal" style="width: 400px; text-align: center;">
+        <h2>Export Data</h2>
+        <p>Choose an export format:</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+            <button class="btn-action btn-json" onclick="chooseExport('json')">
+                <span>{ }</span> JSON Data
+            </button>
+            <button class="btn-action btn-save" onclick="chooseExport('html')">
+                <span>🌐</span> Standalone HTML
+            </button>
+        </div>
+        <div class="modal-actions" style="justify-content: center; margin-top: 1.5rem;">
+            <button class="btn-action btn-reset" onclick="closeExportChoiceModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="import-modal" class="modal-overlay">
+    <div class="modal">
+        <h2>Bulk Import</h2>
+        <p>Paste your content below to import into the <strong>current Subject</strong>.</p>
+        <div class="fmt-hint">
+            <strong>Format Guide:</strong><br>
+            Chapter Title (No indent)<br>
+            &nbsp;&nbsp;Level 1 Tab (1 tab or 2 spaces)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;Level 2 Topic (2 tabs or 4 spaces)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Level 3 Detail (3 tabs or 6+ spaces)
+        </div>
+        <textarea id="import-text" class="import-textarea" placeholder="Chapter 1&#10;  Introduction Tab&#10;    Topic A&#10;      Detail 1&#10;      Detail 2&#10;Chapter 2&#10;  ..."></textarea>
+        <div class="modal-actions">
+            <button class="btn-action btn-reset" onclick="closeImportModal()">Cancel</button>
+            <button class="btn-action btn-save" onclick="processImport()">Import Data</button>
+        </div>
+    </div>
+</div>
+
+<div id="subjects-modal" class="modal-overlay">
+    <div class="modal">
+        <h2>Manage Subjects</h2>
+        <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+            <input type="text" id="new-subject-input" class="text-input" placeholder="New Subject Name" />
+            <button class="btn-action btn-save" onclick="createNewSubject()">Add</button>
+        </div>
+        
+        <div id="subject-list-container" style="flex:1; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:0.5rem; background:#fafbfc;">
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-action btn-reset" onclick="closeSubjectModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="notes-modal" class="modal-overlay">
+    <div class="modal large-modal" style="border-top: 5px solid #6366f1;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom: 1rem; border-bottom: 1px solid #e2e8f0; margin-bottom: 1rem;">
+            <h2 style="margin:0; color: #1e293b;">Notes & Documentation</h2>
+            
+            <div style="display:flex; align-items:center; gap: 1rem;">
+                <div id="note-mode-badge" class="mode-badge" style="background-color: #ecfdf5; color: #059669; border: 1px solid #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9rem;">VIEW MODE</div>
+                
+                <div style="display:flex; gap: 0.5rem; align-items: center;">
+                    <button onclick="deleteCurrentNote()" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #f87171; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                        Clear
+                    </button>
+                    
+                    <button id="btn-note-action" onclick="toggleNoteMode()" class="emoji-btn" title="Edit">✏️</button>
+                    
+                    <button onclick="closeNotesModal()" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 4px; cursor: pointer;">Close</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="modal-body-single">
+            <textarea id="note-content" class="hidden-pane" style="width: 100%; height: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;" placeholder="Use Markdown syntax..."></textarea>
+            <div id="note-preview" class="markdown-preview active-pane"></div>
+        </div>
+    </div>
+</div>
+
+<script id="app-logic">
+    // --- State Management ---
+    const STORAGE_KEY = 'HIERARCHY_BUILDER_V3';
+    const generateId = () => 'id_' + Math.random().toString(36).substr(2, 9);
+
+    /* --- EMBEDDED_DATA_START --- */
+    const embeddedData = null;
+    /* --- EMBEDDED_DATA_END --- */
+
+    const defaultExample = {
+        id: 'sub_default',
+        name: 'Example Subject',
+        chapters: [
+            {
+                id: 'chap1',
+                title: 'Chapter 1',
+                desc: 'Introduction',
+                notes: '# Welcome\n\nThis is a sample note using **Markdown**.',
+                children: [
+                    { 
+                        id: 'l1_1', title: '1. Basics', desc: 'Core concepts', notes: '## Core Concepts',
+                        children: [
+                            { id: 'l2_1', title: '1. Definition', desc: 'Standard Def', children: [{id:'l3_1', title:'1. Term A', desc: 'Detail A', children:[]}] }
+                        ] 
+                    }
+                ]
+            }
+        ]
+    };
+
+    let appState = {
+        subjects: [JSON.parse(JSON.stringify(defaultExample))],
+        activeSubjectId: 'sub_default',
+        activeChapterId: 'chap1',
+        activeLevel1Id: 'l1_1',
+        expandedNodes: new Set() 
+    };
+
+    // --- View & Interaction State ---
+    let zoomLevel = 1;
+    let isSelectionMode = false;
+    let selectedNodeIds = new Set();
+    // Default to false to start collapsed
+    let isTreeFullyExpanded = false; 
+    let pendingFocusNodeId = null;
+
+    // --- History / Undo / Redo State ---
+    let historyStack = [];
+    let historyIndex = -1;
+    let isHistoryNavigating = false;
+    const MAX_HISTORY = 50;
+
+    // --- Drag State ---
+    let dragSrcIndex = null;
+    let dragType = null; // 'chapter' or 'level1'
+    let visDragId = null; // ID for drag in Visualization view
+    let currentNoteNodeId = null; // For Notes
+    let isNoteEditMode = false; // Track note modal state
+    
+    // --- Tool Drag State ---
+    let isDraggingNoteTool = false;
+    let isDraggingAddTool = false;
+
+    // --- Helpers ---
+    function getActiveSubject() {
+        return appState.subjects.find(s => s.id === appState.activeSubjectId) || appState.subjects[0];
+    }
+
+    function getActiveChapter() { 
+        const sub = getActiveSubject();
+        if(!sub || !sub.chapters) return null;
+        return sub.chapters.find(c => c.id === appState.activeChapterId); 
+    }
+
+    function getActiveLevel1() {
+        const chap = getActiveChapter();
+        if (!chap) return null;
+        return chap.children.find(l1 => l1.id === appState.activeLevel1Id);
+    }
+
+    // --- CHOICE MODAL LOGIC ---
+    function openImportChoiceModal() {
+        document.getElementById('import-choice-modal').classList.add('open');
+    }
+    function closeImportChoiceModal() {
+        document.getElementById('import-choice-modal').classList.remove('open');
+    }
+    function chooseImport(type) {
+        closeImportChoiceModal();
+        if (type === 'bulk') {
+            openImportModal();
+        } else if (type === 'json') {
+            document.getElementById('json-upload').click();
+        }
+    }
+
+    function openExportChoiceModal() {
+        document.getElementById('export-choice-modal').classList.add('open');
+    }
+    function closeExportChoiceModal() {
+        document.getElementById('export-choice-modal').classList.remove('open');
+    }
+    function chooseExport(type) {
+        closeExportChoiceModal();
+        if (type === 'json') {
+            exportJSON();
+        } else if (type === 'html') {
+            downloadHTML();
+        }
+    }
+
+    // --- JSON Export/Import Logic ---
+    function exportJSON() {
+        const dataStr = JSON.stringify({
+            subjects: appState.subjects,
+            activeSubjectId: appState.activeSubjectId,
+            version: 'v3'
+        }, null, 2);
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const d = new Date();
+        const timestamp = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+        a.download = `hierarchy_data_${timestamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function handleJSONImport(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.subjects && Array.isArray(data.subjects)) {
+                    if(confirm("This will overwrite your current data. Continue?")) {
+                        appState.subjects = data.subjects;
+                        appState.activeSubjectId = data.activeSubjectId || data.subjects[0].id;
+                        saveData();
+                        loadData(); // Re-initialize UI
+                        alert("Import Successful!");
+                    }
+                } else {
+                    alert("Invalid JSON format: Missing 'subjects' array.");
+                }
+            } catch (err) {
+                alert("Error parsing JSON file.");
+                console.error(err);
+            }
+            input.value = ''; // Reset input
+        };
+        reader.readAsText(file);
+    }
+
+    // --- History Logic ---
+    function recordState() {
+        if (isHistoryNavigating) return;
+
+        // Save the ENTIRE subjects structure
+        const currentState = JSON.stringify({
+            subjects: appState.subjects,
+            activeSubjectId: appState.activeSubjectId
+        });
+        
+        if (historyIndex >= 0 && historyStack[historyIndex] === currentState) return;
+
+        if (historyIndex < historyStack.length - 1) {
+            historyStack = historyStack.slice(0, historyIndex + 1);
+        }
+
+        historyStack.push(currentState);
+        
+        if (historyStack.length > MAX_HISTORY) {
+            historyStack.shift();
+        } else {
+            historyIndex++;
+        }
+        
+        updateUndoRedoUI();
+    }
+
+    function restoreState(jsonString) {
+        const data = JSON.parse(jsonString);
+        appState.subjects = data.subjects;
+        appState.activeSubjectId = data.activeSubjectId;
+        
+        // Validation: Ensure active IDs exist
+        const sub = getActiveSubject();
+        if(!sub) {
+            appState.activeSubjectId = appState.subjects[0].id;
+        }
+        
+        // Reset specific selection pointers if invalid
+        const chap = getActiveChapter();
+        if(!chap) {
+             const s = getActiveSubject();
+             if(s.chapters.length > 0) {
+                 appState.activeChapterId = s.chapters[0].id;
+                 if(s.chapters[0].children.length > 0) appState.activeLevel1Id = s.chapters[0].children[0].id;
+             }
+        }
+        
+        saveData(false); // No history record
+        renderSubjectSelector();
+        renderInputView();
+        renderVisualizer();
+    }
+
+    function undo() {
+        if (historyIndex > 0) {
+            isHistoryNavigating = true;
+            historyIndex--;
+            restoreState(historyStack[historyIndex]);
+            isHistoryNavigating = false;
+            updateUndoRedoUI();
+        }
+    }
+
+    function redo() {
+        if (historyIndex < historyStack.length - 1) {
+            isHistoryNavigating = true;
+            historyIndex++;
+            restoreState(historyStack[historyIndex]);
+            isHistoryNavigating = false;
+            updateUndoRedoUI();
+        }
+    }
+
+    function updateUndoRedoUI() {
+        document.getElementById('btn-undo').disabled = historyIndex <= 0;
+        document.getElementById('btn-redo').disabled = historyIndex >= historyStack.length - 1;
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault(); undo();
+        }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+            e.preventDefault(); redo();
+        }
+        
+        // Notes Modal Shortcuts
+        if (document.getElementById('notes-modal').classList.contains('open')) {
+            if (e.key === 'Escape') {
+                closeNotesModal();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                toggleNoteMode();
+            }
+        }
+    });
+
+    // --- Persistence ---
+    function saveData(record = true) {
+        try { 
+            // Save minimal state needed for reload
+            const exportData = {
+                subjects: appState.subjects,
+                activeSubjectId: appState.activeSubjectId
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(exportData)); 
+            if(record) recordState();
+        } catch (e) {}
+    }
+
+    function loadData() {
+        try {
+            let data = null;
+
+            if (embeddedData && typeof embeddedData === 'object') {
+                data = embeddedData; // From baked HTML file
+            } else {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) data = JSON.parse(saved);
+            }
+
+            if (data) {
+                // New format
+                appState.subjects = data.subjects || [JSON.parse(JSON.stringify(defaultExample))];
+                appState.activeSubjectId = data.activeSubjectId || appState.subjects[0].id;
+            }
+            
+            // Initialization
+            const sub = getActiveSubject();
+            if (sub.chapters.length > 0) {
+                appState.activeChapterId = sub.chapters[0].id;
+                if (sub.chapters[0].children.length > 0) {
+                    appState.activeLevel1Id = sub.chapters[0].children[0].id;
+                } else {
+                    appState.activeLevel1Id = null;
+                }
+            } else {
+                appState.activeChapterId = null;
+                appState.activeLevel1Id = null;
+            }
+
+            // === FIX: INITIAL RENDERING AND COLLAPSED STATE ===
+            renderSubjectSelector();
+            renderInputView(); // Ensure input view is rendered immediately
+
+            // Start in "Collapse All" mode (Nodes are closed)
+            collapseAll(); // Populate expandedNodes set with all IDs to collapse them
+            isTreeFullyExpanded = false;
+
+            // Ensure Toggle Button reflects this initial state
+            const btn = document.getElementById('tree-toggle-btn');
+            const label = document.getElementById('toggle-label-text');
+            if(btn && label) {
+                btn.classList.remove('state-expanded');
+                btn.classList.add('state-collapsed');
+                label.innerText = "Expand All";
+            }
+            
+            // Visualizer is rendered by collapseAll() but ensuring it here is safe
+            renderVisualizer(); 
+
+            recordState();
+
+        } catch (e) { console.error("Load failed", e); }
+    }
+
+    function downloadHTML() {
+        const dataJson = JSON.stringify({
+            subjects: appState.subjects,
+            activeSubjectId: appState.activeSubjectId
+        }, null, 2);
+        
+        document.querySelectorAll('input').forEach(input => input.setAttribute('value', input.value));
+        document.querySelectorAll('textarea').forEach(ta => ta.innerHTML = ta.value);
+
+        let htmlContent = document.documentElement.outerHTML;
+        const markerStart = '/* --- EMBEDDED_DATA_START --- */';
+        const markerEnd = '/* --- EMBEDDED_DATA_END --- */';
+        const newContent = `${markerStart}\n    const embeddedData = ${dataJson};\n    ${markerEnd}`;
+        const regex = /\/\* --- EMBEDDED_DATA_START --- \*\/[\s\S]*?\/\* --- EMBEDDED_DATA_END --- \*\//;
+        const updatedHtml = htmlContent.replace(regex, newContent);
+        
+        const d = new Date();
+        const timestamp = `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}_${String(d.getHours()).padStart(2,'0')}-${String(d.getMinutes()).padStart(2,'0')}`;
+        const rawTitle = document.title;
+        const safeTitle = rawTitle.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_');
+        const filename = `${safeTitle}_${timestamp}.html`;
+
+        const blob = new Blob([updatedHtml], {type: 'text/html'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function resetAllData() {
+        if(confirm("Are you sure? This will erase all your custom data.")) {
+            localStorage.removeItem(STORAGE_KEY);
+            appState.subjects = [JSON.parse(JSON.stringify(defaultExample))];
+            appState.activeSubjectId = appState.subjects[0].id;
+            appState.activeChapterId = 'chap1';
+            appState.activeLevel1Id = 'l1_1';
+            saveData(); 
+            loadData(); // Re-run load data to ensure collapsed state
+        }
+    }
+
+    // --- Subject Management Logic ---
+    function renderSubjectSelector() {
+        const select = document.getElementById('subject-selector');
+        select.innerHTML = '';
+        appState.subjects.forEach(sub => {
+            const opt = document.createElement('option');
+            opt.value = sub.id;
+            opt.innerText = sub.name;
+            if(sub.id === appState.activeSubjectId) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    function switchSubject(id) {
+        appState.activeSubjectId = id;
+        
+        // Reset internal pointers for this subject
+        const sub = getActiveSubject();
+        if(sub.chapters.length > 0) {
+            appState.activeChapterId = sub.chapters[0].id;
+            if(sub.chapters[0].children.length > 0) {
+                appState.activeLevel1Id = sub.chapters[0].children[0].id;
+            } else {
+                appState.activeLevel1Id = null;
+            }
+        } else {
+            appState.activeChapterId = null;
+            appState.activeLevel1Id = null;
+        }
+
+        saveData();
+        renderInputView();
+        
+        // On subject switch, respect current toggle state or reset to collapsed?
+        // Let's reset to collapsed for consistency
+        collapseAll();
+        isTreeFullyExpanded = false;
+        const btn = document.getElementById('tree-toggle-btn');
+        const label = document.getElementById('toggle-label-text');
+        if(btn) {
+             btn.classList.remove('state-expanded');
+             btn.classList.add('state-collapsed');
+             label.innerText = "Expand All";
+        }
+    }
+
+    function openSubjectModal() {
+        document.getElementById('subjects-modal').classList.add('open');
+        renderSubjectList();
+    }
+
+    function closeSubjectModal() {
+        document.getElementById('subjects-modal').classList.remove('open');
+    }
+
+    function renderSubjectList() {
+        const container = document.getElementById('subject-list-container');
+        container.innerHTML = '';
+        
+        appState.subjects.forEach(sub => {
+            const div = document.createElement('div');
+            div.className = `subject-list-item ${sub.id === appState.activeSubjectId ? 'active-sub' : ''}`;
+            
+            div.innerHTML = `
+                <input type="text" class="text-input" style="flex:1; margin-right:10px;" value="${sub.name}" onchange="renameSubject('${sub.id}', this.value)" />
+                <button class="btn-icon" onclick="deleteSubject('${sub.id}')" title="Delete Subject">×</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function createNewSubject() {
+        const input = document.getElementById('new-subject-input');
+        const name = input.value.trim();
+        if(!name) return;
+        
+        const newSub = {
+            id: generateId(),
+            name: name,
+            chapters: []
+        };
+        appState.subjects.push(newSub);
+        input.value = '';
+        
+        saveData();
+        renderSubjectList();
+        renderSubjectSelector();
+    }
+
+    function renameSubject(id, newName) {
+        const sub = appState.subjects.find(s => s.id === id);
+        if(sub) {
+            sub.name = newName;
+            saveData();
+            renderSubjectSelector();
+        }
+    }
+
+    function deleteSubject(id) {
+        if(appState.subjects.length <= 1) {
+            alert("You must have at least one subject.");
+            return;
+        }
+        if(!confirm("Delete this subject and all its chapters?")) return;
+
+        appState.subjects = appState.subjects.filter(s => s.id !== id);
+        
+        // If we deleted the active one, switch to the first available
+        if(appState.activeSubjectId === id) {
+            switchSubject(appState.subjects[0].id);
+        } else {
+            saveData();
+        }
+        
+        renderSubjectList();
+        renderSubjectSelector();
+    }
+
+    // --- Import Feature ---
+    function openImportModal() {
+        document.getElementById('import-modal').classList.add('open');
+        document.getElementById('import-text').focus();
+    }
+    
+    function closeImportModal() {
+        document.getElementById('import-modal').classList.remove('open');
+        document.getElementById('import-text').value = '';
+    }
+
+    function processImport() {
+        const text = document.getElementById('import-text').value;
+        if (!text.trim()) return closeImportModal();
+
+        const currentSubject = getActiveSubject();
+        const newChapters = [];
+
+        const lines = text.split('\n');
+        let currentChap = null;
+        let currentL1 = null;
+        let currentL2 = null;
+        
+        lines.forEach(line => {
+            if (!line.trim()) return;
+
+            const match = line.match(/^(\s*)/);
+            const indentStr = match ? match[0] : '';
+            let spaceCount = 0;
+            for(let c of indentStr) {
+                if (c === '\t') spaceCount += 2;
+                else if (c === ' ') spaceCount += 1;
+            }
+
+            const title = line.trim();
+            const id = generateId();
+
+            if (spaceCount < 2) {
+                currentChap = { id, title, desc: '', children: [] };
+                newChapters.push(currentChap);
+                currentL1 = null; 
+                currentL2 = null;
+            } else if (spaceCount < 4) {
+                if (currentChap) {
+                    currentL1 = { id, title, desc: '', children: [] };
+                    currentChap.children.push(currentL1);
+                    currentL2 = null;
+                }
+            } else if (spaceCount < 6) {
+                if (currentL1) {
+                    currentL2 = { id, title, desc: '', children: [] };
+                    currentL1.children.push(currentL2);
+                }
+            } else {
+                if (currentL2) {
+                    const l3 = { id, title, desc: '', children: [] };
+                    currentL2.children.push(l3);
+                }
+            }
+        });
+
+        // Append new chapters to current subject
+        currentSubject.chapters = [...currentSubject.chapters, ...newChapters];
+
+        saveData(); 
+        
+        // Auto select newly imported
+        if (newChapters.length > 0) {
+            appState.activeChapterId = newChapters[0].id;
+            if(newChapters[0].children.length > 0) appState.activeLevel1Id = newChapters[0].children[0].id;
+        }
+
+        renderInputView();
+        
+        // Update visualizer state
+        collapseAll();
+        isTreeFullyExpanded = false;
+        const btn = document.getElementById('tree-toggle-btn');
+        const label = document.getElementById('toggle-label-text');
+        if(btn) {
+             btn.classList.remove('state-expanded');
+             btn.classList.add('state-collapsed');
+             label.innerText = "Expand All";
+        }
+        
+        closeImportModal();
+        alert('Import successful!');
+    }
+
+    // --- Notes Feature ---
+    function openNotesModal(e, id) {
+        if (e && e.stopPropagation) e.stopPropagation(); 
+        currentNoteNodeId = id;
+        const sub = getActiveSubject();
+        const nodeData = findNodePath(sub.chapters, id);
+        
+        if(nodeData && nodeData.node) {
+            const content = nodeData.node.notes || '';
+            const textarea = document.getElementById('note-content');
+            textarea.value = content;
+            
+            if(content.trim().length > 0) {
+                setNoteMode('VIEW');
+            } else {
+                setNoteMode('EDIT');
+            }
+
+            document.getElementById('notes-modal').classList.add('open');
+        }
+    }
+
+    function toggleNoteMode() {
+        if (isNoteEditMode) {
+            saveNotes(); 
+        } else {
+            setNoteMode('EDIT');
+        }
+    }
+
+    function setNoteMode(mode) {
+        const textarea = document.getElementById('note-content');
+        const preview = document.getElementById('note-preview');
+        const badge = document.getElementById('note-mode-badge');
+        const btn = document.getElementById('btn-note-action');
+
+        if (mode === 'EDIT') {
+            isNoteEditMode = true;
+            
+            // Switch Panes
+            textarea.classList.remove('hidden-pane');
+            textarea.classList.add('active-pane');
+            preview.classList.remove('active-pane');
+            preview.classList.add('hidden-pane');
+            
+            // Update Badge
+            badge.innerText = 'EDIT MODE';
+            badge.className = 'mode-badge badge-edit';
+            badge.style.backgroundColor = '#eff6ff';
+            badge.style.color = '#1d4ed8';
+            badge.style.borderColor = '#3b82f6';
+            
+            // --- UPDATED BUTTON FOR SAVE STATE ---
+            btn.innerHTML = '✅';
+            btn.title = "Save Changes";
+            
+            textarea.focus();
+        } else {
+            isNoteEditMode = false;
+            
+            // Render Preview
+            const content = textarea.value;
+            if (typeof marked !== 'undefined') {
+                preview.innerHTML = marked.parse(content || '*No content*');
+            } else {
+                preview.innerHTML = `<p>${content || '<em>No content</em>'}</p>`;
+            }
+
+            // Switch Panes
+            preview.classList.remove('hidden-pane');
+            preview.classList.add('active-pane');
+            textarea.classList.remove('active-pane');
+            textarea.classList.add('hidden-pane');
+
+            // Update Badge
+            badge.innerText = 'VIEW MODE';
+            badge.className = 'mode-badge badge-view';
+            badge.style.backgroundColor = '#ecfdf5';
+            badge.style.color = '#059669';
+            badge.style.borderColor = '#10b981';
+
+            // --- UPDATED BUTTON FOR EDIT STATE ---
+            btn.innerHTML = '🖊️';
+            btn.title = "Edit Note";
+        }
+    }
+
+    function closeNotesModal() {
+        document.getElementById('notes-modal').classList.remove('open');
+        currentNoteNodeId = null;
+    }
+
+    function saveNotes() {
+        if(!currentNoteNodeId) return;
+        const val = document.getElementById('note-content').value;
+        const sub = getActiveSubject();
+        const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+        if(nodeData && nodeData.node) {
+            nodeData.node.notes = val;
+            saveData(); 
+            renderVisualizer(); // Re-render to show bulb if logic changed
+            setNoteMode('VIEW'); 
+        }
+    }
+
+    function deleteCurrentNote() {
+        if (!currentNoteNodeId) return;
+        const sub = getActiveSubject();
+        const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+        
+        if (nodeData && nodeData.node) {
+            nodeData.node.notes = "";
+            document.getElementById('note-content').value = "";
+            document.getElementById('note-preview').innerHTML = "";
+            saveData();
+            renderVisualizer();
+            setNoteMode('EDIT');
+        }
+    }
+
+    // --- Drag Handlers (Input View) ---
+    function handleDragStart(e, index, type) {
+        dragSrcIndex = index;
+        dragType = type;
+        e.dataTransfer.effectAllowed = 'move';
+        e.target.closest('.draggable-item').classList.add('dragging');
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDragEnter(e) {
+        e.target.closest('.draggable-item')?.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+        e.target.closest('.draggable-item')?.classList.remove('drag-over');
+    }
+
+    function handleDrop(e, index, type) {
+        e.stopPropagation();
+        const item = e.target.closest('.draggable-item');
+        if (item) item.classList.remove('drag-over', 'dragging');
+
+        if (dragSrcIndex === null || dragType !== type || dragSrcIndex === index) return false;
+
+        const sub = getActiveSubject();
+
+        if (type === 'chapter') {
+            const items = [...sub.chapters];
+            const [moved] = items.splice(dragSrcIndex, 1);
+            items.splice(index, 0, moved);
+            sub.chapters = items;
+            saveData();
+            renderChaptersList();
+        } else if (type === 'level1') {
+            const chap = getActiveChapter();
+            if (chap) {
+                const items = [...chap.children];
+                const [moved] = items.splice(dragSrcIndex, 1);
+                items.splice(index, 0, moved);
+                chap.children = items;
+                saveData();
+                renderLevel1List();
+            }
+        }
+        return false;
+    }
+
+    function handleDragEnd(e) {
+        document.querySelectorAll('.draggable-item').forEach(el => el.classList.remove('dragging', 'drag-over'));
+        dragSrcIndex = null;
+        dragType = null;
+    }
+
+    // --- Tool Drag Logic (Note & Add) ---
+    const noteTool = document.getElementById('draggable-note-tool');
+    const addTool = document.getElementById('draggable-add-tool');
+
+    noteTool.addEventListener('dragstart', (e) => {
+        isDraggingNoteTool = true;
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('text/plain', 'note-tool');
+    });
+    
+    addTool.addEventListener('dragstart', (e) => {
+        isDraggingAddTool = true;
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('text/plain', 'add-tool');
+    });
+    
+    const toolDragEnd = (e) => {
+        isDraggingNoteTool = false;
+        isDraggingAddTool = false;
+        document.querySelectorAll('.node.note-drag-target').forEach(el => el.classList.remove('note-drag-target'));
+        document.querySelectorAll('.node.add-drag-target').forEach(el => el.classList.remove('add-drag-target'));
+    };
+
+    noteTool.addEventListener('dragend', toolDragEnd);
+    addTool.addEventListener('dragend', toolDragEnd);
+
+
+    // --- Drag Handlers (Visualization View) ---
+    function handleVisDragStart(e, id) {
+        if(isDraggingNoteTool || isDraggingAddTool || isSelectionMode) {
+             e.preventDefault(); 
+             return; 
+        }
+        e.stopPropagation();
+        visDragId = id;
+        e.target.classList.add('dragging-vis');
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleVisDragOver(e, id) {
+        e.preventDefault();
+        e.stopPropagation();
+        const targetNode = e.currentTarget;
+
+        if(isDraggingNoteTool) {
+            e.dataTransfer.dropEffect = 'copy';
+            targetNode.classList.add('note-drag-target');
+            return;
+        }
+
+        if(isDraggingAddTool) {
+            e.dataTransfer.dropEffect = 'copy';
+            targetNode.classList.add('add-drag-target');
+            return;
+        }
+
+        if(visDragId === id) return; 
+        targetNode.classList.add('drag-target');
+    }
+
+    function handleVisDragLeave(e) {
+        const targetNode = e.currentTarget;
+        targetNode.classList.remove('drag-target');
+        targetNode.classList.remove('note-drag-target');
+        targetNode.classList.remove('add-drag-target');
+    }
+
+    function handleVisDrop(e, targetId) {
+        e.stopPropagation();
+        e.currentTarget.classList.remove('drag-target');
+        e.currentTarget.classList.remove('note-drag-target');
+        e.currentTarget.classList.remove('add-drag-target');
+        
+        if(isDraggingNoteTool) {
+            isDraggingNoteTool = false;
+            openNotesModal(e, targetId);
+            return;
+        }
+
+        if(isDraggingAddTool) {
+            isDraggingAddTool = false;
+            addNewChildNode(targetId);
+            return;
+        }
+
+        const srcId = visDragId;
+        visDragId = null;
+        document.querySelector('.dragging-vis')?.classList.remove('dragging-vis');
+        
+        if(!srcId || srcId === targetId) return;
+
+        moveNode(srcId, targetId);
+    }
+
+    // --- ADD CHILD VIA DRAG LOGIC ---
+    function addNewChildNode(parentId) {
+        const sub = getActiveSubject();
+        const parentInfo = findNodePath(sub.chapters, parentId);
+        
+        if(!parentInfo) return; // Should not happen
+
+        const parentNode = parentInfo.node;
+        const parentDepth = parentInfo.path.length; // 0=Chapter, 1=Level1, 2=Level2
+        
+        // Determine what to add based on parent depth
+        let newNode = null;
+        let newActiveLevel1Id = null;
+        let newActiveChapterId = appState.activeChapterId; // Default to current
+
+        if (parentDepth === 0) {
+            // Parent is Chapter -> Add Level 1
+            const count = parentNode.children.length + 1;
+            newNode = { id: generateId(), title: `${count}. New Tab`, desc: '', children: [] };
+            parentNode.children.push(newNode);
+            
+            // Set pointers for navigation
+            newActiveChapterId = parentNode.id;
+            newActiveLevel1Id = newNode.id;
+
+        } else if (parentDepth === 1) {
+            // Parent is Level 1 -> Add Level 2 (Topic)
+            const count = parentNode.children.length + 1;
+            newNode = { id: generateId(), title: `${count}. Topic`, desc: '', children: [] };
+            parentNode.children.push(newNode);
+            
+            // Pointers
+            newActiveChapterId = parentInfo.path[0]; // Chapter ID
+            newActiveLevel1Id = parentNode.id; // Level 1 ID
+
+        } else if (parentDepth === 2) {
+             // Parent is Level 2 -> Add Level 3 (Detail)
+            const count = parentNode.children.length + 1;
+            newNode = { id: generateId(), title: `${count}. Detail`, desc: '', children: [] };
+            parentNode.children.push(newNode);
+            
+            // Pointers
+            newActiveChapterId = parentInfo.path[0];
+            newActiveLevel1Id = parentInfo.path[1];
+        } else {
+            alert("Max depth reached. Cannot add children to Level 3.");
+            return;
+        }
+
+        // Expand parent to show new node
+        appState.expandedNodes.delete(parentId);
+
+        saveData();
+        
+        // Navigation Logic
+        appState.activeChapterId = newActiveChapterId;
+        appState.activeLevel1Id = newActiveLevel1Id;
+        
+        // Prepare to focus
+        pendingFocusNodeId = newNode.id;
+
+        // Switch to Data Entry
+        switchView('input');
+    }
+    
+    function findNodePath(arr, id, path = []) {
+        for(let i=0; i<arr.length; i++) {
+            if(arr[i].id === id) return { node: arr[i], parentArr: arr, index: i, path };
+            if(arr[i].children) {
+                const result = findNodePath(arr[i].children, id, [...path, arr[i].id]);
+                if(result) return result;
+            }
+        }
+        return null;
+    }
+
+    function moveNode(srcId, targetId) {
+        const sub = getActiveSubject();
+        const srcInfo = findNodePath(sub.chapters, srcId);
+        if(!srcInfo) return; 
+        const targetInfo = findNodePath(sub.chapters, targetId);
+        if(!targetInfo) return; 
+
+        if(targetInfo.path.includes(srcId)) {
+            alert("Cannot move a node into its own child.");
+            return;
+        }
+
+        const [movedNode] = srcInfo.parentArr.splice(srcInfo.index, 1);
+        if(!targetInfo.node.children) targetInfo.node.children = [];
+        targetInfo.node.children.push(movedNode);
+
+        appState.expandedNodes.delete(targetId);
+
+        saveData(); 
+        renderVisualizer();
+        renderInputView(); 
+    }
+
+
+    // --- Renderers ---
+    function renderInputView() {
+        renderChaptersList();
+        renderLevel1List();
+        renderEditor();
+    }
+
+    function renderChaptersList() {
+        const container = document.getElementById('chapters-list');
+        container.innerHTML = '';
+        const sub = getActiveSubject();
+        
+        if(!sub) return;
+
+        sub.chapters.forEach((chap, index) => {
+            const div = document.createElement('div');
+            div.className = `chapter-item draggable-item ${chap.id === appState.activeChapterId ? 'active' : ''}`;
+            div.draggable = true;
+            
+            // Drag Events
+            div.ondragstart = (e) => handleDragStart(e, index, 'chapter');
+            div.ondragover = handleDragOver;
+            div.ondragenter = handleDragEnter;
+            div.ondragleave = handleDragLeave;
+            div.ondrop = (e) => handleDrop(e, index, 'chapter');
+            div.ondragend = handleDragEnd;
+
+            // Content
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; flex:1;">
+                    <span class="drag-handle">⋮⋮</span>
+                    <span class="title-span" style="flex:1;">${chap.title || 'Untitled'}</span>
+                </div>
+                <button class="btn-icon">×</button>
+            `;
+
+            const titleSpan = div.querySelector('.title-span');
+            titleSpan.title = "Double-click to rename";
+            titleSpan.ondblclick = (e) => enableInlineEdit(e, chap.id, 'chapter');
+            
+            const btn = div.querySelector('.btn-icon');
+            btn.onclick = (e) => deleteChapter(chap.id, e);
+
+            div.onclick = (e) => {
+                if(e.target.tagName === 'INPUT') return;
+                appState.activeChapterId = chap.id;
+                if (chap.children.length > 0) appState.activeLevel1Id = chap.children[0].id;
+                else appState.activeLevel1Id = null;
+                renderInputView();
+            };
+            container.appendChild(div);
+        });
+    }
+
+    function renderLevel1List() {
+        const container = document.getElementById('level1-list');
+        container.innerHTML = '';
+        
+        const chap = getActiveChapter();
+        if (!chap) { container.innerHTML = '<div class="empty-msg">No Chapter Selected</div>'; return; }
+        if (chap.children.length === 0) { container.innerHTML = '<div class="empty-msg">No Level 1 Tabs. Click + to add.</div>'; return; }
+
+        chap.children.forEach((l1, index) => {
+            const div = document.createElement('div');
+            div.className = `level1-item draggable-item ${l1.id === appState.activeLevel1Id ? 'active' : ''}`;
+            div.draggable = true;
+
+            // Drag Events
+            div.ondragstart = (e) => handleDragStart(e, index, 'level1');
+            div.ondragover = handleDragOver;
+            div.ondragenter = handleDragEnter;
+            div.ondragleave = handleDragLeave;
+            div.ondrop = (e) => handleDrop(e, index, 'level1');
+            div.ondragend = handleDragEnd;
+
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; flex:1;">
+                    <span class="drag-handle">⋮⋮</span>
+                    <span class="title-span" style="flex:1;">${l1.title || 'Untitled'}</span>
+                </div>
+                <button class="btn-icon">×</button>
+            `;
+
+            const titleSpan = div.querySelector('.title-span');
+            titleSpan.title = "Double-click to rename";
+            titleSpan.ondblclick = (e) => enableInlineEdit(e, l1.id, 'level1');
+
+            const btn = div.querySelector('.btn-icon');
+            btn.onclick = (e) => deleteLevel1(l1.id, e);
+
+            div.onclick = (e) => {
+                if(e.target.tagName === 'INPUT') return;
+                appState.activeLevel1Id = l1.id;
+                renderInputView();
+            };
+            container.appendChild(div);
+        });
+    }
+    
+    function enableInlineEdit(event, id, type) {
+        event.stopPropagation();
+        const span = event.target;
+        const currentText = span.innerText;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentText;
+        input.className = 'inline-edit-input';
+        input.setAttribute('autocomplete', 'off');
+        span.replaceWith(input);
+        input.focus();
+        input.select(); 
+        const save = () => {
+            const newVal = input.value.trim() || currentText;
+            if (type === 'chapter') {
+                const sub = getActiveSubject();
+                const node = sub.chapters.find(c => c.id === id);
+                if(node) node.title = newVal;
+                saveData(); renderChaptersList();
+                if(appState.activeChapterId === id) renderEditor(); 
+            } else if (type === 'level1') {
+                const chap = getActiveChapter();
+                const node = chap.children.find(l => l.id === id);
+                if(node) node.title = newVal;
+                saveData(); renderLevel1List();
+                if(appState.activeLevel1Id === id) renderEditor();
+            }
+        };
+        input.onblur = save;
+        input.onkeydown = (e) => { if(e.key === 'Enter') input.blur(); };
+        input.onclick = (e) => e.stopPropagation();
+    }
+
+    function renderEditor() {
+        const container = document.getElementById('editor-area');
+        const status = document.getElementById('editor-status');
+        const chap = getActiveChapter();
+        if(!chap) { container.innerHTML = ''; status.innerText = ''; return; }
+        const l1 = getActiveLevel1();
+        
+        let html = `
+            <div class="section-card" style="background:#f8fafc; border-color:#e2e8f0;">
+                <div class="input-group" style="margin-bottom:0;">
+                    <label class="input-label">Chapter Title</label>
+                    <input class="text-input chapter-input" data-node-id="${chap.id}" autocomplete="off" type="text" value="${chap.title}" onchange="updateChapterTitle(this.value)" placeholder="Chapter Name">
+                </div>
+            </div>
+        `;
+        if (!l1) { html += '<div class="empty-msg">Select or create a Level 1 tab to edit its content.</div>'; container.innerHTML = html; status.innerText = 'Editing Chapter Settings'; return; }
+        status.innerText = `Editing: ${l1.title}`;
+
+        html += `
+            <div class="section-card">
+                <div class="input-group">
+                    <label class="input-label">Level 1 Title</label>
+                    <input class="text-input level-1-input" data-node-id="${l1.id}" autocomplete="off" type="text" value="${l1.title}" onchange="updateLevel1Title(this.value)">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Description</label>
+                    <input class="text-input desc-input" autocomplete="off" type="text" value="${l1.desc || ''}" onchange="updateLevel1Desc(this.value)">
+                </div>
+                <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid #eee;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+                        <span class="input-label" style="margin:0;">Level 2 Items</span>
+                        <button class="btn-add orange" onclick="addLevel2()">+ Add Level 2</button>
+                    </div>
+                    <div id="l2-container"></div>
+                </div>
+            </div>
+        `;
+        container.innerHTML = html;
+        const l2Container = document.getElementById('l2-container');
+        l1.children.forEach(l2 => {
+            const blk = document.createElement('div');
+            blk.className = 'level2-block';
+            let l3Html = '';
+            l2.children.forEach(l3 => {
+                l3Html += `
+                    <div class="level3-row">
+                        <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                            <input class="text-input level-3-input" data-node-id="${l3.id}" autocomplete="off" style="padding:0.4rem; font-size:0.9rem;" value="${l3.title}" onchange="updateNodeTitle('${l3.id}', this.value)" placeholder="Level 3 Title">
+                            <input class="text-input desc-input" autocomplete="off" style="padding:0.3rem; font-size:0.8rem;" value="${l3.desc || ''}" onchange="updateNodeDesc('${l3.id}', this.value)" placeholder="Description (Optional)">
+                        </div>
+                        <button class="btn-icon" onclick="deleteNode('${l3.id}', '${l2.id}')">×</button>
+                    </div>
+                `;
+            });
+            blk.innerHTML = `
+                <div class="level2-header">
+                    <div class="level2-title-row">
+                        <input class="text-input level-2-input" data-node-id="${l2.id}" autocomplete="off" value="${l2.title}" onchange="updateNodeTitle('${l2.id}', this.value)" placeholder="Level 2 Title">
+                        <button class="btn-icon" onclick="deleteNode('${l2.id}', '${l1.id}')">×</button>
+                    </div>
+                    <input class="text-input desc-input" autocomplete="off" value="${l2.desc || ''}" onchange="updateNodeDesc('${l2.id}', this.value)" placeholder="Level 2 Description (Optional)">
+                </div>
+                <div class="level3-list">
+                    ${l3Html}
+                    <button class="btn-add orange" style="background:#e0f2f1; color:#059669; margin-top:0.5rem;" onclick="addLevel3('${l2.id}')">+ L3</button>
+                </div>
+            `;
+            l2Container.appendChild(blk);
+        });
+    }
+
+    function addChapter() {
+        const sub = getActiveSubject();
+        const id = generateId();
+        const nextNum = sub.chapters.length + 1;
+        const newTitle = `Chapter ${nextNum}`;
+        sub.chapters.push({ id, title: newTitle, desc:'', children: [] });
+        appState.activeChapterId = id;
+        appState.activeLevel1Id = null;
+        saveData(); renderInputView();
+    }
+    function deleteChapter(id, e) {
+        e.stopPropagation();
+        if(!confirm('Delete this chapter?')) return;
+        const sub = getActiveSubject();
+        sub.chapters = sub.chapters.filter(c => c.id !== id);
+        if(appState.activeChapterId === id) {
+            appState.activeChapterId = sub.chapters.length > 0 ? sub.chapters[0].id : null;
+            appState.activeLevel1Id = null;
+        }
+        saveData(); renderInputView();
+    }
+    function updateChapterTitle(val) { const c = getActiveChapter(); if(c) { c.title = val; saveData(); renderChaptersList(); } }
+    function addLevel1() {
+        const c = getActiveChapter();
+        if(!c) return alert("Select a chapter first");
+        const id = generateId();
+        const nextNum = c.children.length + 1;
+        const newTitle = `${nextNum}. New Tab`;
+        c.children.push({ id, title: newTitle, desc:'', children:[] });
+        appState.activeLevel1Id = id;
+        saveData(); renderInputView();
+    }
+    function deleteLevel1(id, e) {
+        e.stopPropagation();
+        const c = getActiveChapter();
+        c.children = c.children.filter(l => l.id !== id);
+        if (appState.activeLevel1Id === id) appState.activeLevel1Id = null;
+        saveData(); renderInputView();
+    }
+    function updateLevel1Title(val) { const l1 = getActiveLevel1(); if(l1) { l1.title = val; saveData(); renderLevel1List(); } }
+    function updateLevel1Desc(val) { const l1 = getActiveLevel1(); if(l1) { l1.desc = val; saveData(); } }
+    function addLevel2() {
+        const l1 = getActiveLevel1();
+        const nextNum = l1.children.length + 1;
+        const newTitle = `${nextNum}. Topic`;
+        l1.children.push({ id: generateId(), title: newTitle, desc:'', children: [] });
+        saveData(); renderEditor();
+    }
+    function addLevel3(parentId) {
+        const l1 = getActiveLevel1();
+        const l2 = l1.children.find(n => n.id === parentId);
+        if(l2) {
+            const nextNum = l2.children.length + 1;
+            const newTitle = `${nextNum}. Detail`;
+            l2.children.push({ id: generateId(), title: newTitle, desc:'', children: [] });
+            saveData(); renderEditor();
+        }
+    }
+    function updateNodeTitle(id, val) {
+        const l1 = getActiveLevel1();
+        let n = l1.children.find(x => x.id === id);
+        if(n) { n.title = val; saveData(); return; }
+        l1.children.forEach(l2 => {
+            let l3 = l2.children.find(x => x.id === id);
+            if(l3) { l3.title = val; saveData(); }
+        });
+    }
+    function updateNodeDesc(id, val) {
+        const l1 = getActiveLevel1();
+        let n = l1.children.find(x => x.id === id);
+        if(n) { n.desc = val; saveData(); return; }
+        l1.children.forEach(l2 => {
+            let l3 = l2.children.find(x => x.id === id);
+            if(l3) { l3.desc = val; saveData(); }
+        });
+    }
+    function deleteNode(id, parentId) {
+        const l1 = getActiveLevel1();
+        if (l1.id === parentId) { l1.children = l1.children.filter(x => x.id !== id); }
+        else { const l2 = l1.children.find(x => x.id === parentId); if(l2) { l2.children = l2.children.filter(x => x.id !== id); } }
+        saveData(); renderEditor();
+    }
+
+    // --- Visualization & Collapse Logic ---
+    function switchView(view) {
+        document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active-view'));
+        document.querySelectorAll('.nav-tab').forEach(e => e.classList.remove('active'));
+        if(view === 'input') {
+            document.getElementById('input-view').classList.add('active-view');
+            document.querySelectorAll('.nav-tab')[0].classList.add('active');
+            renderInputView();
+            
+            // Check for pending focus from drag-add
+            if(pendingFocusNodeId) {
+                setTimeout(() => {
+                    const input = document.querySelector(`input[data-node-id="${pendingFocusNodeId}"]`);
+                    if(input) { input.focus(); input.select(); }
+                    pendingFocusNodeId = null;
+                }, 100);
+            }
+        } else {
+            document.getElementById('result-view').classList.add('active-view');
+            document.querySelectorAll('.nav-tab')[1].classList.add('active');
+            renderVisualizer();
+        }
+    }
+
+    // ZOOM LOGIC
+    function zoomIn() {
+        zoomLevel += 0.1;
+        applyZoom();
+    }
+    function zoomOut() {
+        if(zoomLevel > 0.2) zoomLevel -= 0.1;
+        applyZoom();
+    }
+    function resetZoom() {
+        zoomLevel = 1;
+        applyZoom();
+    }
+    function applyZoom() {
+        // Use standard 'zoom' property for better scroll handling in WebKit/Blink
+        document.getElementById('result-container').style.zoom = zoomLevel;
+    }
+
+    // TOGGLE TREE
+    function toggleTreeState() {
+        const btn = document.getElementById('tree-toggle-btn');
+        const label = document.getElementById('toggle-label-text');
+        
+        if (isTreeFullyExpanded) {
+            collapseAll();
+            isTreeFullyExpanded = false;
+            
+            btn.classList.remove('state-expanded');
+            btn.classList.add('state-collapsed');
+            label.innerText = "Expand All";
+        } else {
+            expandAll();
+            isTreeFullyExpanded = true;
+            
+            btn.classList.remove('state-collapsed');
+            btn.classList.add('state-expanded');
+            label.innerText = "Collapse All";
+        }
+    }
+
+    function expandAll() { 
+        appState.expandedNodes.clear(); 
+        renderVisualizer(); 
+    }
+    
+    function collapseAll() { 
+        const allIds = []; 
+        const sub = getActiveSubject();
+        sub.chapters.forEach(chap => collectIds(chap, allIds)); 
+        allIds.forEach(id => appState.expandedNodes.add(id)); 
+        renderVisualizer(); 
+    }
+    
+    function collapseRecursive(node) {
+        appState.expandedNodes.add(node.id);
+        if (node.children) node.children.forEach(child => collapseRecursive(child));
+    }
+    function collectIds(node, list) {
+        if(node.children && node.children.length > 0) { list.push(node.id); node.children.forEach(child => collectIds(child, list)); }
+    }
+
+    // --- SELECTION & MULTI-DELETE ---
+    function toggleSelectionMode() {
+        isSelectionMode = !isSelectionMode;
+        const btn = document.getElementById('select-mode-btn');
+        const delWrapper = document.getElementById('delete-selected-wrapper');
+        
+        if(isSelectionMode) {
+            btn.classList.add('selection-mode-active');
+            delWrapper.style.display = 'block';
+        } else {
+            btn.classList.remove('selection-mode-active');
+            delWrapper.style.display = 'none';
+            selectedNodeIds.clear(); // Clear selection when exiting mode
+        }
+        renderVisualizer();
+    }
+
+    function handleNodeClick(e, node) {
+        e.stopPropagation(); // Stop bubble
+
+        if(isSelectionMode) {
+            if(selectedNodeIds.has(node.id)) {
+                selectedNodeIds.delete(node.id);
+            } else {
+                selectedNodeIds.add(node.id);
+            }
+            renderVisualizer();
+            return;
+        }
+
+        // Standard behavior: Toggle Collapse
+        if (node.children && node.children.length > 0) {
+            if(appState.expandedNodes.has(node.id)) { appState.expandedNodes.delete(node.id); } 
+            else { collapseRecursive(node); } 
+            renderVisualizer(); 
+        }
+    }
+
+    function deleteSelectedNodes() {
+        if(selectedNodeIds.size === 0) return alert("No nodes selected.");
+        if(!confirm(`Delete ${selectedNodeIds.size} selected items? (Children included)`)) return;
+
+        const sub = getActiveSubject();
+        
+        // Recursive Filter Function
+        const filterNodes = (nodes) => {
+            return nodes.filter(node => {
+                // If this node is selected for deletion, remove it (filter out)
+                if(selectedNodeIds.has(node.id)) return false;
+                
+                // Otherwise, keep it, but check its children
+                if(node.children) {
+                    node.children = filterNodes(node.children);
+                }
+                return true;
+            });
+        };
+
+        sub.chapters = filterNodes(sub.chapters);
+        
+        // Cleanup selection
+        selectedNodeIds.clear();
+        isSelectionMode = false;
+        document.getElementById('select-mode-btn').classList.remove('selection-mode-active');
+        document.getElementById('delete-selected-wrapper').style.display = 'none';
+
+        saveData();
+        renderVisualizer();
+        renderInputView(); // Update input view as well
+    }
+    
+    function renderVisualizer() {
+        const container = document.getElementById('result-container');
+        container.innerHTML = '';
+        const sub = getActiveSubject();
+        
+        sub.chapters.forEach(chap => {
+            const treeRoot = document.createElement('div');
+            treeRoot.className = 'tree-ltr';
+            treeRoot.appendChild(buildTreeHTML(chap, 0));
+            container.appendChild(treeRoot);
+        });
+    }
+    
+    function buildTreeHTML(node, level) {
+        const li = document.createElement('li');
+        const card = document.createElement('div');
+        const hasChildren = node.children && node.children.length > 0;
+        const isCollapsed = appState.expandedNodes.has(node.id); 
+        
+        // Selection State
+        const isSelected = selectedNodeIds.has(node.id);
+
+        card.className = `node level-${Math.min(level, 3)} ${isCollapsed ? 'collapsed' : ''} ${isSelected ? 'node-selected' : ''}`;
+        
+        // Notes Logic
+        const hasNotes = node.notes && node.notes.trim().length > 0;
+        const bulbClass = hasNotes ? 'bulb-btn has-notes' : 'bulb-btn';
+        const bulb = `<button class="${bulbClass}" onclick="openNotesModal(event, '${node.id}')" title="View/Edit Notes">✦</button>`;
+
+        card.innerHTML = `<h4>${node.title || 'Untitled'}</h4>${node.desc ? `<p>${node.desc}</p>` : ''}${hasChildren ? `<span class="expander">${isCollapsed ? '+' : '-'}</span>` : ''}${bulb}`;
+        
+        // Add Drag Attributes (Disable dragging if in Selection Mode to avoid conflict)
+        if(!isSelectionMode) {
+            card.draggable = true;
+            card.ondragstart = (e) => handleVisDragStart(e, node.id);
+            card.ondragover = (e) => handleVisDragOver(e, node.id);
+            card.ondragleave = (e) => handleVisDragLeave(e);
+            card.ondrop = (e) => handleVisDrop(e, node.id);
+        }
+
+        // Click Handler (Toggle or Select)
+        card.onclick = (e) => handleNodeClick(e, node);
+
+        li.appendChild(card);
+        if (hasChildren && !appState.expandedNodes.has(node.id)) {
+            const ul = document.createElement('ul');
+            node.children.forEach(child => { ul.appendChild(buildTreeHTML(child, level + 1)); });
+            li.appendChild(ul);
+        }
+        if (level === 0) { const rootUl = document.createElement('ul'); rootUl.style.paddingLeft = '0'; rootUl.appendChild(li); return rootUl; }
+        return li;
+    }
+
+    loadData();
+
+    // --- SECURITY: WIPE ON CLOSE ---
+    window.addEventListener('beforeunload', (e) => {
+        e.preventDefault();
+        e.returnValue = ''; 
+    });
+
+    window.addEventListener('pagehide', () => {
+        localStorage.removeItem(STORAGE_KEY);
+    });
+
+</script>
+</body>
+</html>
