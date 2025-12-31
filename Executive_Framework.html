@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Framework Canvas (Expanded)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Icon Component Helper ---
+        // This bridges the global 'lucide' object to React components
+        const LucideIcon = ({ name, size = 24, className = "" }) => {
+            const iconData = lucide.icons[name];
+            if (!iconData) return null;
+
+            return (
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={size}
+                    height={size}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className={className}
+                >
+                    {iconData.children.map((child, index) => {
+                        return React.createElement(child[0], {
+                            ...child[1],
+                            key: index
+                        });
+                    })}
+                </svg>
+            );
+        };
+
+        // Define specific icons used in the component
+        const ChevronDown = (props) => <LucideIcon name="chevron-down" {...props} />;
+        const ChevronRight = (props) => <LucideIcon name="chevron-right" {...props} />;
+        const Building2 = (props) => <LucideIcon name="building-2" {...props} />;
+        const Users = (props) => <LucideIcon name="users" {...props} />;
+        const FileText = (props) => <LucideIcon name="file-text" {...props} />;
+        const Scale = (props) => <LucideIcon name="scale" {...props} />;
+        const AlertCircle = (props) => <LucideIcon name="alert-circle" {...props} />;
+        const CheckCircle = (props) => <LucideIcon name="check-circle" {...props} />;
+        const Shield = (props) => <LucideIcon name="shield" {...props} />;
+        const Briefcase = (props) => <LucideIcon name="briefcase" {...props} />;
+        const BookOpen = (props) => <LucideIcon name="book-open" {...props} />;
+        const GitBranch = (props) => <LucideIcon name="git-branch" {...props} />;
+
+        // --- Main Component ---
+        const ExecutiveFrameworkCanvas = () => {
+          // MODIFICATION HERE: Initialized state with all IDs set to true
+          const [expandedSections, setExpandedSections] = useState({
+            constitutional: true,
+            nature: true,
+            masterflow: true,
+            unionexec: true,
+            mof: true,
+            dor: true,
+            cbdt: true,
+            itdept: true,
+            cbic: true,
+            state: true,
+            delegation: true,
+            circulars: true,
+            justice: true,
+            checks: true
+          });
+          
+          const [selectedTab, setSelectedTab] = useState('overview');
+
+          const toggleSection = (section) => {
+            setExpandedSections(prev => ({
+              ...prev,
+              [section]: !prev[section]
+            }));
+          };
+
+          const SectionHeader = ({ id, title, icon: Icon, color }) => (
+            <div 
+              onClick={() => toggleSection(id)}
+              className={`flex items-center gap-3 p-4 ${color} rounded-lg cursor-pointer hover:opacity-90 transition-all mb-3 shadow-md select-none transform hover:-translate-y-1`}
+            >
+              <div className="bg-white/20 p-2 rounded-full">
+                <Icon className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="font-bold text-lg text-white flex-1">{title}</h3>
+              {expandedSections[id] ? 
+                <ChevronDown className="w-5 h-5 text-white" /> : 
+                <ChevronRight className="w-5 h-5 text-white" />
+              }
+            </div>
+          );
+
+          const InfoCard = ({ title, items, color = "bg-white" }) => (
+            <div className={`${color} p-5 rounded-lg shadow-sm border-l-4 ${color.includes('blue') ? 'border-blue-500' : color.includes('green') ? 'border-green-500' : color.includes('purple') ? 'border-purple-500' : color.includes('teal') ? 'border-teal-500' : 'border-gray-500'} hover:shadow-md transition-shadow`}>
+              <h4 className="font-bold text-gray-800 mb-3 text-lg">{title}</h4>
+              <ul className="space-y-2">
+                {items.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1.5">•</span>
+                    <span className="text-gray-700 leading-relaxed">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+
+          const FlowChart = ({ title, items }) => (
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-lg shadow-lg border border-indigo-100">
+              <h4 className="font-bold text-gray-800 mb-6 text-center text-xl border-b border-indigo-200 pb-2">{title}</h4>
+              <div className="flex flex-col items-center gap-3">
+                {items.map((item, idx) => (
+                  <React.Fragment key={idx}>
+                    <div className="bg-white px-6 py-4 rounded-lg shadow-md border-l-4 border-indigo-500 text-center w-full max-w-md transform hover:scale-105 transition-transform duration-200">
+                      <span className="font-semibold text-gray-800">{item}</span>
+                    </div>
+                    {idx < items.length - 1 && (
+                      <div className="text-indigo-400 font-bold text-2xl animate-bounce mt-1">↓</div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+          );
+
+          const ComparisonTable = ({ can, cannot }) => (
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-green-50 p-6 rounded-xl shadow-lg border-t-4 border-green-500">
+                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-green-200">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                  <h4 className="font-bold text-green-800 text-lg">Executive CAN Do</h4>
+                </div>
+                <ul className="space-y-3">
+                  {can.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-3 bg-white/50 p-2 rounded">
+                      <span className="text-green-600 font-bold text-lg">✓</span>
+                      <span className="text-gray-800 font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="bg-red-50 p-6 rounded-xl shadow-lg border-t-4 border-red-500">
+                <div className="flex items-center gap-2 mb-4 pb-2 border-b border-red-200">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
+                  <h4 className="font-bold text-red-800 text-lg">Executive CANNOT Do</h4>
+                </div>
+                <ul className="space-y-3">
+                  {cannot.map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-3 bg-white/50 p-2 rounded">
+                      <span className="text-red-600 font-bold text-lg">✗</span>
+                      <span className="text-gray-800 font-medium">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          );
+
+          const OrganizationChart = ({ title, structure }) => (
+            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-lg shadow-lg border border-blue-100">
+              <h4 className="font-bold text-gray-800 mb-6 text-center text-xl">{title}</h4>
+              <div className="space-y-4">
+                {structure.map((level, idx) => (
+                  <div key={idx} style={{ paddingLeft: `${idx * 24}px` }} className="relative">
+                    {idx > 0 && (
+                        <div className="absolute left-0 top-0 bottom-1/2 w-4 border-l-2 border-b-2 border-blue-300 rounded-bl-lg -ml-2" 
+                             style={{ left: `${(idx * 24) - 12}px` }}></div>
+                    )}
+                    <div className="bg-white px-5 py-3 rounded-lg shadow-sm border-l-4 border-blue-500 inline-block min-w-[200px] hover:shadow-md transition-all">
+                      <span className="font-semibold text-gray-800">{level}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans">
+              <div className="max-w-7xl mx-auto space-y-8">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-700 text-white p-8 md:p-10 rounded-3xl shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-yellow-400 opacity-10 rounded-full -ml-10 -mb-10 blur-2xl"></div>
+                  
+                  <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+                    <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/20">
+                        <Building2 className="w-16 h-16 text-white" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="bg-pink-500/80 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm border border-pink-400">Tax Law Framework</span>
+                      </div>
+                      <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">CATEGORY III</h1>
+                      <p className="text-xl md:text-2xl text-indigo-100 mt-2 font-light">Administrative / Executive Framework</p>
+                    </div>
+                  </div>
+                  
+                  <div className="relative z-10 bg-white/10 backdrop-blur-md p-6 rounded-xl mt-8 border border-white/10 max-w-3xl">
+                    <p className="text-indigo-200 text-sm font-bold uppercase tracking-widest mb-2">Central Question</p>
+                    <p className="text-xl md:text-2xl italic font-medium leading-relaxed">"Who administers, enforces, and operationalizes the tax laws made by the Legislature?"</p>
+                  </div>
+                </div>
+
+                {/* Navigation Tabs */}
+                <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                  {[
+                    { id: 'overview', label: 'Overview', icon: BookOpen },
+                    { id: 'union', label: 'Union Executive', icon: Building2 },
+                    { id: 'cbdt', label: 'CBDT System', icon: Briefcase },
+                    { id: 'cbic', label: 'CBIC System', icon: GitBranch },
+                    { id: 'state', label: 'State Executive', icon: Users },
+                    { id: 'controls', label: 'Controls & Limits', icon: Shield }
+                  ].map(tab => {
+                    const Icon = tab.icon;
+                    const isActive = selectedTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setSelectedTab(tab.id)}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-xl font-medium transition-all duration-200 whitespace-nowrap shadow-sm border ${
+                          isActive 
+                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 border-indigo-600 scale-105' 
+                            : 'bg-white text-slate-600 hover:bg-slate-50 border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-200' : 'text-slate-400'}`} />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Content Area */}
+                <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 min-h-[500px] border border-slate-100">
+                  {selectedTab === 'overview' && (
+                    <div className="space-y-6 animate-fadeIn">
+                      <div className="mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">Executive Power Overview</h2>
+                      </div>
+
+                      <SectionHeader 
+                        id="constitutional" 
+                        title="1. Constitutional Position of Executive" 
+                        icon={Scale}
+                        color="bg-gradient-to-r from-amber-500 to-orange-500"
+                      />
+                      {expandedSections.constitutional && (
+                        <div className="space-y-4 ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <InfoCard 
+                            title="Source of Executive Power"
+                            color="bg-amber-50"
+                            items={[
+                              "Articles 73 & 162 of the Constitution",
+                              "Union executive power → Parliament's legislative field",
+                              "State executive power → State legislative field",
+                              "📌 The Executive CANNOT act beyond the law made by the Legislature"
+                            ]}
+                          />
+                        </div>
+                      )}
+
+                      <SectionHeader 
+                        id="nature" 
+                        title="2. Nature of Administrative/Executive Power" 
+                        icon={AlertCircle}
+                        color="bg-gradient-to-r from-emerald-500 to-teal-500"
+                      />
+                      {expandedSections.nature && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <ComparisonTable 
+                            can={[
+                              "Implement tax laws",
+                              "Issue notices",
+                              "Conduct assessments",
+                              "Collect tax",
+                              "Enforce recovery",
+                              "Frame rules (if delegated)"
+                            ]}
+                            cannot={[
+                              "Create a new tax",
+                              "Override the Act",
+                              "Violate constitutional rights",
+                              "Ignore judicial precedent"
+                            ]}
+                          />
+                          <div className="bg-yellow-50 border-l-8 border-yellow-500 p-5 rounded-r-lg mt-6 shadow-sm">
+                            <p className="font-bold text-yellow-800 text-lg">📌 Core Principle: Executive power is subordinate and bounded.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <SectionHeader 
+                        id="masterflow" 
+                        title="Complete Administrative Flow" 
+                        icon={GitBranch}
+                        color="bg-gradient-to-r from-purple-500 to-pink-500"
+                      />
+                      {expandedSections.masterflow && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <FlowChart 
+                            title="Category III Master Flow"
+                            items={[
+                              "Constitution",
+                              "Legislature (Tax Laws)",
+                              "Executive (MoF → DoR)",
+                              "CBDT / CBIC",
+                              "Tax Officers",
+                              "Assessment & Enforcement"
+                            ]}
+                          />
+                          <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-xl mt-6 shadow-md border border-purple-200">
+                            <p className="text-center text-xl font-bold text-purple-900 italic font-serif">
+                              "The Executive breathes life into tax laws, but only within the limits drawn by the Constitution, Legislature, and Judiciary."
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedTab === 'union' && (
+                    <div className="space-y-6 animate-fadeIn">
+                      <div className="mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">Union Executive Structure</h2>
+                      </div>
+                      <SectionHeader 
+                        id="unionexec" 
+                        title="3. Union Executive Structure" 
+                        icon={Building2}
+                        color="bg-gradient-to-r from-blue-600 to-indigo-600"
+                      />
+                      {expandedSections.unionexec && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <FlowChart 
+                            title="Central Government Structure"
+                            items={[
+                              "President of India",
+                              "Council of Ministers (PM + Cabinet)",
+                              "Ministry of Finance"
+                            ]}
+                          />
+                        </div>
+                      )}
+
+                      <SectionHeader 
+                        id="mof" 
+                        title="4. Ministry of Finance - Administrative Core" 
+                        icon={Briefcase}
+                        color="bg-gradient-to-r from-cyan-600 to-blue-600"
+                      />
+                      {expandedSections.mof && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <InfoCard 
+                            title="6 Departments under Ministry of Finance"
+                            color="bg-cyan-50"
+                            items={[
+                              "1. Department of Economic Affairs",
+                              "2. Department of Expenditure",
+                              "3. Department of Financial Services",
+                              "4. Department of Investment and Public Asset Management (DIPAM)",
+                              "5. Department of Public Enterprises (DPE)",
+                              "6. ⭐ Department of Revenue (DoR) - ONLY this administers taxes"
+                            ]}
+                          />
+                        </div>
+                      )}
+
+                      <SectionHeader 
+                        id="dor" 
+                        title="5. Department of Revenue - Tax Control Authority" 
+                        icon={FileText}
+                        color="bg-gradient-to-r from-teal-600 to-emerald-600"
+                      />
+                      {expandedSections.dor && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <InfoCard 
+                            title="Role of Department of Revenue"
+                            color="bg-teal-50"
+                            items={[
+                              "Policy formulation for taxes",
+                              "Administration of tax laws",
+                              "Supervision of tax boards"
+                            ]}
+                          />
+                          <div className="grid md:grid-cols-2 gap-6 mt-6">
+                            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white p-8 rounded-xl shadow-lg transform hover:scale-[1.02] transition-transform">
+                              <h4 className="font-extrabold text-3xl mb-2 tracking-tight">CBDT</h4>
+                              <p className="text-xl text-blue-100 font-medium">Direct Taxes</p>
+                              <div className="mt-4 text-sm bg-white/20 inline-block px-3 py-1 rounded">Income Tax</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-purple-500 to-pink-600 text-white p-8 rounded-xl shadow-lg transform hover:scale-[1.02] transition-transform">
+                              <h4 className="font-extrabold text-3xl mb-2 tracking-tight">CBIC</h4>
+                              <p className="text-xl text-purple-100 font-medium">Indirect Taxes</p>
+                              <div className="mt-4 text-sm bg-white/20 inline-block px-3 py-1 rounded">GST & Customs</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedTab === 'cbdt' && (
+                    <div className="space-y-6 animate-fadeIn">
+                       <div className="mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">CBDT & Direct Taxes</h2>
+                      </div>
+                      <SectionHeader 
+                        id="cbdt" 
+                        title="6. CBDT - Direct Tax Administration" 
+                        icon={Briefcase}
+                        color="bg-gradient-to-r from-indigo-600 to-blue-600"
+                      />
+                      {expandedSections.cbdt && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <InfoCard 
+                              title="Legal Basis & Nature"
+                              color="bg-indigo-50"
+                              items={[
+                                "Legal Basis: Central Boards of Revenue Act, 1963",
+                                "Nature: Statutory Board",
+                                "Policy + control body",
+                                "Not a court"
+                              ]}
+                            />
+                            <InfoCard 
+                              title="Functions"
+                              color="bg-blue-50"
+                              items={[
+                                "Administers Income-tax Act, 1961",
+                                "Frames Income-tax Rules, 1962",
+                                "Issues Circulars, Instructions, Notifications",
+                                "Controls Income Tax Department"
+                              ]}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <SectionHeader 
+                        id="itdept" 
+                        title="Income Tax Department - Field Formation" 
+                        icon={Users}
+                        color="bg-gradient-to-r from-blue-500 to-cyan-500"
+                      />
+                      {expandedSections.itdept && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <OrganizationChart 
+                              title="Income Tax Department Hierarchy"
+                              structure={[
+                                "CBDT",
+                                "Principal Chief Commissioner",
+                                "Principal Commissioner / Commissioner",
+                                "Joint / Additional Commissioner",
+                                "Deputy / Assistant Commissioner",
+                                "Assessing Officer (AO) - Deepest operational point"
+                              ]}
+                            />
+                            <InfoCard 
+                              title="Functions of IT Department"
+                              color="bg-cyan-50"
+                              items={[
+                                "Assessment of tax liability",
+                                "Reassessment when required",
+                                "Imposing Penalties",
+                                "Recovery of taxes",
+                                "Enforcement actions",
+                                "📌 AO = deepest operational point"
+                              ]}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedTab === 'cbic' && (
+                    <div className="space-y-6 animate-fadeIn">
+                       <div className="mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">CBIC & Indirect Taxes</h2>
+                      </div>
+                      <SectionHeader 
+                        id="cbic" 
+                        title="7. CBIC - Indirect Tax Administration" 
+                        icon={GitBranch}
+                        color="bg-gradient-to-r from-purple-600 to-pink-600"
+                      />
+                      {expandedSections.cbic && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <InfoCard 
+                              title="Legal Basis & Scope"
+                              color="bg-purple-50"
+                              items={[
+                                "Legal Basis: Central Boards of Revenue Act, 1963",
+                                "Scope:",
+                                "  • GST (Central)",
+                                "  • Customs",
+                                "  • Limited Central Excise"
+                              ]}
+                            />
+                            <div className="bg-pink-50 p-6 rounded-lg shadow-md border-l-4 border-pink-500">
+                              <h4 className="font-bold text-gray-800 mb-4 text-lg">Structure</h4>
+                              <div className="space-y-3">
+                                <div className="bg-purple-100 p-4 rounded-lg border-l-4 border-purple-500 flex items-center gap-3">
+                                   <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                                  <p className="font-semibold text-purple-900">GST Formations (CGST)</p>
+                                </div>
+                                <div className="bg-pink-100 p-4 rounded-lg border-l-4 border-pink-500 flex items-center gap-3">
+                                  <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                                  <p className="font-semibold text-pink-900">Customs Formations</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-5 rounded-lg border-l-8 border-purple-600 mt-6 shadow-sm">
+                            <p className="font-bold text-purple-900 text-lg">📌 GST is dual-administered:</p>
+                            <ul className="mt-3 space-y-2 text-gray-800 ml-2">
+                              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-purple-600 rounded-full"></div>CBIC → Central GST</li>
+                              <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-purple-600 rounded-full"></div>State Tax Departments → State GST</li>
+                            </ul>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedTab === 'state' && (
+                    <div className="space-y-6 animate-fadeIn">
+                       <div className="mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">State Executive Power</h2>
+                      </div>
+                      <SectionHeader 
+                        id="state" 
+                        title="8. State Executive - Tax Administration" 
+                        icon={Users}
+                        color="bg-gradient-to-r from-green-600 to-teal-600"
+                      />
+                      {expandedSections.state && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <div className="bg-green-50 p-6 rounded-lg border-2 border-green-200 mb-6">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className="bg-green-600 text-white p-1 rounded font-bold text-xs">ART 162</div>
+                              <p className="font-bold text-green-900 text-lg">State Executive Power</p>
+                            </div>
+                            <p className="text-gray-700 font-medium">States administer taxes legislated by State Legislatures independently.</p>
+                          </div>
+                          
+                          <div className="grid md:grid-cols-3 gap-6">
+                            <div className="bg-white p-5 rounded-xl shadow-lg border-t-8 border-green-500">
+                              <h4 className="font-bold text-green-800 mb-4 h-12 flex items-center">A. Agricultural Income Tax</h4>
+                              <OrganizationChart 
+                                title=""
+                                structure={[
+                                  "State Government",
+                                  "State Finance Dept",
+                                  "State Agri Tax Dept"
+                                ]}
+                              />
+                            </div>
+                            
+                            <div className="bg-white p-5 rounded-xl shadow-lg border-t-8 border-teal-500">
+                              <h4 className="font-bold text-teal-800 mb-4 h-12 flex items-center">B. State GST (SGST)</h4>
+                              <OrganizationChart 
+                                title=""
+                                structure={[
+                                  "State Government",
+                                  "State Tax Dept",
+                                  "SGST Officers"
+                                ]}
+                              />
+                            </div>
+                            
+                            <div className="bg-white p-5 rounded-xl shadow-lg border-t-8 border-emerald-500">
+                              <h4 className="font-bold text-emerald-800 mb-4 h-12 flex items-center">C. State Excise</h4>
+                              <OrganizationChart 
+                                title=""
+                                structure={[
+                                  "State Government",
+                                  "State Excise Dept"
+                                ]}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedTab === 'controls' && (
+                    <div className="space-y-6 animate-fadeIn">
+                      <div className="mb-4">
+                        <h2 className="text-2xl font-bold text-gray-800 border-b pb-2 mb-4">Controls, Limits & Discretion</h2>
+                      </div>
+                      <SectionHeader 
+                        id="delegation" 
+                        title="9. Delegated Legislation - Executive Rule-Making" 
+                        icon={FileText}
+                        color="bg-gradient-to-r from-orange-600 to-red-600"
+                      />
+                      {expandedSections.delegation && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <div className="grid md:grid-cols-3 gap-6">
+                            <InfoCard 
+                              title="Source"
+                              color="bg-orange-50"
+                              items={["Enabling provisions in Acts"]}
+                            />
+                            <InfoCard 
+                              title="Examples"
+                              color="bg-red-50"
+                              items={[
+                                "Income-tax Rules",
+                                "GST Rules",
+                                "ICDS",
+                                "Valuation rules"
+                              ]}
+                            />
+                            <InfoCard 
+                              title="Limits"
+                              color="bg-pink-50"
+                              items={[
+                                "Cannot override Act",
+                                "Subject to judicial review"
+                              ]}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <SectionHeader 
+                        id="circulars" 
+                        title="10. Administrative Instructions & Circulars" 
+                        icon={BookOpen}
+                        color="bg-gradient-to-r from-yellow-600 to-amber-600"
+                      />
+                      {expandedSections.circulars && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <InfoCard 
+                              title="Issued By"
+                              color="bg-yellow-50"
+                              items={["CBDT", "CBIC"]}
+                            />
+                            <InfoCard 
+                              title="Binding Nature"
+                              color="bg-amber-50"
+                              items={[
+                                "Binding on officers ✓",
+                                "Not binding on courts ✗",
+                                "Not binding on taxpayers if adverse ✗"
+                              ]}
+                            />
+                          </div>
+                          <div className="bg-yellow-100 p-4 rounded-lg border-l-4 border-yellow-600 mt-4">
+                            <p className="font-bold text-yellow-900">📌 Important executive tool for ensuring uniformity in tax administration.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      <SectionHeader 
+                        id="justice" 
+                        title="11. Administrative Discretion & Natural Justice" 
+                        icon={Scale}
+                        color="bg-gradient-to-r from-indigo-600 to-purple-600"
+                      />
+                      {expandedSections.justice && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <InfoCard 
+                            title="Executive Must Follow Principles of Natural Justice"
+                            color="bg-indigo-50"
+                            items={[
+                              "Right to a fair hearing (Audi alteram partem)",
+                              "Reasoned orders (Speaking orders)",
+                              "Due process of law",
+                              "⚠️ Failure → orders quashed by courts"
+                            ]}
+                          />
+                        </div>
+                      )}
+
+                      <SectionHeader 
+                        id="checks" 
+                        title="12. Checks on Executive Power" 
+                        icon={Shield}
+                        color="bg-gradient-to-r from-red-600 to-pink-600"
+                      />
+                      {expandedSections.checks && (
+                        <div className="ml-0 md:ml-6 mb-8 animate-slideDown">
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <InfoCard 
+                              title="Controlled By"
+                              color="bg-red-50"
+                              items={[
+                                "Constitution (Fundamental Rights)",
+                                "Parent Acts (Ultra Vires Doctrine)",
+                                "Judiciary (Writ Jurisdiction)",
+                                "Legislative oversight"
+                              ]}
+                            />
+                            <div className="bg-gradient-to-br from-red-100 to-pink-100 p-8 rounded-xl shadow-lg border border-red-200 flex items-center justify-center">
+                              <p className="text-center font-extrabold text-red-900 text-xl leading-relaxed">
+                                📌 The Executive is the MOST ACTIVE, yet MOST RESTRICTED branch of government.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer Summary */}
+                <div className="mt-8 bg-slate-900 text-white p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 opacity-10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+                   
+                  <h3 className="text-3xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white">Category III Complete ✔</h3>
+                  <div className="grid md:grid-cols-3 gap-6 text-center relative z-10">
+                    <div className="bg-white/5 p-6 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
+                      <p className="font-bold text-green-400 text-lg mb-1">Category 1</p>
+                      <p className="text-slate-300 font-light">Constitutional Framework</p>
+                      <div className="mt-2 text-green-500 text-xl">✔</div>
+                    </div>
+                    <div className="bg-white/5 p-6 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
+                      <p className="font-bold text-green-400 text-lg mb-1">Category 2</p>
+                      <p className="text-slate-300 font-light">Legislative Framework</p>
+                      <div className="mt-2 text-green-500 text-xl">✔</div>
+                    </div>
+                    <div className="bg-white/10 p-6 rounded-xl border-2 border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+                      <p className="font-bold text-white text-lg mb-1">Category 3</p>
+                      <p className="text-white font-medium">Administrative/Executive</p>
+                      <div className="mt-2 text-green-400 text-xl font-bold">✔ Current</div>
+                    </div>
+                  </div>
+                  <div className="mt-8 text-center border-t border-slate-700 pt-6">
+                    <p className="text-xl font-semibold text-blue-300">Next: Category 4 — Judiciary</p>
+                    <p className="text-sm text-slate-400 mt-2">(Interpretation, remedies, doctrines)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ExecutiveFrameworkCanvas />);
+    </script>
+</body>
+</html>

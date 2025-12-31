@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCS: The Complete Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+            scroll-behavior: smooth;
+        }
+
+        .gradient-header {
+            /* Distinct Teal/Emerald gradient for TCS to distinguish from TDS */
+            background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+        }
+
+        .gradient-card-teal {
+            background: linear-gradient(to right bottom, #f0fdfa, #ffffff);
+        }
+        
+        .gradient-card-red {
+            background: linear-gradient(to right bottom, #fef2f2, #fff1f2);
+        }
+
+        .step-connector {
+            position: absolute;
+            top: 2rem;
+            bottom: -2rem;
+            left: 1.25rem;
+            width: 2px;
+            background-color: #e2e8f0;
+            z-index: 0;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #64748b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-hand-holding-usd text-teal-600 text-2xl"></i>
+                <span class="font-bold text-xl tracking-tight text-slate-800">Tax Collected at Source <span class="text-teal-600">(TCS)</span></span>
+            </div>
+            <div class="hidden md:flex text-sm text-slate-500 font-medium">
+                Chapter XVII-BB | Section 206C
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="gradient-header text-white pt-16 pb-24 relative overflow-hidden">
+        <div class="container mx-auto px-4 text-center relative z-10">
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
+                The Complete TCS Mechanism
+            </h1>
+            <p class="text-lg md:text-xl text-teal-100 max-w-3xl mx-auto mb-8">
+                A definitive guide from collection to compliance, specified goods, and penalties.
+            </p>
+            <div class="inline-flex items-center bg-white/10 backdrop-blur-sm px-6 py-2 rounded-full border border-white/20">
+                <i class="fas fa-check-circle text-teal-300 mr-2"></i>
+                <span class="font-mono text-sm">Sale Happens → Tax Collected → Govt Receives</span>
+            </div>
+        </div>
+        <!-- Decorative blobs -->
+        <div class="absolute top-0 left-0 w-64 h-64 bg-teal-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-x-1/2 -translate-y-1/2"></div>
+        <div class="absolute bottom-0 right-0 w-64 h-64 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 translate-x-1/2 translate-y-1/2"></div>
+    </header>
+
+    <main class="container mx-auto px-4 -mt-16 pb-20 relative z-20">
+
+        <!-- 1. What is TCS -->
+        <section class="mb-16">
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Concept Card -->
+                <div class="col-span-2 bg-white rounded-2xl shadow-xl p-8 card-hover">
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center">
+                        <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center text-teal-600 mr-3">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        What is TCS?
+                    </h2>
+                    <p class="text-slate-600 mb-6 text-lg leading-relaxed">
+                        TCS is a system where <strong>tax is collected by the seller</strong> from the buyer at the time of sale of specified goods or services. Unlike TDS (deduction from payment), this is an addition to the sale value.
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                            <div class="text-teal-600 font-bold mb-1">Collector</div>
+                            <div class="text-xs text-slate-500">Seller (Receives Money)</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                            <div class="text-green-600 font-bold mb-1">Collectee</div>
+                            <div class="text-xs text-slate-500">Buyer (Pays Money)</div>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 text-center">
+                            <div class="text-purple-600 font-bold mb-1">Government</div>
+                            <div class="text-xs text-slate-500">Ultimate Receiver</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purpose Card -->
+                <div class="bg-gradient-to-br from-teal-600 to-emerald-700 rounded-2xl shadow-xl p-8 text-white card-hover">
+                    <h3 class="text-xl font-bold mb-4 border-b border-white/20 pb-2">Why TCS Exists?</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <i class="fas fa-eye mt-1 mr-3 opacity-75"></i>
+                            <span>Tracking high-value txns</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-expand-arrows-alt mt-1 mr-3 opacity-75"></i>
+                            <span>Widening tax base</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-chart-line mt-1 mr-3 opacity-75"></i>
+                            <span>Prevents turnover suppression</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-hourglass-half mt-1 mr-3 opacity-75"></i>
+                            <span>Early tax collection</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Mechanism & Rates -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-slate-800 mb-8 text-center">Mechanism & Liability</h2>
+            <div class="grid md:grid-cols-2 gap-8">
+                
+                <!-- When to Collect -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-yellow-400">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-stopwatch text-yellow-500 mr-2"></i> When is it Collected?
+                    </h3>
+                    <div class="bg-yellow-50 p-4 rounded-xl text-center">
+                        <p class="font-bold text-yellow-800 mb-2">WHICHEVER IS EARLIER:</p>
+                        <div class="flex justify-center items-center space-x-4 text-sm font-semibold">
+                            <div class="bg-white px-4 py-2 rounded shadow-sm border border-yellow-200">Debit to Buyer A/c</div>
+                            <div class="text-yellow-600">OR</div>
+                            <div class="bg-white px-4 py-2 rounded shadow-sm border border-yellow-200">Receipt of Amount</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rate Rules & Liability -->
+                <div class="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-red-500">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-gavel text-red-500 mr-2"></i> Liability & No PAN
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-start border-b pb-2">
+                            <i class="fas fa-user-tie text-slate-400 mt-1 mr-2"></i>
+                            <div class="text-sm text-slate-600">
+                                <strong>Who Collects?</strong> Sellers (Companies, Firms, Govt, Individuals with Turnover > Audit Limits).
+                            </div>
+                        </div>
+                        <div class="flex flex-col bg-red-50 p-3 rounded-lg">
+                            <div class="flex items-center text-red-700 font-bold mb-1">
+                                <i class="fas fa-exclamation-triangle mr-2"></i> No PAN? (Section 206CC)
+                            </div>
+                            <div class="text-sm text-red-600 ml-6">
+                                Higher of: Prescribed Rate OR <span class="font-extrabold text-xl align-middle ml-1">5%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Goods & Services Covered Table -->
+        <section class="mb-16">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-slate-800 text-white p-6 flex justify-between items-center">
+                    <h2 class="text-xl font-bold">Goods & Services Covered (Section 206C)</h2>
+                    <i class="fas fa-shopping-cart text-slate-400 text-2xl"></i>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 text-sm uppercase tracking-wider">
+                                <th class="p-4 border-b font-semibold">Category</th>
+                                <th class="p-4 border-b font-semibold">Item / Nature</th>
+                                <th class="p-4 border-b font-semibold text-right">Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            <!-- Traditional Items -->
+                            <tr class="hover:bg-teal-50 transition-colors">
+                                <td class="p-4 font-bold text-teal-700" rowspan="5">Traditional Items<br><span class="text-xs font-normal text-slate-500">206C(1)</span></td>
+                                <td class="p-4">Alcohol for human consumption</td>
+                                <td class="p-4 text-right font-bold">1%</td>
+                            </tr>
+                            <tr class="hover:bg-teal-50 transition-colors">
+                                <td class="p-4">Tendu Leaves</td>
+                                <td class="p-4 text-right font-bold">5%</td>
+                            </tr>
+                            <tr class="hover:bg-teal-50 transition-colors">
+                                <td class="p-4">Timber & Forest Produce</td>
+                                <td class="p-4 text-right font-bold">2.5%</td>
+                            </tr>
+                            <tr class="hover:bg-teal-50 transition-colors">
+                                <td class="p-4">Scrap</td>
+                                <td class="p-4 text-right font-bold">1%</td>
+                            </tr>
+                            <tr class="hover:bg-teal-50 transition-colors">
+                                <td class="p-4">Minerals (Coal/Lignite/Iron ore)</td>
+                                <td class="p-4 text-right font-bold">1%</td>
+                            </tr>
+                            
+                            <!-- Motor Vehicle -->
+                            <tr class="bg-slate-50 hover:bg-teal-50 transition-colors">
+                                <td class="p-4 font-bold text-teal-700">High Value Goods<br><span class="text-xs font-normal text-slate-500">206C(1F)</span></td>
+                                <td class="p-4">Motor Vehicle (Value > ₹10 Lakhs)</td>
+                                <td class="p-4 text-right font-bold">1%</td>
+                            </tr>
+
+                            <!-- Sale of Goods -->
+                            <tr class="hover:bg-teal-50 transition-colors">
+                                <td class="p-4 font-bold text-teal-700">Sale of Goods<br><span class="text-xs font-normal text-slate-500">206C(1H)</span></td>
+                                <td class="p-4">Sale > ₹50L (Seller Turnover > ₹10Cr)</td>
+                                <td class="p-4 text-right font-bold">0.1%</td>
+                            </tr>
+
+                            <!-- Remittance -->
+                            <tr class="bg-slate-50 hover:bg-teal-50 transition-colors">
+                                <td class="p-4 font-bold text-teal-700" rowspan="3">Remittance & Tours<br><span class="text-xs font-normal text-slate-500">206C(1G)</span></td>
+                                <td class="p-4">Overseas Tour Package</td>
+                                <td class="p-4 text-right font-bold">5%</td>
+                            </tr>
+                            <tr class="bg-slate-50 hover:bg-teal-50 transition-colors">
+                                <td class="p-4">Foreign Remittance (LRS)</td>
+                                <td class="p-4 text-right font-bold">5%</td>
+                            </tr>
+                             <tr class="bg-slate-50 hover:bg-teal-50 transition-colors">
+                                <td class="p-4">Education Loan Remittance</td>
+                                <td class="p-4 text-right font-bold">0.5%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Compliance Timeline (Deposit & Returns) -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-slate-800 mb-10 text-center">The Compliance Cycle</h2>
+            
+            <div class="relative max-w-4xl mx-auto">
+                
+                <!-- Step 1: Deposit -->
+                <div class="flex mb-12 relative z-10">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xl shadow-lg border-4 border-white">1</div>
+                    <div class="ml-6 flex-grow">
+                        <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-teal-600">
+                            <h3 class="text-lg font-bold text-teal-800 mb-2">Deposit of TCS</h3>
+                            <p class="text-sm text-slate-500 mb-4">Must be deposited using <strong>Challan ITNS 281</strong>.</p>
+                            <div class="grid grid-cols-1 gap-4">
+                                <div class="bg-teal-50 p-3 rounded text-center flex justify-between px-6 items-center">
+                                    <div class="text-xs text-teal-600 uppercase font-bold">Due Date</div>
+                                    <div class="font-bold text-slate-800">7th of Next Month</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Connector Line -->
+                <div class="absolute left-6 top-6 bottom-6 w-0.5 bg-slate-200 -z-0"></div>
+
+                <!-- Step 2: File Return -->
+                <div class="flex mb-12 relative z-10">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shadow-lg border-4 border-white">2</div>
+                    <div class="ml-6 flex-grow">
+                        <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-indigo-600">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-bold text-indigo-800">File TCS Return</h3>
+                                    <p class="text-sm text-slate-500">Quarterly Statement of Collection.</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-block px-3 py-1 bg-indigo-100 rounded text-xs font-mono font-bold text-indigo-700">Form 27EQ</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-sm">
+                                <div class="p-2 border rounded bg-indigo-50">
+                                    <div class="text-xs text-indigo-400">Q1 (Apr-Jun)</div>
+                                    <div class="font-bold">31 July</div>
+                                </div>
+                                <div class="p-2 border rounded bg-indigo-50">
+                                    <div class="text-xs text-indigo-400">Q2 (Jul-Sep)</div>
+                                    <div class="font-bold">31 Oct</div>
+                                </div>
+                                <div class="p-2 border rounded bg-indigo-50">
+                                    <div class="text-xs text-indigo-400">Q3 (Oct-Dec)</div>
+                                    <div class="font-bold">31 Jan</div>
+                                </div>
+                                <div class="p-2 border rounded bg-indigo-50">
+                                    <div class="text-xs text-indigo-400">Q4 (Jan-Mar)</div>
+                                    <div class="font-bold">31 May</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Certificates -->
+                <div class="flex relative z-10">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xl shadow-lg border-4 border-white">3</div>
+                    <div class="ml-6 flex-grow">
+                        <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-emerald-600">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-bold text-emerald-800">Issue TCS Certificate</h3>
+                                    <p class="text-sm text-slate-500">Certificate of Collection.</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="inline-block px-3 py-1 bg-emerald-100 rounded text-xs font-mono font-bold text-emerald-700">Form 27D</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-sm">
+                                <div class="p-2 border rounded bg-emerald-50">
+                                    <div class="text-xs text-emerald-600">Q1</div>
+                                    <div class="font-bold">15 Aug</div>
+                                </div>
+                                <div class="p-2 border rounded bg-emerald-50">
+                                    <div class="text-xs text-emerald-600">Q2</div>
+                                    <div class="font-bold">15 Nov</div>
+                                </div>
+                                <div class="p-2 border rounded bg-emerald-50">
+                                    <div class="text-xs text-emerald-600">Q3</div>
+                                    <div class="font-bold">15 Feb</div>
+                                </div>
+                                <div class="p-2 border rounded bg-emerald-50">
+                                    <div class="text-xs text-emerald-600">Q4</div>
+                                    <div class="font-bold">15 Jun</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Form 26AS & Verification -->
+        <section class="mb-16 bg-slate-800 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-12 opacity-5">
+                <i class="fas fa-file-contract text-9xl"></i>
+            </div>
+            <div class="relative z-10">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="md:w-1/3 text-center">
+                        <div class="inline-block p-6 rounded-full border-4 border-teal-400 shadow-[0_0_30px_rgba(45,212,191,0.5)] bg-slate-900">
+                            <h3 class="text-4xl font-extrabold text-teal-400">26AS</h3>
+                        </div>
+                        <p class="mt-4 text-slate-300 font-medium">Annual Tax Statement</p>
+                    </div>
+                    <div class="md:w-2/3">
+                        <h3 class="text-2xl font-bold mb-4">The Buyer's Proof</h3>
+                        <p class="text-slate-300 mb-6 leading-relaxed">
+                            TCS is treated as tax paid on your behalf. It must appear in <strong>Form 26AS</strong> for you (the buyer) to claim credit in your Income Tax Return. It is <strong>NOT</strong> an additional tax, but an advance tax.
+                        </p>
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-white/10 px-4 py-2 rounded backdrop-blur-sm">
+                                <i class="fas fa-check text-teal-400 mr-2"></i> Claim in ITR
+                            </div>
+                            <div class="bg-white/10 px-4 py-2 rounded backdrop-blur-sm">
+                                <i class="fas fa-undo text-teal-400 mr-2"></i> Refund if Excess
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. Defaults & Penalties (Danger Zone) -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-slate-800 mb-8 flex items-center text-red-600">
+                <i class="fas fa-exclamation-circle mr-3"></i> Defaults & Penalties
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Interest -->
+                <div class="bg-red-50 rounded-2xl p-6 border border-red-100">
+                    <h3 class="font-bold text-red-800 mb-4 text-lg">Interest u/s 206C(7)</h3>
+                    <div class="space-y-4">
+                        <div class="bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-xs text-slate-500 uppercase font-bold">Non-Collection</div>
+                            <div class="text-2xl font-bold text-red-600">1% <span class="text-sm text-slate-400 font-normal">per month</span></div>
+                            <p class="text-xs text-slate-400 mt-1">From date collectible to actual collection</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-red-600">
+                            <div class="text-xs text-slate-500 uppercase font-bold">Collected but Not Deposited</div>
+                            <div class="text-2xl font-bold text-red-600">1.5% <span class="text-sm text-slate-400 font-normal">per month</span></div>
+                            <p class="text-xs text-slate-400 mt-1">From collection to actual payment</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Penalties -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                    <h3 class="font-bold text-slate-800 mb-4 text-lg">Fees & Penalties</h3>
+                    <ul class="space-y-4">
+                         <li class="flex items-start">
+                            <div class="bg-red-100 text-red-600 p-2 rounded mr-3 text-xs font-bold">271CA</div>
+                            <div>
+                                <div class="font-bold text-slate-700">Penalty for Non-Collection</div>
+                                <div class="text-sm text-slate-500">Equal to TCS Amount</div>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="bg-orange-100 text-orange-600 p-2 rounded mr-3 text-xs font-bold">234E</div>
+                            <div>
+                                <div class="font-bold text-slate-700">Late Filing Fee</div>
+                                <div class="text-sm text-slate-500">₹200 per day (Max = TCS Amount)</div>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="bg-red-100 text-red-600 p-2 rounded mr-3 text-xs font-bold">271H</div>
+                            <div>
+                                <div class="font-bold text-slate-700">Penalty for Failure/Error</div>
+                                <div class="text-sm text-slate-500">₹10k to ₹1 Lakh</div>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="bg-slate-200 text-slate-800 p-2 rounded mr-3 text-xs font-bold">276BB</div>
+                            <div>
+                                <div class="font-bold text-slate-700">Prosecution</div>
+                                <div class="text-sm text-slate-500">For willful failure to pay</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. The Visual Flow Summary -->
+        <section class="mb-10">
+            <div class="bg-white rounded-2xl shadow-xl p-8 text-center border-t-4 border-teal-500">
+                <h2 class="text-2xl font-bold mb-6">The Complete Lifecycle</h2>
+                <div class="flex flex-wrap justify-center items-center gap-4 text-sm font-semibold text-slate-600">
+                    <div class="bg-slate-100 px-4 py-2 rounded-full">Sale / Receipt</div>
+                    <i class="fas fa-arrow-right text-slate-300"></i>
+                    <div class="bg-teal-100 text-teal-700 px-4 py-2 rounded-full">TCS Collected</div>
+                    <i class="fas fa-arrow-right text-slate-300"></i>
+                    <div class="bg-teal-100 text-teal-700 px-4 py-2 rounded-full">Deposited (281)</div>
+                    <i class="fas fa-arrow-right text-slate-300"></i>
+                    <div class="bg-indigo-100 text-indigo-700 px-4 py-2 rounded-full">Return Filed (27EQ)</div>
+                    <i class="fas fa-arrow-right text-slate-300"></i>
+                    <div class="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-full">Cert Issued (27D)</div>
+                    <i class="fas fa-arrow-right text-slate-300"></i>
+                    <div class="bg-purple-100 text-purple-700 px-4 py-2 rounded-full">Reflected in 26AS</div>
+                    <i class="fas fa-arrow-right text-slate-300"></i>
+                    <div class="bg-slate-800 text-white px-4 py-2 rounded-full">Credit in Buyer ITR</div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-white py-12">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-xl font-bold mb-4">Exam-Ready Summary</h3>
+            <p class="max-w-3xl mx-auto text-slate-400 italic text-lg leading-relaxed">
+                "TCS is a mechanism of tax collection at the point of sale of specified goods or services, ensuring tracking of high-value transactions and early tax realisation."
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>

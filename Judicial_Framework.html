@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Judicial Framework</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&family=Roboto:wght@300;400;500&display=swap');
+
+        :root {
+            /* Palette */
+            --primary-dark: #1a1a2e;
+            --primary-blue: #16213e;
+            --accent-gold: #fbbf24;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --accent-teal: #14b8a6;
+            --accent-blue: #3b82f6;
+            --bg-light: #f3f4f6;
+            --card-bg: #ffffff;
+            
+            /* Shadows */
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+            --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-light);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .serif-quote {
+            font-family: 'Playfair Display', serif;
+        }
+
+        /* --- HERO SECTION --- */
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-blue));
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 5px solid var(--accent-gold);
+        }
+
+        header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p.subtitle {
+            font-size: 1.25rem;
+            color: var(--accent-gold);
+            max-width: 700px;
+            margin: 0 auto;
+            font-weight: 500;
+        }
+
+        /* --- CONTAINER --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* --- CARDS & GRID --- */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+        }
+
+        /* Card Color Accents */
+        .border-purple::before { background: var(--accent-purple); }
+        .border-blue::before { background: var(--accent-blue); }
+        .border-red::before { background: var(--accent-red); }
+        .border-teal::before { background: var(--accent-teal); }
+        .border-gold::before { background: var(--accent-gold); }
+
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--primary-dark);
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: var(--accent-gold);
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        /* --- CONSTITUTIONAL POSITION --- */
+        .article-badge {
+            display: inline-block;
+            background: var(--primary-blue);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- NATURE OF ADJUDICATION (Ladder) --- */
+        .adjudication-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 8px;
+            color: white;
+            position: relative;
+        }
+        
+        .step-1 { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+        .step-2 { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+        .step-3 { background: linear-gradient(135deg, #3b82f6, #1e40af); }
+
+        .step h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .step p { font-size: 0.9rem; opacity: 0.9; }
+
+        .arrow-right {
+            font-size: 2rem;
+            color: #ccc;
+        }
+
+        /* --- COMPARISON TABLES --- */
+        .comparison-container {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .comparison-box {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .cb-header {
+            padding: 1rem;
+            text-align: center;
+            font-weight: bold;
+            color: white;
+            text-transform: uppercase;
+        }
+        .cb-header.direct { background: #1e3a8a; } /* Dark Blue for Direct Tax */
+        .cb-header.indirect { background: #0f766e; } /* Teal for GST */
+
+        .cb-content { padding: 1.5rem; }
+        .cb-content h4 { color: #333; margin-bottom: 0.5rem; }
+        .cb-content ul { list-style: none; padding-left: 0; }
+        .cb-content li { 
+            margin-bottom: 0.5rem; 
+            padding-left: 1.2rem;
+            position: relative;
+        }
+        .cb-content li::before {
+            content: '•';
+            color: var(--accent-gold);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* --- DOCTRINES --- */
+        .doctrine-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--accent-gold);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .doctrine-card h4 { color: var(--primary-blue); margin-bottom: 0.5rem; }
+        .doctrine-card p { font-size: 0.95rem; color: #555; }
+
+        /* --- FLOWCHART --- */
+        .flowchart-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .flow-node {
+            background: white;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: bold;
+            width: 300px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .flow-node.final {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+        
+        .flow-node.start {
+            background: #e0e7ff;
+            border-style: dashed;
+        }
+
+        .flow-line {
+            width: 2px;
+            height: 30px;
+            background: #ccc;
+        }
+
+        /* --- MASTER STATEMENT --- */
+        .master-statement {
+            background: linear-gradient(135deg, var(--primary-dark), #2d2d42);
+            color: var(--accent-gold);
+            padding: 3rem;
+            text-align: center;
+            border-radius: 12px;
+            margin: 4rem 0;
+            position: relative;
+        }
+        
+        .master-statement blockquote {
+            font-size: 1.8rem;
+            font-style: italic;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
+        }
+
+        .master-statement::before {
+            content: '⚖';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 15rem;
+            color: rgba(255,255,255,0.03);
+            z-index: 1;
+        }
+
+        /* --- RELATIONSHIP TABLE --- */
+        .relationship-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        .relationship-table th, .relationship-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .relationship-table th {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+        .relationship-table tr:last-child td { border-bottom: none; }
+
+        /* --- CLOSED LOOP DIAGRAM --- */
+        .loop-diagram {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .loop-box {
+            background: #f3f4f6;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .loop-arrow {
+            color: var(--accent-blue);
+            font-size: 1.5rem;
+        }
+
+        .judiciary-highlight {
+            background: var(--primary-blue);
+            color: white;
+            padding: 1.2rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Responsive Tweaks */
+        @media (max-width: 768px) {
+            header h1 { font-size: 2rem; }
+            .adjudication-steps { flex-direction: column; }
+            .arrow-right { transform: rotate(90deg); margin: 0.5rem 0; }
+            .comparison-container { flex-direction: column; }
+            .master-statement blockquote { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Category IV</h1>
+        <p class="subtitle">Judicial Framework: Interpretation, Adjudication & Control</p>
+        <div style="margin-top: 20px; font-size: 0.9rem; opacity: 0.8;">"Deciding what the law actually is"</div>
+    </header>
+
+    <div class="container">
+
+        <!-- SECTION 1: INTRODUCTION & CONSTITUTIONAL POSITION -->
+        <h2 class="section-title">Constitutional Position</h2>
+        <div class="grid-2">
+            <div class="card border-blue">
+                <h3 style="color: var(--primary-blue);">Guardian of the Constitution</h3>
+                <p style="margin-top: 1rem;">The Judiciary stands independent of the Legislature and Executive. It does not levy or administer tax, but it is the final arbiter of what tax statutes mean.</p>
+                <ul style="margin-top: 1rem; padding-left: 1.2rem; list-style-type: square; color: #555;">
+                    <li>Independent Authority</li>
+                    <li>Guardian of Rule of Law</li>
+                    <li>Protector of Fundamental Rights</li>
+                </ul>
+            </div>
+            <div class="card border-gold">
+                <h3 style="color: var(--primary-blue);">Key Articles</h3>
+                <div style="margin-top: 1.5rem;">
+                    <div><span class="article-badge">Art. 32</span> Writ Jurisdiction (Supreme Court)</div>
+                    <div><span class="article-badge">Art. 226</span> Writ Jurisdiction (High Courts)</div>
+                    <div><span class="article-badge">Art. 141</span> Law declared by SC is binding</div>
+                    <div><span class="article-badge">Art. 136</span> Special Leave Petition (SLP)</div>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.9rem; font-style: italic; color: #666;">
+                    "Judicial review is constitutionally indispensable to prevent the Executive from being a judge in its own cause."
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: THE 3 LAYERS OF ADJUDICATION -->
+        <h2 class="section-title">The Three Layers of Adjudication</h2>
+        <div class="adjudication-steps">
+            <div class="step step-1">
+                <h3>1. Quasi-Judicial</h3>
+                <p>Departmental Authorities</p>
+                <small>(First check on Assessment)</small>
+            </div>
+            <div class="arrow-right">➜</div>
+            <div class="step step-2">
+                <h3>2. Independent Tribunal</h3>
+                <p>Final Fact-Finding Authority</p>
+                <small>(Outside Govt Control)</small>
+            </div>
+            <div class="arrow-right">➜</div>
+            <div class="step step-3">
+                <h3>3. Constitutional Courts</h3>
+                <p>High Court & Supreme Court</p>
+                <small>(Questions of Law Only)</small>
+            </div>
+        </div>
+
+        <!-- SECTION 3: DEPARTMENTAL VS TRIBUNAL DETAILED -->
+        <h2 class="section-title">1. Quasi-Judicial & 2. Tribunals</h2>
+        <div class="comparison-container" style="margin-bottom: 3rem;">
+            
+            <!-- Direct Tax Column -->
+            <div class="comparison-box">
+                <div class="cb-header direct">Direct Taxes (Income Tax)</div>
+                <div class="cb-content">
+                    <h4 style="color: #1e3a8a;">Level 1: CIT (Appeals)</h4>
+                    <ul>
+                        <li>Departmental Authority</li>
+                        <li>Can confirm, reduce, or annul assessment</li>
+                        <li>Bound by CBDT circulars</li>
+                    </ul>
+                    <hr style="margin: 1rem 0; border-top: 1px dashed #ccc;">
+                    <h4 style="color: #4338ca;">Level 2: ITAT (Tribunal)</h4>
+                    <ul>
+                        <li><strong>Independent Body</strong> (Ministry of Law)</li>
+                        <li>Judicial & Accountant Members</li>
+                        <li>Final authority on <em>Facts</em></li>
+                        <li><strong>Not</strong> bound by CBDT circulars if against law</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Indirect Tax Column -->
+            <div class="comparison-box">
+                <div class="cb-header indirect">Indirect Taxes (GST/Customs)</div>
+                <div class="cb-content">
+                    <h4 style="color: #0f766e;">Level 1: First Appellate Authority</h4>
+                    <ul>
+                        <li>Review adjudication orders</li>
+                        <li>Decides on facts and law</li>
+                        <li>Internal to the Department</li>
+                    </ul>
+                    <hr style="margin: 1rem 0; border-top: 1px dashed #ccc;">
+                    <h4 style="color: #0d9488;">Level 2: CESTAT / GSTAT</h4>
+                    <ul>
+                        <li><strong>CESTAT:</strong> Customs, Excise, Service Tax</li>
+                        <li><strong>GSTAT:</strong> GST Appellate Tribunal</li>
+                        <li>Independent of CBIC</li>
+                        <li>Parallel to ITAT in function</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: CONSTITUTIONAL COURTS -->
+        <h2 class="section-title">3. Constitutional Courts</h2>
+        <div class="grid-2">
+            <div class="card border-teal">
+                <h3 class="serif-quote" style="color: var(--accent-teal); font-size: 1.8rem;">High Courts</h3>
+                <p><strong>Jurisdiction:</strong> Within the State</p>
+                <ul style="margin-top: 1rem; padding-left: 1.2rem;">
+                    <li><strong>Article 226:</strong> Writ Jurisdiction against arbitrary actions.</li>
+                    <li><strong>Appeals:</strong> Admitted ONLY on a <em>Substantial Question of Law</em>.</li>
+                    <li><strong>No Fact Finding:</strong> Cannot re-appreciate evidence settled by Tribunal.</li>
+                    <li><strong>Binding Effect:</strong> Binding on all authorities within the state.</li>
+                </ul>
+            </div>
+            <div class="card border-gold" style="background: linear-gradient(to bottom right, white, #fffbeb);">
+                <h3 class="serif-quote" style="color: #b45309; font-size: 1.8rem;">Supreme Court</h3>
+                <p><strong>Jurisdiction:</strong> Apex Court of India</p>
+                <ul style="margin-top: 1rem; padding-left: 1.2rem;">
+                    <li><strong>Article 141:</strong> The law declared by SC is binding on <em>all</em> courts in India.</li>
+                    <li><strong>Article 136:</strong> Special Leave Petition (SLP) for exceptional cases.</li>
+                    <li><strong>Power:</strong> Can strike down tax laws, read down provisions, or validate retrospective amendments.</li>
+                </ul>
+                <div style="margin-top: 1rem; padding: 0.5rem; background: #fff7ed; border-radius: 4px; text-align: center; font-weight: bold; color: #b45309;">
+                    SC Judgment = The Law of the Land
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: DOCTRINES -->
+        <h2 class="section-title">Key Judicial Doctrines</h2>
+        <div class="grid-2">
+            <div class="doctrine-card">
+                <h4>Strict Interpretation</h4>
+                <p>Tax must be clearly imposed by the letter of the law. If there is ambiguity, the benefit goes to the taxpayer.</p>
+            </div>
+            <div class="doctrine-card">
+                <h4>Substance Over Form</h4>
+                <p>Courts look at the real nature of the transaction, not just the label given to it by the parties.</p>
+            </div>
+            <div class="doctrine-card">
+                <h4>Colourable Device</h4>
+                <p>Tax planning is allowed, but artificial schemes designed solely to evade tax ("Colourable Devices") can be struck down.</p>
+            </div>
+            <div class="doctrine-card">
+                <h4>Natural Justice</h4>
+                <p>No tax demand without a fair hearing (Audi Alteram Partem) and a reasoned speaking order.</p>
+            </div>
+        </div>
+
+        <!-- SECTION 6: FLOW & RELATIONSHIP -->
+        <div class="grid-2">
+            <!-- Flowchart -->
+            <div class="card">
+                <h3 style="text-align: center; margin-bottom: 1rem;">The Complete Judicial Flow</h3>
+                <div class="flowchart-vertical">
+                    <div class="flow-node start">Assessing / Proper Officer</div>
+                    <div class="flow-line"></div>
+                    <div class="flow-node">First Appellate Authority</div>
+                    <div class="flow-line"></div>
+                    <div class="flow-node" style="border-color: var(--accent-purple); color: var(--accent-purple);">Independent Tribunal (Facts Closed)</div>
+                    <div class="flow-line"></div>
+                    <div class="flow-node" style="border-color: var(--accent-teal); color: var(--accent-teal);">High Court (Law)</div>
+                    <div class="flow-line"></div>
+                    <div class="flow-node final">Supreme Court (Final Law)</div>
+                    <div style="height: 20px; width: 2px; background: #ccc;"></div>
+                    <div style="font-size: 0.8rem; color: #666;">Binding Precedent flows back down</div>
+                </div>
+            </div>
+
+            <!-- Relationship Table -->
+            <div class="card">
+                <h3 style="text-align: center; margin-bottom: 1rem;">Checks & Balances</h3>
+                <table class="relationship-table">
+                    <thead>
+                        <tr>
+                            <th>Judiciary Relationship</th>
+                            <th>Function</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>With Constitution</strong></td>
+                            <td>Interprets & Enforces</td>
+                        </tr>
+                        <tr>
+                            <td><strong>With Legislature</strong></td>
+                            <td>Reviews Constitutionality</td>
+                        </tr>
+                        <tr>
+                            <td><strong>With Executive</strong></td>
+                            <td>Controls Excess / Arbitrariness</td>
+                        </tr>
+                        <tr>
+                            <td><strong>With Tribunals</strong></td>
+                            <td>Supervisory Jurisdiction</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 2rem; text-align: center; font-weight: bold; color: var(--primary-blue);">
+                    "Income Tax Act + Case Law = Real Tax Law"
+                </div>
+            </div>
+        </div>
+
+        <!-- MASTER STATEMENT -->
+        <div class="master-statement">
+            <blockquote class="serif-quote">
+                "The Judiciary does not collect tax, but it decides what tax law truly means — and that meaning governs everyone."
+            </blockquote>
+        </div>
+
+        <!-- CLOSED LOOP -->
+        <h2 class="section-title">The Complete System</h2>
+        <div class="loop-diagram">
+            <div class="loop-box">Constitution</div>
+            <div class="loop-arrow">➜</div>
+            <div class="loop-box">Legislature</div>
+            <div class="loop-arrow">➜</div>
+            <div class="loop-box">Executive</div>
+        </div>
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="loop-arrow" style="transform: rotate(90deg); display: inline-block; margin: -10px 0;">➜</div>
+        </div>
+        <div style="text-align: center;">
+            <div class="judiciary-highlight">
+                <span style="font-size: 1.5rem; margin-right: 10px;">⚖</span>
+                <strong>Judiciary</strong> (Interpretation & Control)
+            </div>
+        </div>
+        <p style="text-align: center; margin-top: 1rem; color: #666; font-style: italic;">Completing the Framework Loop</p>
+
+    </div>
+
+    <footer style="background: var(--primary-dark); color: white; padding: 2rem; text-align: center; margin-top: 4rem;">
+        <p><strong>Category 1</strong> Constitutional ✔ &nbsp;|&nbsp; <strong>Category 2</strong> Legislative ✔ &nbsp;|&nbsp; <strong>Category 3</strong> Executive ✔ &nbsp;|&nbsp; <strong>Category 4</strong> Judicial ✔</p>
+        <p style="margin-top: 1rem; color: var(--accent-gold); font-size: 0.9rem;">Complete Tax Law Framework</p>
+    </footer>
+
+</body>
+</html>

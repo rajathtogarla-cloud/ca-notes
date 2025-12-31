@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legislative Framework: Union & State</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        h1, h2, h3, h4, .serif {
+            font-family: 'Merriweather', serif;
+        }
+        .bg-pattern {
+            background-color: #2e1065; /* Deep Purple */
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23581c87' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Custom Gradients for the 3 Pillars */
+        .union-gradient { background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%); }
+        .state-gradient { background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); }
+        .shared-gradient { background: linear-gradient(135deg, #c2410c 0%, #f97316 100%); }
+    </style>
+</head>
+<body>
+
+    <!-- Hero Section -->
+    <header class="bg-pattern text-white pt-20 pb-24 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 via-teal-400 to-orange-500"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <div class="inline-block px-4 py-1 border border-pink-400 rounded-full text-pink-300 text-sm font-semibold tracking-wider mb-6">CATEGORY II</div>
+            <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight">
+                The Legislative <br/>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-teal-200 to-orange-300">Framework</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-purple-200 max-w-3xl mx-auto serif italic">
+                "Federally Distributed, Constitutionally Bound"
+            </p>
+            <div class="mt-8">
+                <p class="text-purple-300 max-w-2xl mx-auto">
+                    Who makes tax law? It is not just Parliament. It is a federal distribution between the Union, the States, and the shared GST Council.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Federal Distribution Map (The New Core) -->
+    <section class="py-16 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900 serif">Federal Distribution of Tax Power</h2>
+                <p class="text-slate-600 mt-2">Article 246 divides Legislative Competence. It is not a monopoly.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-white">
+                
+                <!-- Pillar 1: Union -->
+                <div class="union-gradient rounded-xl shadow-lg p-6 relative overflow-hidden card-hover">
+                    <div class="absolute -right-4 -top-4 opacity-20">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.95 1.47-1.47 2.95L12 11zm0 2.24l-2.24 1.12 1.12-2.24 1.12 1.12z"/></svg>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold mb-1">Union Legislature</h3>
+                        <p class="text-purple-200 text-sm font-mono mb-4">(Parliament)</p>
+                        <div class="h-0.5 bg-purple-400 mb-4 w-12"></div>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex items-start"><span class="bg-purple-900/50 p-1 rounded mr-2 font-mono text-xs">Entry 82</span> Income Tax</li>
+                            <li class="flex items-start"><span class="bg-purple-900/50 p-1 rounded mr-2 font-mono text-xs">Entry 83</span> Customs</li>
+                            <li class="flex items-start"><span class="bg-purple-900/50 p-1 rounded mr-2 font-mono text-xs">Entry 84</span> Excise (Limited)</li>
+                            <li class="flex items-start"><span class="bg-purple-900/50 p-1 rounded mr-2 font-mono text-xs">Art 248</span> Residuary</li>
+                        </ul>
+                        <div class="mt-6 bg-purple-900/30 p-2 rounded text-xs text-purple-100 italic">
+                            Exclusive power over Income Tax (except Agri).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pillar 2: State -->
+                <div class="state-gradient rounded-xl shadow-lg p-6 relative overflow-hidden card-hover">
+                    <div class="absolute -right-4 -top-4 opacity-20">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z"/></svg>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold mb-1">State Legislature</h3>
+                        <p class="text-teal-100 text-sm font-mono mb-4">(Vidhan Sabha)</p>
+                        <div class="h-0.5 bg-teal-300 mb-4 w-12"></div>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex items-start"><span class="bg-teal-900/50 p-1 rounded mr-2 font-mono text-xs">Entry 46</span> <strong>Agri Income Tax</strong></li>
+                            <li class="flex items-start"><span class="bg-teal-900/50 p-1 rounded mr-2 font-mono text-xs">Entry 51</span> State Excise (Liquor)</li>
+                            <li class="flex items-start"><span class="bg-teal-900/50 p-1 rounded mr-2 font-mono text-xs">Entry 49</span> Land & Building</li>
+                            <li class="flex items-start"><span class="bg-teal-900/50 p-1 rounded mr-2 font-mono text-xs">Entry 52</span> Local Entry Tax</li>
+                        </ul>
+                        <div class="mt-6 bg-teal-900/30 p-2 rounded text-xs text-teal-100 italic">
+                            Why Agri income is exempt in IT Act? Because it's a State subject.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pillar 3: Concurrent/GST -->
+                <div class="shared-gradient rounded-xl shadow-lg p-6 relative overflow-hidden card-hover">
+                    <div class="absolute -right-4 -top-4 opacity-20">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z"/></svg>
+                    </div>
+                    <div class="relative z-10">
+                        <h3 class="text-xl font-bold mb-1">Shared Power</h3>
+                        <p class="text-orange-100 text-sm font-mono mb-4">(GST Council)</p>
+                        <div class="h-0.5 bg-orange-300 mb-4 w-12"></div>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex items-start"><span class="bg-orange-900/50 p-1 rounded mr-2 font-mono text-xs">Art 246A</span> <strong>GST Power</strong></li>
+                            <li class="flex items-start"><span class="bg-orange-900/50 p-1 rounded mr-2 font-mono text-xs">Joint</span> Parliament & States</li>
+                            <li class="flex items-start"><span class="bg-orange-900/50 p-1 rounded mr-2 font-mono text-xs">Acts</span> CGST, SGST, IGST</li>
+                        </ul>
+                        <div class="mt-6 bg-orange-900/30 p-2 rounded text-xs text-orange-100 italic">
+                            The only tax where legislative power is constitutionally concurrent.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- The 4 Instruments (Updated for States) -->
+    <section id="instruments" class="py-20 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-slate-900 serif">Forms of Tax Legislation</h2>
+                <div class="h-1 w-24 bg-pink-500 mx-auto mt-4 rounded"></div>
+                <p class="mt-4 text-slate-600">The instruments used by both Parliament and State Assemblies.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- 1. Principal Acts -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden card-hover">
+                    <div class="bg-slate-800 p-4 flex justify-between items-center">
+                        <h3 class="text-white font-bold text-lg">A. Principal / Parent Statutes</h3>
+                        <span class="text-xs bg-slate-600 text-white px-2 py-1 rounded uppercase">Substantive</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-4 text-sm">These create the charge, define the taxable event, and set the liability.</p>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center text-xs font-mono">
+                                <span class="w-16 font-bold text-purple-700">UNION:</span>
+                                <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded">Income-tax Act, 1961</span>
+                                <span class="bg-purple-100 text-purple-800 px-2 py-1 rounded ml-2">CGST Act</span>
+                            </div>
+                            <div class="flex items-center text-xs font-mono">
+                                <span class="w-16 font-bold text-teal-700">STATE:</span>
+                                <span class="bg-teal-100 text-teal-800 px-2 py-1 rounded">SGST Acts</span>
+                                <span class="bg-teal-100 text-teal-800 px-2 py-1 rounded ml-2">State Excise Acts</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Finance Acts -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden card-hover">
+                    <div class="bg-emerald-700 p-4 flex justify-between items-center">
+                        <h3 class="text-white font-bold text-lg">B. Annual Finance Acts</h3>
+                        <span class="text-xs bg-emerald-600 text-white px-2 py-1 rounded uppercase">Annual Amendment</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-4 text-sm">Passed every year. Parliament passes the Union Finance Act; States pass their own State Budgets/Acts.</p>
+                        <ul class="text-sm text-slate-700 space-y-2 list-disc list-inside">
+                            <li>Fixes Tax Rates & Slabs</li>
+                            <li>Amends deductions/exemptions</li>
+                            <li>Does NOT override Constitutional exclusions (e.g., Union Finance Act cannot tax Agriculture).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 3. Money Bills -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden card-hover">
+                    <div class="bg-indigo-700 p-4 flex justify-between items-center">
+                        <h3 class="text-white font-bold text-lg">C. Money Bills</h3>
+                        <span class="text-xs bg-indigo-600 text-white px-2 py-1 rounded uppercase">Democratic Control</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-4 text-sm">Tax bills are Money Bills. Introduced only in the directly elected house.</p>
+                        <div class="flex items-center space-x-4 text-sm font-bold">
+                            <div class="text-purple-600 flex items-center">
+                                <span class="bg-purple-100 p-1 rounded mr-2">Union</span> Lok Sabha
+                            </div>
+                            <div class="text-teal-600 flex items-center">
+                                <span class="bg-teal-100 p-1 rounded mr-2">State</span> Vidhan Sabha
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Treaties (DTAA) -->
+                <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden card-hover">
+                    <div class="bg-amber-600 p-4 flex justify-between items-center">
+                        <h3 class="text-white font-bold text-lg">D. Treaty-based (DTAA)</h3>
+                        <span class="text-xs bg-amber-500 text-white px-2 py-1 rounded uppercase">International</span>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-slate-600 mb-4 text-sm">Article 253. Only Parliament can enter international treaties. States cannot sign tax treaties with other nations.</p>
+                        <div class="bg-amber-50 border border-amber-200 p-3 rounded text-amber-800 text-sm font-semibold">
+                            Superpower: A DTAA can override Union domestic tax law.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Delegated Legislation -->
+    <section class="py-16 bg-purple-900 text-white relative">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold mb-8 serif">Delegated Legislation (The Execution)</h2>
+            <p class="text-purple-200 mb-10 text-lg">
+                Legislatures delegate "Controlled Power" to the Executive branches.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                <!-- Union Delegation -->
+                <div class="bg-purple-800 p-6 rounded-lg border border-purple-700">
+                    <div class="flex items-center mb-4">
+                        <span class="bg-white text-purple-900 font-bold text-xs px-2 py-1 rounded uppercase mr-2">Union</span>
+                        <h4 class="font-bold text-pink-400">Parliament → CBDT / CBIC</h4>
+                    </div>
+                    <p class="text-sm text-slate-300">Section 295 (IT Act): Income Tax Rules.</p>
+                    <p class="text-sm text-slate-300">Section 119: Instructions & Circulars.</p>
+                </div>
+
+                <!-- State Delegation -->
+                <div class="bg-teal-900 p-6 rounded-lg border border-teal-700">
+                    <div class="flex items-center mb-4">
+                        <span class="bg-white text-teal-900 font-bold text-xs px-2 py-1 rounded uppercase mr-2">State</span>
+                        <h4 class="font-bold text-teal-400">Assembly → State Tax Commissioners</h4>
+                    </div>
+                    <p class="text-sm text-slate-300">SGST Rules.</p>
+                    <p class="text-sm text-slate-300">Excise Manuals (Liquor policies).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Doctrines -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-slate-900 mb-12 text-center serif">Legislative Doctrines & Powers</h2>
+            
+            <div class="space-y-6">
+                <!-- Doctrine 1 -->
+                <div class="flex flex-col md:flex-row bg-slate-50 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                    <div class="bg-slate-200 md:w-48 p-6 flex items-center justify-center font-bold text-slate-700 text-center">
+                        Pith & Substance
+                    </div>
+                    <div class="p-6 flex-1">
+                        <p class="text-slate-800 font-semibold mb-1">True Nature Test</p>
+                        <p class="text-slate-600 text-sm">Used to resolve Union vs State conflicts. If the "substance" of a law falls under Entry 82 (Income), it is valid even if it incidentally touches State subjects.</p>
+                    </div>
+                </div>
+                <!-- Doctrine 2 -->
+                <div class="flex flex-col md:flex-row bg-slate-50 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                    <div class="bg-slate-200 md:w-48 p-6 flex items-center justify-center font-bold text-slate-700 text-center">
+                        Colourable Legislation
+                    </div>
+                    <div class="p-6 flex-1">
+                        <p class="text-slate-800 font-semibold mb-1">No Disguises Allowed</p>
+                        <p class="text-slate-600 text-sm">"What cannot be done directly, cannot be done indirectly." Parliament cannot tax agricultural income by disguising it as something else.</p>
+                    </div>
+                </div>
+                <!-- Doctrine 3 -->
+                <div class="flex flex-col md:flex-row bg-slate-50 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                    <div class="bg-slate-200 md:w-48 p-6 flex items-center justify-center font-bold text-slate-700 text-center">
+                        Retrospective Tax
+                    </div>
+                    <div class="p-6 flex-1">
+                        <p class="text-slate-800 font-semibold mb-1">The Power to Look Back</p>
+                        <p class="text-slate-600 text-sm">Parliament <em>can</em> enact tax laws retrospectively. However, it must be reasonable and not arbitrary (subject to Judicial Review).</p>
+                    </div>
+                </div>
+
+                <!-- Doctrine 4 -->
+                <div class="flex flex-col md:flex-row bg-slate-50 rounded-lg overflow-hidden border border-slate-200 shadow-sm">
+                    <div class="bg-slate-200 md:w-48 p-6 flex items-center justify-center font-bold text-slate-700 text-center">
+                        Validation Acts
+                    </div>
+                    <div class="p-6 flex-1">
+                        <p class="text-slate-800 font-semibold mb-1">Curing Defects</p>
+                        <p class="text-slate-600 text-sm">If a court strikes down a tax, Parliament can pass a Validation Act to cure the specific defect (cause of invalidity) and make the tax valid again.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final Quote -->
+    <footer class="bg-slate-900 py-16 text-center px-4 relative overflow-hidden">
+        <div class="max-w-4xl mx-auto relative z-10">
+            <svg class="w-12 h-12 text-teal-500 mx-auto mb-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.95 1.47-1.47 2.95L12 11zm0 2.24l-2.24 1.12 1.12-2.24 1.12 1.12zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <h3 class="text-2xl md:text-3xl font-serif text-white leading-normal italic">
+                "Taxation in India is federally distributed, not centrally monopolized. Parliament and State Legislatures are co-sovereign within their constitutional fields."
+            </h3>
+            <p class="text-slate-500 mt-8 text-sm uppercase tracking-widest">Category II: Complete (Union + State)</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('section').forEach(section => {
+                section.classList.add('scroll-reveal');
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
