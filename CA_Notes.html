@@ -152,6 +152,15 @@
         }
         .btn-reset:hover { background: #fee2e2; }
 
+        .btn-resetdata {
+            background: #fef2f2;
+            color: #ef4444; /* This affects text/border interaction */
+            border-color: #fca5a5;
+            font-size: 1.2rem; /* Make the emoji slightly bigger */
+            padding: 0 10px;   /* Adjust padding if it looks too wide/narrow */
+        }
+        .btn-resetdata:hover { background: #fee2e2; }
+
         .btn-import {
             background: #eff6ff;
             color: #2563eb;
@@ -166,6 +175,18 @@
             border-color: #d8b4fe;
         }
         .btn-json:hover { background: #e9d5ff; }
+
+        /* New Cloud Button Style */
+        .btn-cloud {
+            background: #eff6ff;       /* Very light cloud blue */
+            color: #1d4ed8;            /* Dark, readable blue text */
+            border: 1px solid #bfdbfe; /* Soft blue border */
+        }
+
+        .btn-cloud:hover {
+            background: #dbeafe;       /* Slightly deeper blue on hover */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
 
         /* CENTER NAV GROUP */
         .center-nav-group {
@@ -745,12 +766,16 @@
             color: #334155;
         }
         
-        .toggle-icon-btn.btn-trash:hover { color: #ef4444; border-color: #fecaca; background: #fef2f2; }
+        .toggle-icon-btn.btn-trash:hover { 
+            color: #ef4444; 
+            border-color: #CBCBCB; 
+            /* background: #fef2f2;  */
+        }
         .toggle-icon-btn.btn-trash { color: #ef4444; }
 
         /* State: Collapsed (Grey Clover) */
         .toggle-icon-btn.state-collapsed {
-            filter: grayscale(100%);
+            filter: grayscale(0%);
             opacity: 0.7;
             color: #64748b;
         }
@@ -760,11 +785,12 @@
             filter: grayscale(0%);
             opacity: 1;
             color: #10b981; /* Green tint */
+            border-color: #CBCBCB !important; /* Your specific grey border */
         }
 
         /* Multi Select Default State (Greyed out until active) */
         #select-mode-btn {
-            filter: grayscale(100%);
+            filter: grayscale(0%);
             opacity: 0.7;
         }
         /* Multi Select Active State */
@@ -773,7 +799,7 @@
             opacity: 1;
             /* background: #eff6ff; */
             color: #2563eb;
-            border-color: #2563eb;
+            border-color: #CBCBCB;
         }
 
         /* Zoom specific styles */
@@ -850,22 +876,62 @@
         /* Node Card Styling */
         .node {
             padding: 12px 16px;
-            /* Added extra padding-left to make room for the bulb on the left */
-            padding-left: 36px;
+            padding-left: 36px; 
             border-radius: 8px;
             background: white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            min-width: 140px;
+            
+            /* WIDTH LOGIC */
+            min-width: 140px;      /* 1. Minimum safety width */
+            width: fit-content;    /* 2. Shrink-wrap to fit the content... */
+            max-width: 90vw;       /* 3. ...but stop at screen edge */
+            
             text-align: left;
             position: relative;
             z-index: 2;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-            border: 2px solid transparent; /* Prepared for selection border */
+            border: 2px solid transparent; 
         }
-        .node:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); z-index: 5; }
-        .node h4 { font-size: 0.95rem; margin-bottom: 0.2rem; pointer-events: none; }
-        .node p { font-size: 0.8rem; color: #fff; opacity: 0.9; margin: 0; pointer-events: none; }
+
+        .node:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1); 
+            z-index: 5; 
+        }
+
+        /* TITLE: The "Boss" of the Width */
+        .node h4 { 
+            font-size: 0.95rem; 
+            margin-bottom: 0.2rem; 
+            pointer-events: none;
+            line-height: 1.3;
+            
+            /* Keep title on one line (mostly) so it defines the full width */
+            white-space: nowrap; 
+            
+            /* Safety: If title is wider than screen, allow it to wrap */
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+
+        /* DESCRIPTION: The "Follower" */
+        .node p { 
+            font-size: 0.8rem; 
+            color: #64748b; 
+            margin: 0; 
+            pointer-events: none;
+            line-height: 1.4;
+            
+            /* THE TRICK: Ignore my text length for width calculation */
+            width: 0;           
+            min-width: 120%;    /* Force it to fill the calculated space */
+            
+            /* Wrap nicely inside whatever space the Title provided */
+            white-space: normal; 
+            overflow-wrap: break-word; 
+            word-break: break-word; 
+        }
 
         /* Selected Node State (Multi-Select) */
         .node.node-selected {
@@ -931,7 +997,7 @@
         .bulb-btn {
             position: absolute;
             top: 4px;
-            left: 4px; 
+            left: 10px; 
             right: auto;
             background: none;
             border: none;
@@ -978,6 +1044,37 @@
     </style>
 </head>
 <body>
+    <div id="loading-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;"></div>
+        <p style="margin-top: 15px; font-family: sans-serif; color: #555;">Syncing CA Notes...</p>
+    </div>
+
+    <style>
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    /* --- RESIZER HANDLES --- */
+    .resizer {
+        width: 3px;             /* Make it wider temporarily */
+        background: #cbcbcb;         /* Make it bright RED so you can't miss it */
+        opacity: 0.3;            /* Semi-transparent */
+        cursor: col-resize;
+        z-index: 100;            /* Force it on top of everything */
+        
+        /* Ensure it stretches top-to-bottom */
+        height: 100%;            
+        align-self: stretch;     
+    }
+
+    .resizer:hover, .resizer.resizing {
+        background: #cbcbcb; 
+    }
+
+    body.resizing {
+        cursor: col-resize;
+        user-select: none;
+    }
+    </style>
+
+    
 
 <header>
     <div class="brand-group">
@@ -1009,7 +1106,7 @@
             <!-- Hidden File Input for JSON Import -->
             <input type="file" id="json-upload" style="display:none" accept=".json" onchange="handleJSONImport(this)">
 
-            <button class="btn-action btn-reset" onclick="resetAllData()">Reset</button>
+            <button class="btn-action btn-resetdata" onclick="resetAllData()" title="Reset Data">📛</button>
         </div>
     </div>
     
@@ -1035,7 +1132,7 @@
     <div id="input-view" class="view-section active-view">
         <div class="input-wrapper">
             
-            <div class="col-chapters">
+            <div class="col-chapters" id="col-chapters" style="width: 280px;">
                 <div class="col-header">
                     <span>Chapters</span>
                     <div class="header-actions">
@@ -1046,7 +1143,9 @@
                 </div>
             </div>
 
-            <div class="col-level1">
+            <div class="resizer" id="resizer-1"></div>
+
+            <div class="col-level1" id="col-level1" style="width: 280px;">
                 <div class="col-header">
                     <span>Level 1 Tabs</span>
                     <div class="header-actions">
@@ -1057,6 +1156,8 @@
                     <div class="empty-msg">Select a Chapter</div>
                 </div>
             </div>
+
+            <div class="resizer" id="resizer-2"></div>
 
             <div class="col-editor">
                 <div class="col-header">
@@ -1086,7 +1187,7 @@
 
             <!-- Collapse/Expand -->
             <div class="btn-wrapper">
-                <button id="tree-toggle-btn" class="toggle-icon-btn state-collapsed" onclick="toggleTreeState()" title="Toggle Tree">
+                <button id="tree-toggle-btn" class="toggle-icon-btn state-collapsed" onclick="toggleTreeState()">
                     🍁
                 </button>
                 <div class="toggle-label" id="toggle-label-text">Expand All</div>
@@ -1094,7 +1195,7 @@
 
             <!-- Multi Select Toggle -->
             <div class="btn-wrapper">
-                <button id="select-mode-btn" class="toggle-icon-btn" onclick="toggleSelectionMode()" title="Toggle Select Mode">
+                <button id="select-mode-btn" class="toggle-icon-btn" onclick="toggleSelectionMode()">
                     ☑️
                 </button>
                 <div class="toggle-label">Select Mode</div>
@@ -1102,7 +1203,7 @@
 
             <!-- Multi Delete Action (Hidden unless selected) -->
             <div class="btn-wrapper" id="delete-selected-wrapper" style="display:none;">
-                <button class="toggle-icon-btn btn-trash" onclick="deleteSelectedNodes()" title="Delete Selected Items">
+                <button class="toggle-icon-btn btn-trash" onclick="deleteSelectedNodes()">
                     🗑️
                 </button>
                 <div class="toggle-label">Delete Selected</div>
@@ -1137,17 +1238,20 @@
     </div>
 </div>
 
-<!-- NEW: EXPORT CHOICE MODAL -->
 <div id="export-choice-modal" class="modal-overlay">
-    <div class="modal" style="width: 400px; text-align: center;">
-        <h2>Export Data</h2>
+    <div class="modal" style="width: 450px; text-align: center;"> <h2>Export Data</h2>
         <p>Choose an export format:</p>
-        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem;">
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; margin-top: 1rem;">
             <button class="btn-action btn-json" onclick="chooseExport('json')">
                 <span>{ }</span> JSON Data
             </button>
+            
+            <button class="btn-action btn-cloud" onclick="saveToCloud()" title="Ctrl + Enter">
+                <span>🌐</span> Save to Cloud
+            </button>
+
             <button class="btn-action btn-save" onclick="chooseExport('html')">
-                <span>🌐</span> Standalone HTML
+                <span>🖥️</span> Standalone HTML
             </button>
         </div>
         <div class="modal-actions" style="justify-content: center; margin-top: 1.5rem;">
@@ -1207,8 +1311,7 @@
                     
                     <button id="btn-note-action" onclick="toggleNoteMode()" class="emoji-btn" title="Edit">✏️</button>
                     
-                    <button onclick="closeNotesModal()" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 4px; cursor: pointer;">Close</button>
-                </div>
+                    <button onclick="closeNotesModal()" title="Esc" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 2px 8px; border-radius: 4px; cursor: pointer;">Close</button>                </div>
             </div>
         </div>
         
@@ -1456,6 +1559,14 @@
         document.getElementById('btn-redo').disabled = historyIndex >= historyStack.length - 1;
     }
 
+    // Keyboard Shortcut: Ctrl + Enter to Save
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === 'Enter') {
+            event.preventDefault(); // Prevents adding a new line if you are typing
+            saveToCloud();          // Triggers your save function
+        }
+    });
+
     document.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
             e.preventDefault(); undo();
@@ -1474,6 +1585,7 @@
             }
         }
     });
+
 
     // --- Persistence ---
     function saveData(record = true) {
@@ -1850,7 +1962,7 @@
             
             // --- UPDATED BUTTON FOR SAVE STATE ---
             btn.innerHTML = '✅';
-            btn.title = "Save Changes";
+            btn.title = "Save(Ctrl+Enter)";
             
             textarea.focus();
         } else {
@@ -1879,7 +1991,7 @@
 
             // --- UPDATED BUTTON FOR EDIT STATE ---
             btn.innerHTML = '🖊️';
-            btn.title = "Edit Note";
+            btn.title = "Edit(Ctrl+Enter)";
         }
     }
 
@@ -2675,6 +2787,1334 @@
         localStorage.removeItem(STORAGE_KEY);
     });
 
+</script>
+
+<script type="module">
+    // 1. Import Firebase libraries
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // 2. Project Credentials
+    const firebaseConfig = {
+        apiKey: "AIzaSyAqwOPonkGFYLpj7FULmUJeY76t_Rm9cuM",
+        authDomain: "ca-notes143.firebaseapp.com",
+        projectId: "ca-notes143",
+        storageBucket: "ca-notes143.firebasestorage.app",
+        messagingSenderId: "519846107572",
+        appId: "1:519846107572:web:42747869d5aa5896a47ae1",
+        measurementId: "G-Q4LQ77ZDM6"
+    };
+
+    // 3. Initialize connection
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // --- REFS ---
+    const metaRef = doc(db, "personal_notes", "ca_hq_meta"); 
+    const oldLegacyRef = doc(db, "personal_notes", "ca_final_pad");
+
+    // --- SMART LOAD LOGIC ---
+    window.addEventListener('DOMContentLoaded', async () => {
+        const overlay = document.getElementById('loading-overlay');
+        
+        try {
+            // STEP A: Try to load the Meta Index
+            const metaSnap = await getDoc(metaRef);
+            
+            let finalSubjects = [];
+            let finalActiveId = null;
+
+            if (metaSnap.exists()) {
+                console.log("Loading Split Architecture...");
+                const metaData = metaSnap.data();
+                finalActiveId = metaData.activeSubjectId;
+                const subjectList = metaData.subjectList || [];
+
+                // STEP B: Fetch all subject documents
+                const promises = subjectList.map(subItem => {
+                    const subRef = doc(db, "ca_hq_subjects", subItem.id);
+                    return getDoc(subRef);
+                });
+
+                const snapshots = await Promise.all(promises);
+
+                snapshots.forEach(snap => {
+                    if(snap.exists()) {
+                        const rawData = snap.data();
+                        
+                        // *** HYBRID LOADER ***
+                        if (rawData.subjectData && typeof rawData.subjectData === 'string') {
+                            finalSubjects.push(JSON.parse(rawData.subjectData));
+                        } else {
+                            finalSubjects.push(rawData);
+                        }
+                    }
+                });
+
+                if(finalSubjects.length === 0) finalSubjects = appState.subjects; 
+
+            } else {
+                // STEP C: Legacy Fallback
+                const oldSnap = await getDoc(oldLegacyRef);
+                if (oldSnap.exists()) {
+                    const cloudJson = oldSnap.data().hierarchyData;
+                    const loadedData = JSON.parse(cloudJson);
+                    finalSubjects = loadedData.subjects;
+                    finalActiveId = loadedData.activeSubjectId;
+                    alert("Legacy Data Loaded. Please click 'Save' to update format.");
+                }
+            }
+
+            // STEP D: Apply to AppState
+            if(finalSubjects.length > 0) appState.subjects = finalSubjects;
+            
+            // Validate Active ID
+            const targetSubject = appState.subjects.find(s => s.id === finalActiveId);
+            if(targetSubject) {
+                appState.activeSubjectId = finalActiveId;
+                // Pointer Fix
+                if (targetSubject.chapters.length > 0) {
+                    appState.activeChapterId = targetSubject.chapters[0].id;
+                    if (targetSubject.chapters[0].children.length > 0) {
+                        appState.activeLevel1Id = targetSubject.chapters[0].children[0].id;
+                    }
+                }
+            } else {
+                appState.activeSubjectId = appState.subjects[0].id;
+            }
+
+            // STEP E: Refresh UI
+            const selector = document.getElementById('subject-selector');
+            if (selector) {
+                selector.innerHTML = ''; 
+                appState.subjects.forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub.id;
+                    opt.textContent = sub.name; 
+                    if(sub.id === appState.activeSubjectId) opt.selected = true;
+                    selector.appendChild(opt);
+                });
+            }
+
+            // STEP F: FORCE COLLAPSE (The Fix)
+            // We verify that the main app functions exist before calling them
+            if (typeof collapseAll === 'function') {
+                appState.expandedNodes = new Set(); // Clear state
+                collapseAll(); // Force collapse logic
+                
+                // Update the Toggle Button UI to match
+                const btn = document.getElementById('tree-toggle-btn');
+                const label = document.getElementById('toggle-label-text');
+                if(btn) {
+                     btn.classList.remove('state-expanded');
+                     btn.classList.add('state-collapsed');
+                     if(label) label.innerText = "Expand All";
+                }
+                // Reset global flag
+                if(typeof isTreeFullyExpanded !== 'undefined') isTreeFullyExpanded = false;
+            }
+
+            setTimeout(() => {
+                const visBtn = document.querySelectorAll('.nav-tab')[1];
+                const dataBtn = document.querySelectorAll('.nav-tab')[0];
+                if (visBtn && dataBtn) { visBtn.click(); setTimeout(() => { dataBtn.click(); }, 100); }
+            }, 100);
+
+        } catch (e) {
+            console.error("Sync Error:", e);
+            alert("Error loading data: " + e.message);
+        } finally {
+            setTimeout(() => { if (overlay) overlay.style.display = 'none'; }, 500);
+        }
+    });
+
+    // --- SAVE LOGIC ---
+    window.saveToCloud = async function() {
+        closeExportChoiceModal();
+        const loadingOverlay = document.getElementById('loading-overlay');
+        loadingOverlay.style.display = 'flex';
+        loadingOverlay.querySelector('p').innerText = "Saving compact files...";
+
+        try {
+            let sizeReport = "";
+
+            // 1. Size Check
+            for (let sub of appState.subjects) {
+                const subJson = JSON.stringify(sub);
+                const sizeInBytes = new Blob([subJson]).size;
+                const sizeInMB = parseFloat((sizeInBytes / (1024 * 1024)).toFixed(3));
+                
+                sizeReport += `• ${sub.name}: ${sizeInMB} MB\n`;
+
+                if (sizeInMB > 0.98) throw new Error(`Subject "${sub.name}" is too large (${sizeInMB} MB). Limit is 1.00 MB.`);
+            }
+
+            // 2. Meta Data
+            const metaData = {
+                activeSubjectId: appState.activeSubjectId,
+                subjectList: appState.subjects.map(s => ({ id: s.id, name: s.name })),
+                lastUpdated: new Date().toLocaleString(),
+                version: 'v3_compact'
+            };
+
+            const savePromises = [];
+            savePromises.push(setDoc(metaRef, metaData));
+
+            // 3. Save
+            appState.subjects.forEach(sub => {
+                const subRef = doc(db, "ca_hq_subjects", sub.id);
+                const compactData = JSON.stringify(sub);
+                savePromises.push(setDoc(subRef, { subjectData: compactData }));
+            });
+
+            await Promise.all(savePromises);
+            
+            alert(`✅ Saved Successfully!\n\nStorage Report:\n${sizeReport}\n(Limit per file: 1.00 MB)`);
+
+        } catch (e) {
+            console.error(e);
+            alert("Save Failed: " + e.message);
+        } finally {
+            loadingOverlay.style.display = 'none';
+            loadingOverlay.querySelector('p').innerText = "Syncing CA Notes...";
+        }
+    };
+</script>
+
+<script>
+(function() {
+    // 1. INTELLIGENT DETECTION (Fixes the Windows Issue)
+    // We check for "Android" or "iPhone/iPad" specifically.
+    // We also check if screen width is small (like a phone).
+    const isAndroidOrIOS = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isSmallScreen = window.innerWidth < 900;
+    
+    // Only turn on Mobile Mode if it's actually a mobile device
+    if (isAndroidOrIOS || isSmallScreen) {
+        document.body.classList.add('is-mobile');
+    } else {
+        // If Desktop Windows, stop here! Don't run the patch.
+        return; 
+    }
+
+    // // 1. Force Mobile Mode
+    // document.body.classList.add('is-mobile');
+
+    
+    // Global State for Mobile Actions
+    window.mobileState = {
+        srcId: null,      // ID of item being moved
+        mode: null,       // 'list-move' or 'vis-move'
+        tool: null        // 'note', 'add', 'move'
+    };
+
+    // ============================================================
+    // PART A: VISUALIZATION WINDOW (Tree View)
+    // ============================================================
+
+    // 1. Inject the "Move Tool" (Hand Icon) into the Toolbar
+    setTimeout(() => {
+        const toolbar = document.querySelector('.result-toolbar');
+        if(toolbar && !document.getElementById('mobile-move-tool')) {
+            // Create wrapper for the button
+            const div = document.createElement('div');
+            div.className = 'btn-wrapper';
+            div.innerHTML = `
+                <button id="mobile-move-tool" class="toggle-icon-btn" onclick="toggleVisTool('move')" style="opacity: 0.7;">🖐🏻</button>
+                <div class="toggle-label">Move Node</div>
+            `;
+            // Insert it at the top of the toolbar
+            toolbar.insertBefore(div, toolbar.firstElementChild);
+        }
+        
+        // Disable Dragging on the existing Note/Add tools so they work as tap buttons
+        const noteTool = document.getElementById('draggable-note-tool');
+        const addTool = document.getElementById('draggable-add-tool');
+        if(noteTool) {
+            noteTool.draggable = false;
+            noteTool.onclick = (e) => { e.preventDefault(); toggleVisTool('note'); };
+        }
+        if(addTool) {
+            addTool.draggable = false;
+            addTool.onclick = (e) => { e.preventDefault(); toggleVisTool('add'); };
+        }
+    }, 500);
+
+    // 2. Tool Toggle Logic
+    window.toggleVisTool = function(toolName) {
+        const state = window.mobileState;
+        const btnMove = document.getElementById('mobile-move-tool');
+        const btnNote = document.getElementById('draggable-note-tool');
+        const btnAdd = document.getElementById('draggable-add-tool');
+
+        // Reset all buttons visual state
+        if(btnMove) btnMove.style.color = '#64748b';
+        if(btnMove) btnMove.style.opacity = 0.7;
+        if(btnMove) btnMove.style.borderColor = 'white';
+        if(btnNote) btnNote.classList.remove('mobile-tool-active');
+        if(btnAdd) btnAdd.classList.remove('mobile-tool-active');
+
+        // Toggle Off if clicking same tool
+        if (state.tool === toolName) {
+            state.tool = null;
+            state.srcId = null; // Clear any pending move selection
+            renderVisualizer(); // Clear green highlight
+            return;
+        }
+
+        // Activate Tool
+        state.tool = toolName;
+        
+        if(toolName === 'move') {
+            if(btnMove) { btnMove.style.opacity = '1'; btnMove.style.color = '#2563eb'; btnMove.style.borderColor = '#CBCBCB'; }
+        } else if (toolName === 'note') {
+            if(btnNote) btnNote.classList.add('mobile-tool-active');
+        } else if (toolName === 'add') {
+            if(btnAdd) btnAdd.classList.add('mobile-tool-active');
+        }
+    };
+
+    // 3. Intercept Node Clicks in the Tree
+    const originalHandleNodeClick = window.handleNodeClick;
+
+    window.handleNodeClick = function(e, node) {
+        const state = window.mobileState;
+        
+        // If no tool active, do normal collapse/expand
+        if (!state.tool) {
+            if(originalHandleNodeClick) originalHandleNodeClick(e, node);
+            return;
+        }
+
+        e.stopPropagation(); // Stop click from bubbling
+
+        // --- HAND TOOL (MOVE) LOGIC ---
+        if (state.tool === 'move') {
+            
+            // Step 1: Select Source
+            if (!state.srcId) {
+                state.srcId = node.id;
+                renderVisualizer(); // Re-render to show green highlight on source
+                return;
+            }
+
+            // Step 2: Select Target (Action!)
+            const targetId = node.id;
+            const srcId = state.srcId;
+
+            if (srcId === targetId) {
+                // Cancel if clicked self
+                state.srcId = null;
+                renderVisualizer();
+                return;
+            }
+
+            // Execute the Move
+            executeVisMove(srcId, targetId);
+            
+            // Reset
+            state.srcId = null;
+            // Optional: Keep tool active for more moves? Or turn off? 
+            // Let's keep it active for batch moving.
+            renderVisualizer();
+            return;
+        }
+
+        // --- NOTE TOOL LOGIC ---
+        if (state.tool === 'note') {
+            openNotesModal(e, node.id);
+        }
+
+        // --- ADD TOOL LOGIC ---
+        if (state.tool === 'add') {
+            addNewChildNode(node.id);
+        }
+    };
+
+    // 4. UPDATED Logic: Always "Adopt" (Make Child) instead of Swap
+    function executeVisMove(srcId, targetId) {
+        const sub = getActiveSubject();
+        const srcData = findNodePath(sub.chapters, srcId);
+        const tgtData = findNodePath(sub.chapters, targetId);
+
+        if (!srcData || !tgtData) return;
+
+        // Constraint 1: Can't move into own child (creates infinite loop)
+        if (tgtData.path.includes(srcId)) {
+            alert("Cannot move a node inside itself.");
+            return;
+        }
+
+        // Constraint 2: Can't move into itself
+        if (srcId === targetId) return;
+
+        // --- THE CHANGE: ALWAYS REPARENT (ADOPT) ---
+        // Even if they are siblings, we want Src to become a child of Target.
+        
+        // 1. Remove from old parent (Cut)
+        const [movedNode] = srcData.parentArr.splice(srcData.index, 1);
+        
+        // 2. Add to new target's children (Paste)
+        if (!tgtData.node.children) tgtData.node.children = [];
+        tgtData.node.children.push(movedNode);
+        
+        // 3. Auto-expand target so you can see what happened
+        appState.expandedNodes.delete(targetId);
+        
+        saveData();
+        renderVisualizer();
+    }
+
+    // ============================================================
+    // PART B: DATA ENTRY WINDOW (List View) - Kept for backup
+    // ============================================================
+    
+    // Override Renderers to show Move Buttons
+    window.renderChaptersList = function() {
+        const container = document.getElementById('chapters-list');
+        container.innerHTML = '';
+        const sub = getActiveSubject();
+        if(!sub) return;
+
+        sub.chapters.forEach((chap) => {
+            const div = document.createElement('div');
+            const isActive = chap.id === appState.activeChapterId;
+            const isMoving = (window.mobileState.mode === 'list-move' && window.mobileState.srcId === chap.id);
+            
+            div.className = `chapter-item ${isActive ? 'active' : ''} ${isMoving ? 'move-active' : ''}`;
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; flex:1;">
+                    <button class="btn-mobile-move" ontouchstart="event.stopPropagation();" onclick="list_handleMove('${chap.id}', 'chapter', event)">${isMoving ? '⬇' : '⇅'}</button>
+                    <span class="title-span" style="flex:1; margin-left:12px; padding: 10px 0;" onclick="list_select('${chap.id}', 'chapter')">${chap.title || 'Untitled'}</span>
+                </div>
+                <button class="btn-icon" onclick="deleteChapter('${chap.id}', event)">×</button>
+            `;
+            container.appendChild(div);
+        });
+    };
+
+    window.renderLevel1List = function() {
+        const container = document.getElementById('level1-list');
+        container.innerHTML = '';
+        const chap = getActiveChapter();
+        if (!chap) { container.innerHTML = '<div class="empty-msg">No Chapter</div>'; return; }
+
+        chap.children.forEach((l1) => {
+            const div = document.createElement('div');
+            const isActive = l1.id === appState.activeLevel1Id;
+            const isMoving = (window.mobileState.mode === 'list-move' && window.mobileState.srcId === l1.id);
+            
+            div.className = `level1-item ${isActive ? 'active' : ''} ${isMoving ? 'move-active' : ''}`;
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; flex:1;">
+                    <button class="btn-mobile-move" ontouchstart="event.stopPropagation();" onclick="list_handleMove('${l1.id}', 'level1', event)">${isMoving ? '⬇' : '⇅'}</button>
+                    <span class="title-span" style="flex:1; margin-left:12px; padding: 10px 0;" onclick="list_select('${l1.id}', 'level1')">${l1.title || 'Untitled'}</span>
+                </div>
+                <button class="btn-icon" onclick="deleteLevel1('${l1.id}', event)">×</button>
+            `;
+            container.appendChild(div);
+        });
+    };
+
+    window.list_select = function(id, type) {
+        if(window.mobileState.mode === 'list-move' && window.mobileState.srcId) return;
+        if(type === 'chapter') {
+            appState.activeChapterId = id;
+            const c = getActiveChapter();
+            appState.activeLevel1Id = (c && c.children.length > 0) ? c.children[0].id : null;
+        } else {
+            appState.activeLevel1Id = id;
+        }
+        renderInputView();
+    };
+
+    window.list_handleMove = function(targetId, type, e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); }
+        const state = window.mobileState;
+
+        if (!state.srcId) {
+            state.srcId = targetId;
+            state.mode = 'list-move';
+            renderInputView(); return;
+        }
+        if (state.srcId === targetId) {
+            state.srcId = null; state.mode = null;
+            renderInputView(); return;
+        }
+
+        let list = (type === 'chapter') ? getActiveSubject().chapters : getActiveChapter().children;
+        const srcIndex = list.findIndex(x => x.id === state.srcId);
+        const tgtIndex = list.findIndex(x => x.id === targetId);
+
+        if (srcIndex > -1 && tgtIndex > -1) {
+            const [movedItem] = list.splice(srcIndex, 1);
+            list.splice(tgtIndex, 0, movedItem);
+            saveData();
+        }
+        state.srcId = null; state.mode = null;
+        renderInputView();
+    };
+
+    // Helper: Override buildTreeHTML to add visual indicator for moving
+    const originalBuildTreeHTML = window.buildTreeHTML; // Note: You might need to expose this in main script if wrapped
+    // Since buildTreeHTML is likely global, we override it carefully
+    
+    // We actually just rely on CSS injection for the visualization highlight
+    // The handleNodeClick logic above handles the rest.
+
+    // Force Initial Render
+    setTimeout(renderInputView, 100);
+
+})();
+</script>
+
+<style>
+    /* 1. Mobile Tool Styles */
+    .mobile-tool-active {
+        /* background-color: #3b82f6 !important;  */
+        border-color: #2563eb !important;
+        color: white !important; transform: scale(1.1);
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+    
+    /* 2. Visualizer Node - Move Source Highlight */
+    /* We need to apply this class dynamically in JS, but simpler: use ID selector */
+    /* Since we don't have easy class injection in the tree builder without rewriting it, 
+       we will use a trick: Select by Attribute if we added one, OR just rely on logic. 
+       Actually, let's update the DOM directly on selection. */
+
+    /* 3. List View Styles */
+    .btn-mobile-move {
+        background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;
+        min-width: 44px; height: 44px; font-size: 1.4rem;
+        display: flex; align-items: center; justify-content: center;
+        color: #64748b; cursor: pointer; margin-right: 5px; z-index: 10;
+    }
+    .move-active {
+        background-color: #dcfce7 !important;
+        border: 2px dashed #16a34a !important;
+    }
+    .move-active .btn-mobile-move { background: #16a34a; color: white; border-color: #15803d; }
+</style>
+
+<script>
+    // Helper to highlight the source node in tree view
+    setInterval(() => {
+        if(window.mobileState && window.mobileState.tool === 'move' && window.mobileState.srcId) {
+            // Find all nodes
+            document.querySelectorAll('.node').forEach(n => {
+                // We don't have ID on the DOM element by default. 
+                // We need to match title? No, unreliable.
+                // FIX: Let's assume the click handler works, but we want visual feedback.
+                // We can't easily highlight without re-rendering the tree with IDs.
+            });
+            
+            // Actually, let's just make the clicked node turn green via the click event instantly
+            // The re-render might wash it away.
+        }
+    }, 1000);
+    
+    // BETTER FIX: Override buildTreeHTML to include ID in the DOM
+    window.buildTreeHTML = function(node, level) {
+        const li = document.createElement('li');
+        const card = document.createElement('div');
+        const hasChild = node.children && node.children.length > 0;
+        const isCollapsed = appState.expandedNodes.has(node.id);
+        const hasNotes = node.notes && node.notes.trim().length > 0;
+        
+        // CHECK IF MOVING
+        const isSource = (window.mobileState && window.mobileState.srcId === node.id);
+        
+        card.id = 'node-' + node.id; // Add ID to DOM
+        card.className = `node level-${Math.min(level,3)} ${isCollapsed?'collapsed':''} ${selectedNodeIds.has(node.id)?'node-selected':''} ${isSource ? 'move-active' : ''}`;
+        
+        // Add Hand Icon if in Move Mode? No, toolbar controls it.
+        
+        card.innerHTML = `<h4>${node.title}</h4>${node.desc?`<p>${node.desc}</p>`:''}${hasChild?`<span class="expander">${isCollapsed?'+':'-'}</span>`:''}<button class="bulb-btn ${hasNotes?'has-notes':''}" onclick="openNotesModal(event,'${node.id}')">✦</button>`;
+        
+        // Desktop Drag (still needed for laptop users)
+        card.draggable = true;
+        card.ondragstart=(e)=>handleVisDragStart(e,node.id);
+        card.ondragover=(e)=>handleVisDragOver(e,node.id);
+        card.ondragleave=(e)=>handleVisDragLeave(e);
+        card.ondrop=(e)=>handleVisDrop(e,node.id);
+        
+        card.onclick = (e) => handleNodeClick(e, node);
+        
+        li.appendChild(card);
+        if(hasChild && !isCollapsed) {
+            const ul = document.createElement('ul');
+            node.children.forEach(child => ul.appendChild(buildTreeHTML(child, level+1)));
+            li.appendChild(ul);
+        }
+        if(level===0) { const ul=document.createElement('ul'); ul.style.paddingLeft='0'; ul.appendChild(li); return ul; }
+        return li;
+    };
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<style>
+    /* --- 1. VISUAL STYLES --- */
+    .node {
+        transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                    opacity 0.3s ease, 
+                    filter 0.3s ease,
+                    box-shadow 0.2s ease,
+                    border-color 0.2s ease; /* Smooth border transition */
+        position: relative;
+        z-index: 1; 
+    }
+
+    /* Highlight Glow (Amber) - BORDER ONLY */
+    .node.path-glow {
+        border-color: #f59e0b !important;
+        /* background-color: REMOVED; */
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.3) !important;
+        z-index: 1000 !important;
+    }
+
+    /* Focus Mode (Dimming) */
+    /* Logic changed: Dim everything that is NOT an active part of the path */
+    body.is-focused .node:not(.path-active-node) {
+        opacity: 0.1;
+        filter: grayscale(100%);
+    }
+    
+    /* Dim inactive lines */
+    body.is-focused .tree-ltr li::before,
+    body.is-focused .tree-ltr li::after {
+        opacity: 0.05;
+    }
+    
+    /* Keep active path lines visible */
+    body.is-focused .tree-ltr li.path-active-li::before,
+    body.is-focused .tree-ltr li.path-active-li::after {
+        opacity: 1 !important;
+        border-color: #cbd5e1; 
+    }
+
+    /* --- 2. TOOLTIP STYLES --- */
+    #tree-tooltip {
+        position: fixed;
+        background: rgba(255, 255, 255, 0.98); 
+        color: #1e293b; 
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 12px;
+        font-weight: 700; 
+        pointer-events: none; 
+        z-index: 9999;
+        white-space: nowrap;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15); 
+        border: 1px solid #e2e8f0; 
+        display: none; 
+        backdrop-filter: blur(4px);
+        transform: translate(-50%, -100%); 
+    }
+    #tree-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -4px;
+        border-width: 4px;
+        border-style: solid;
+        border-color: rgba(255, 255, 255, 0.98) transparent transparent transparent;
+    }
+
+    .tt-level-0 { color: #4338ca; } 
+    .tt-level-1 { color: #be185d; } 
+    .tt-level-2 { color: #c2410c; } 
+    .tt-level-3 { color: #047857; } 
+    .tt-sep { color: #94a3b8; margin: 0 6px; font-weight: 400; }
+
+    /* --- 3. TOOLBAR UI --- */
+    .left-toolbar {
+        position: absolute; top: 20px; left: 20px; z-index: 100;
+        pointer-events: none; display: flex; flex-direction: column; 
+        align-items: center; gap: 12px;
+    }
+    .left-toolbar button { pointer-events: auto; }
+
+    #trace-sub-options {
+        display: none; flex-direction: column; gap: 12px; align-items: center;
+    }
+
+    /* --- BUTTON STYLES --- */
+    #btn-trace-toggle {
+        background-color: #ffffff !important; 
+        border: 2px solid #ffffff !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        width: 45px; height: 45px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+        font-size: 1.5rem;
+        color: #64748b !important;
+        filter: grayscale(0%);
+        opacity: 0.7;
+    }
+    #btn-trace-toggle:hover { 
+        transform: scale(1.1); 
+        opacity: 1; 
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        color: #334155;
+    }
+    #btn-trace-toggle.path-mode-active {
+        color: #f59e0b !important; 
+        filter: grayscale(0%) !important;
+        opacity: 1 !important;
+        border-color: #CBCBCB !important; /* Your specific grey border */
+    }
+
+    .btn-sub-opt {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        background-color: #ffffff !important;
+        border: 2px solid #ffffff !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        cursor: pointer;
+        font-size: 1.1rem;
+        display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+        color: #64748b !important;
+        filter: grayscale(100%);
+        opacity: 0.7;
+    }
+    .btn-sub-opt:hover { transform: scale(1.1); opacity: 1; }
+
+    .btn-sub-opt.btn-on {
+        filter: grayscale(0%) !important;
+        opacity: 1 !important;
+        border-color: #CBCBCB !important;
+    }
+    
+    .btn-sub-opt.btn-on.icon-text { color: #f59e0b !important; }
+    .btn-sub-opt.btn-on.icon-glow { color: #f59e0b !important; } 
+    .btn-sub-opt.btn-on.icon-align { color: #10b981 !important; }
+    .btn-sub-opt.btn-on.icon-focus { color: #8b5cf6 !important; }
+
+</style>
+
+<div id="tree-tooltip"></div>
+
+<script>
+    const traceState = {
+        master: false, 
+        text: false,      
+        highlight: false, 
+        align: false,     
+        focus: false      
+    };
+
+    // --- TOGGLE FUNCTIONS ---
+    window.toggleMasterTrace = function() {
+        traceState.master = !traceState.master;
+        const masterBtn = document.getElementById('btn-trace-toggle');
+        const optionsDiv = document.getElementById('trace-sub-options');
+
+        if (traceState.master) {
+            masterBtn.classList.add('path-mode-active');
+            optionsDiv.style.display = 'flex';
+        } else {
+            masterBtn.classList.remove('path-mode-active');
+            optionsDiv.style.display = 'none';
+            resetView(); 
+        }
+    };
+
+    function toggleSubState(key, btn) {
+        traceState[key] = !traceState[key];
+        
+        if(traceState[key]) {
+            btn.classList.add('btn-on');
+        } else {
+            btn.classList.remove('btn-on');
+            if(key === 'text') hideTooltip();
+            if(key === 'highlight') document.querySelectorAll('.path-glow').forEach(el => el.classList.remove('path-glow'));
+            if(key === 'align') document.querySelectorAll('.node').forEach(el => el.style.transform = '');
+            if(key === 'focus') document.body.classList.remove('is-focused');
+        }
+    }
+
+    // --- VISUAL LOGIC ---
+    const tooltipEl = document.getElementById('tree-tooltip');
+
+    window.updateTooltipPos = function(x, y) {
+        tooltipEl.style.left = x + 'px';
+        tooltipEl.style.top = (y - 35) + 'px'; 
+    };
+
+    window.hideTooltip = function() { tooltipEl.style.display = 'none'; };
+
+    window.resetView = function() {
+        document.body.classList.remove('is-focused');
+        document.querySelectorAll('.path-active-node').forEach(el => el.classList.remove('path-active-node')); // Clean internal class
+        document.querySelectorAll('.path-glow').forEach(el => el.classList.remove('path-glow'));
+        document.querySelectorAll('.path-active-li').forEach(el => el.classList.remove('path-active-li'));
+        document.querySelectorAll('.node').forEach(el => el.style.transform = '');
+        hideTooltip();
+    };
+
+    // *** HOVER HANDLER ***
+    window.handleHover = function(e, hoveredCard) {
+        if (!traceState.master) return; 
+
+        const isHovering = e.type === 'mouseenter';
+        
+        if (!isHovering) {
+            resetView();
+            return;
+        }
+
+        // Apply Focus Mode globally
+        if (traceState.focus) document.body.classList.add('is-focused');
+
+        let targetCenterY = 0;
+        if (traceState.align) {
+            const rect = hoveredCard.getBoundingClientRect();
+            targetCenterY = rect.top + (rect.height / 2);
+        }
+
+        let li = hoveredCard.closest('li');
+        let pathData = []; 
+
+        const getLevel = (node) => {
+            if(node.classList.contains('level-0')) return 0;
+            if(node.classList.contains('level-1')) return 1;
+            if(node.classList.contains('level-2')) return 2;
+            if(node.classList.contains('level-3')) return 3;
+            return 0;
+        }
+
+        while (li) {
+            // Keep lines visible if Focusing
+            if(traceState.focus) li.classList.add('path-active-li');
+            
+            let node = li.querySelector(':scope > .node');
+            if (node) {
+                // IMPORTANT: Always mark this node as active for Focus Visibility logic
+                node.classList.add('path-active-node');
+
+                // A. Visual Highlight (Orange Border)
+                if (traceState.highlight) node.classList.add('path-glow');
+
+                // B. Alignment
+                if (traceState.align && node !== hoveredCard) {
+                    const ancRect = node.getBoundingClientRect();
+                    const ancCenterY = ancRect.top + (ancRect.height / 2);
+                    const diff = targetCenterY - ancCenterY;
+                    node.style.transform = `translateY(${diff}px)`;
+                }
+
+                pathData.unshift({
+                    title: node.querySelector('h4').innerText,
+                    level: getLevel(node)
+                });
+            }
+            li = li.parentElement ? li.parentElement.closest('li') : null;
+        }
+
+        // Tooltip
+        if (traceState.text) {
+            const html = pathData.map(item => 
+                `<span class="tt-level-${item.level}">${item.title}</span>`
+            ).join('<span class="tt-sep">/</span>');
+            
+            tooltipEl.innerHTML = html;
+            tooltipEl.style.display = 'block';
+            updateTooltipPos(e.clientX, e.clientY);
+        }
+    };
+
+    window.trackMouse = function(e) {
+        if (!traceState.master || !traceState.text) return;
+        if(tooltipEl.style.display === 'block') {
+            updateTooltipPos(e.clientX, e.clientY);
+        }
+    };
+
+    // --- TOOLBAR INJECTION ---
+    (function initToolbar() {
+        const view = document.getElementById('result-view');
+        if (!view) return;
+
+        let leftBar = document.querySelector('.left-toolbar');
+        if (!leftBar) {
+            leftBar = document.createElement('div');
+            leftBar.className = 'left-toolbar';
+            view.appendChild(leftBar);
+        }
+
+        if (!document.getElementById('btn-trace-toggle')) {
+            const masterWrap = document.createElement('div');
+            masterWrap.className = 'btn-wrapper';
+            masterWrap.innerHTML = `
+                <button id="btn-trace-toggle" class="toggle-icon-btn" onclick="toggleMasterTrace()">👇🏻</button>
+                <div class="toggle-label" style="left: 55px; right: auto;">Trace Mode</div>
+            `;
+            leftBar.appendChild(masterWrap);
+
+            const optsDiv = document.createElement('div');
+            optsDiv.id = 'trace-sub-options';
+            optsDiv.innerHTML = `
+                <div class="btn-wrapper">
+                    <button class="btn-sub-opt icon-text" onclick="toggleSubState('text', this)">📅</button>
+                    <div class="toggle-label" style="left: 45px; right: auto;">Text</div>
+                </div>
+                <div class="btn-wrapper">
+                    <button class="btn-sub-opt icon-glow" onclick="toggleSubState('highlight', this)">✨</button>
+                    <div class="toggle-label" style="left: 45px; right: auto;">Highlight</div>
+                </div>
+                <div class="btn-wrapper">
+                    <button class="btn-sub-opt icon-align" onclick="toggleSubState('align', this)">🔗</button>
+                    <div class="toggle-label" style="left: 45px; right: auto;">Align</div>
+                </div>
+                <div class="btn-wrapper">
+                    <button class="btn-sub-opt icon-focus" onclick="toggleSubState('focus', this)">❄️</button>
+                    <div class="toggle-label" style="left: 45px; right: auto;">Focus</div>
+                </div>
+            `;
+            leftBar.appendChild(optsDiv);
+        }
+    })();
+
+    // --- BUILDER OVERRIDE ---
+    window.buildTreeHTML = function(node, level) {
+        const li = document.createElement('li');
+        const card = document.createElement('div');
+        const hasChild = node.children && node.children.length > 0;
+        const isCollapsed = appState.expandedNodes.has(node.id);
+        const hasNotes = node.notes && node.notes.trim().length > 0;
+        
+        card.id = 'node-' + node.id;
+        card.className = `node level-${Math.min(level,3)} ${isCollapsed?'collapsed':''} ${selectedNodeIds.has(node.id)?'node-selected':''}`;
+        
+        card.onmouseenter = (e) => handleHover(e, card);
+        card.onmouseleave = (e) => handleHover(e, card);
+        card.onmousemove  = (e) => trackMouse(e);
+
+        const expander = hasChild ? `<span class="expander">${isCollapsed?'+':'-'}</span>` : '';
+        const bulb = `<button class="bulb-btn ${hasNotes?'has-notes':''}" onclick="openNotesModal(event,'${node.id}')">✦</button>`;
+        const desc = node.desc ? `<p>${node.desc}</p>` : '';
+        
+        card.innerHTML = `<h4>${node.title}</h4>${desc}${expander}${bulb}`;
+        
+        card.draggable = true;
+        card.ondragstart = (e) => handleVisDragStart(e, node.id);
+        card.ondragover = (e) => handleVisDragOver(e, node.id);
+        card.ondragleave = (e) => handleVisDragLeave(e);
+        card.ondrop = (e) => handleVisDrop(e, node.id);
+        card.onclick = (e) => handleNodeClick(e, node);
+        
+        li.appendChild(card);
+
+        if(hasChild && !isCollapsed) {
+            const ul = document.createElement('ul');
+            node.children.forEach(child => ul.appendChild(buildTreeHTML(child, level+1)));
+            li.appendChild(ul);
+        }
+        
+        if(level === 0) {
+            const ul = document.createElement('ul');
+            ul.style.paddingLeft = '0';
+            ul.appendChild(li);
+            return ul;
+        }
+        return li;
+    };
+
+    if(typeof renderVisualizer === 'function') renderVisualizer();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<style>
+    /* 1. Floating Container */
+    .vis-search-wrapper {
+        position: fixed;        
+        bottom: 30px;           
+        right: 30px;            
+        z-index: 9999;          
+        
+        /* HIDDEN BY DEFAULT (Controlled by JS) */
+        display: none;          
+        
+        align-items: center;
+        justify-content: center; 
+        
+        background: white; 
+        border-radius: 50px;    
+        padding: 0; 
+        
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+        border: 1px solid #e2e8f0;
+        
+        /* Perfect Circle Dimensions */
+        width: 40px; 
+        height: 40px; 
+        
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+    }
+
+    /* Expand on Hover or Focus */
+    .vis-search-wrapper:hover,
+    .vis-search-wrapper.active {
+        width: 240px; 
+        border-color: #4f46e5;
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15);
+        justify-content: flex-start; 
+        padding-left: 15px; 
+    }
+
+    /* 2. Search Input */
+    .vis-search-input {
+        border: none;
+        outline: none;
+        font-family: 'Segoe UI', sans-serif;
+        font-size: 14px;
+        color: #334155;
+        width: 0; /* Collapsed */
+        padding: 0;
+        background: transparent;
+        cursor: text; 
+        opacity: 0; 
+        transition: all 0.3s ease; 
+    }
+    
+    .vis-search-wrapper:hover .vis-search-input,
+    .vis-search-wrapper.active .vis-search-input,
+    .vis-search-input:focus {
+        width: 100%;
+        opacity: 1;
+        margin-right: 5px; 
+    }
+
+    /* 3. Search Icon - TRANSPARENT & CENTERED */
+    .vis-search-btn {
+        background: transparent !important; 
+        color: #4f46e5 !important;          
+        border: none;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; 
+        font-size: 1.2rem; 
+        line-height: 1;    
+        transition: transform 0.2s;
+        margin: 0; 
+        padding: 0;
+    }
+    .vis-search-btn:hover { transform: scale(1.1); } 
+    
+    /* 4. CLEAR BUTTON */
+    .vis-clear-btn {
+        position: absolute; 
+        right: 45px; 
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.8rem;
+        color: #94a3b8; 
+        display: none; 
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        padding: 4px;
+    }
+    .vis-clear-btn:hover { color: #ef4444; }
+
+    /* 5. SEARCH HIGHLIGHT STYLES (No Opacity Dimming needed anymore) */
+    .node.search-match {
+        border-color: #ec4899 !important; 
+        box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.4) !important;
+        background-color: #fff1f2 !important;
+        z-index: 100;
+    }
+    .node.search-path {
+        border-color: #94a3b8; 
+    }
+</style>
+<script>
+    // --- SEARCH STATE ---
+    window.searchMatches = new Set(); 
+    window.searchPathNodes = new Set(); 
+    window.isSearchActive = false; // Flag to control filtering
+
+    // --- 1. INJECT FLOATING SEARCH ---
+    (function injectSearchBar() {
+        if (document.getElementById('vis-search-wrapper')) return;
+
+        const div = document.createElement('div');
+        div.id = 'vis-search-wrapper';
+        div.className = 'vis-search-wrapper';
+        
+        div.onmousedown = (e) => e.stopPropagation();
+        div.onclick = () => document.getElementById('vis-search-input').focus();
+
+        div.innerHTML = `
+            <input type="text" id="vis-search-input" class="vis-search-input" 
+                   placeholder="Search..." 
+                   onkeyup="checkSearchInput()" 
+                   onkeydown="if(event.key==='Enter') performVisSearch()">
+            <button id="vis-search-clear" class="vis-clear-btn" 
+                    onclick="clearVisSearch()" title="Clear">✖</button>
+            <button class="vis-search-btn" onclick="performVisSearch()">🔍</button>
+        `;
+        document.body.appendChild(div);
+    })();
+
+    // --- 2. VISIBILITY LOGIC ---
+    const originalSwitchView = window.switchView;
+    window.switchView = function(view) {
+        if (typeof originalSwitchView === 'function') originalSwitchView(view);
+        const searchWrapper = document.getElementById('vis-search-wrapper');
+        if (searchWrapper) {
+            searchWrapper.style.display = (view === 'result') ? 'flex' : 'none';
+        }
+    };
+    
+    setTimeout(() => {
+        const searchWrapper = document.getElementById('vis-search-wrapper');
+        const isResultView = document.getElementById('result-view')?.classList.contains('active-view');
+        if(searchWrapper && isResultView) searchWrapper.style.display = 'flex';
+    }, 500);
+
+    window.checkSearchInput = function() {
+        const input = document.getElementById('vis-search-input');
+        const wrapper = document.getElementById('vis-search-wrapper');
+        const clearBtn = document.getElementById('vis-search-clear');
+        if (input.value.trim().length > 0) {
+            wrapper.classList.add('active');
+            clearBtn.style.display = 'block';
+        } else {
+            wrapper.classList.remove('active');
+            clearBtn.style.display = 'none';
+        }
+    }
+
+    // --- 3. SEARCH EXECUTION ---
+    window.performVisSearch = function() {
+        const input = document.getElementById('vis-search-input');
+        const term = input.value.toLowerCase().trim();
+
+        if (!term) { clearVisSearch(); return; }
+
+        window.searchMatches.clear();
+        window.searchPathNodes.clear();
+
+        const subject = appState.subjects.find(s => s.id === appState.activeSubjectId);
+        if (!subject || !subject.chapters) return;
+
+        let matchCount = 0;
+
+        function traverseAndSearch(node, path) {
+            const title = (node.title || '').toLowerCase();
+            const desc = (node.desc || '').toLowerCase();
+            const notes = (node.notes || '').toLowerCase();
+            
+            if (title.includes(term) || desc.includes(term) || notes.includes(term)) {
+                window.searchMatches.add(node.id);
+                matchCount++;
+                // Mark all ancestors as path nodes so they render
+                path.forEach(pid => window.searchPathNodes.add(pid));
+            }
+            if (node.children) {
+                const newPath = [...path, node.id];
+                node.children.forEach(child => traverseAndSearch(child, newPath));
+            }
+        }
+
+        subject.chapters.forEach(chap => traverseAndSearch(chap, []));
+
+        if (matchCount === 0) { alert("No matches found"); return; }
+
+        // Enable Filter Mode
+        window.isSearchActive = true; 
+        document.body.classList.add('is-search-active');
+        
+        // Re-render tree (This triggers the filtering logic in buildTreeHTML)
+        renderVisualizer();
+        
+        setTimeout(() => {
+            const firstMatch = document.querySelector('.node.search-match');
+            if(firstMatch) firstMatch.scrollIntoView({behavior: "smooth", block: "center", inline: "center"});
+        }, 500);
+    };
+
+    window.clearVisSearch = function() {
+        const input = document.getElementById('vis-search-input');
+        const wrapper = document.getElementById('vis-search-wrapper');
+        const clearBtn = document.getElementById('vis-search-clear');
+        
+        if(input) input.value = '';
+        wrapper.classList.remove('active');
+        clearBtn.style.display = 'none';
+        
+        // Disable Filter Mode
+        window.isSearchActive = false;
+        document.body.classList.remove('is-search-active');
+        window.searchMatches.clear();
+        window.searchPathNodes.clear();
+        
+        renderVisualizer();
+    };
+
+    // --- 4. FILTERING BUILDER ---
+    window.buildTreeHTML = function(node, level) {
+        // --- FILTER LOGIC START ---
+        // If search is active, SKIP this node if it's not a match or part of the path
+        if (window.isSearchActive) {
+            const isMatch = window.searchMatches.has(node.id);
+            const isPath = window.searchPathNodes.has(node.id);
+            if (!isMatch && !isPath) return document.createDocumentFragment(); // Return empty (Don't Render)
+        }
+        // --- FILTER LOGIC END ---
+
+        const li = document.createElement('li');
+        const card = document.createElement('div');
+        const hasChild = node.children && node.children.length > 0;
+        
+        // If filtering, force expansion so we see the results
+        const isCollapsed = window.isSearchActive ? false : appState.expandedNodes.has(node.id);
+        const hasNotes = node.notes && node.notes.trim().length > 0;
+        
+        card.id = 'node-' + node.id;
+        let cssClasses = `node level-${Math.min(level,3)} ${isCollapsed?'collapsed':''} ${selectedNodeIds.has(node.id)?'node-selected':''}`;
+        
+        if (window.searchMatches.has(node.id)) cssClasses += ' search-match';
+        else if (window.searchPathNodes.has(node.id)) cssClasses += ' search-path';
+        
+        card.className = cssClasses;
+
+        // Re-attach Listeners
+        if(typeof handleHover === 'function') {
+            card.onmouseenter = (e) => handleHover(e, card);
+            card.onmouseleave = (e) => handleHover(e, card);
+        }
+        if(typeof trackMouse === 'function') card.onmousemove = (e) => trackMouse(e);
+        
+        const expander = hasChild ? `<span class="expander">${isCollapsed?'+':'-'}</span>` : '';
+        const bulb = `<button class="bulb-btn ${hasNotes?'has-notes':''}" onclick="openNotesModal(event,'${node.id}')">✦</button>`;
+        const desc = node.desc ? `<p>${node.desc}</p>` : '';
+        
+        card.innerHTML = `<h4>${node.title}</h4>${desc}${expander}${bulb}`;
+        
+        card.draggable = true;
+        card.ondragstart = (e) => handleVisDragStart(e, node.id);
+        card.ondragover = (e) => handleVisDragOver(e, node.id);
+        card.ondragleave = (e) => handleVisDragLeave(e);
+        card.ondrop = (e) => handleVisDrop(e, node.id);
+        card.onclick = (e) => handleNodeClick(e, node);
+        
+        li.appendChild(card);
+        
+        // Render Children (Recursively)
+        if(hasChild && !isCollapsed) {
+            const ul = document.createElement('ul');
+            let childCount = 0;
+            
+            node.children.forEach(child => {
+                const childNode = buildTreeHTML(child, level+1);
+                // Check if the child returned actual content (wasn't filtered out)
+                if(childNode && (childNode.childNodes.length > 0 || childNode.nodeType === Node.ELEMENT_NODE)) {
+                    ul.appendChild(childNode);
+                    childCount++;
+                }
+            });
+            
+            // Only append UL if it actually has visible children
+            if(childCount > 0) li.appendChild(ul);
+        }
+        
+        if(level === 0) {
+            const ul = document.createElement('ul');
+            ul.style.paddingLeft = '0';
+            ul.appendChild(li);
+            return ul;
+        }
+        return li;
+    };
+
+    if(typeof renderVisualizer === 'function') renderVisualizer();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<script>
+    // --- COLUMN RESIZING LOGIC ---
+    (function enableResizing() {
+        const createResizer = (resizerId, targetColId) => {
+            const resizer = document.getElementById(resizerId);
+            const targetCol = document.getElementById(targetColId);
+            
+            // Safety check: If elements don't exist, stop silently (don't break app)
+            if (!resizer || !targetCol) return;
+
+            let x = 0;
+            let w = 0;
+
+            const mouseDownHandler = (e) => {
+                x = e.clientX;
+                const styles = window.getComputedStyle(targetCol);
+                w = parseInt(styles.width, 10);
+
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+                
+                resizer.classList.add('resizing');
+                document.body.classList.add('resizing');
+            };
+
+            const mouseMoveHandler = (e) => {
+                const dx = e.clientX - x;
+                // Minimum width constraint (150px)
+                if (w + dx > 150) {
+                    targetCol.style.width = `${w + dx}px`;
+                }
+            };
+
+            const mouseUpHandler = () => {
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+                
+                resizer.classList.remove('resizing');
+                document.body.classList.remove('resizing');
+            };
+
+            resizer.addEventListener('mousedown', mouseDownHandler);
+        };
+
+        // Initialize Resizers safely
+        // Ensure DOM is ready before running
+        setTimeout(() => {
+            createResizer('resizer-1', 'col-chapters');
+            createResizer('resizer-2', 'col-level1');
+        }, 500);
+    })();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<script>
+    // --- FORCE ALL LINKS TO OPEN IN NEW TAB ---
+    document.addEventListener('click', function(e) {
+        // 1. Check if the clicked element (or its parent) is a link <a>
+        const link = e.target.closest('a');
+        
+        // 2. If it is a real link with an HTTP address...
+        if (link && link.href && !link.href.startsWith('javascript:') && !link.href.startsWith('#')) {
+            // 3. Force it to open in a new blank tab
+            link.target = '_blank';
+            
+            // 4. Security best practice for new tabs
+            link.rel = 'noopener noreferrer';
+        }
+    });
 </script>
 </body>
 </html>
