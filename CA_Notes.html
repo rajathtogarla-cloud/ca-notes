@@ -4137,5 +4137,164 @@
         }
     });
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+(function() {
+    // 1. HELPER: SCROLL ANCHORING (Keeps screen position stable)
+    function runAnchorAction(actionFn) {
+        // Find visual anchor (first selected node)
+        const anchorEl = document.querySelector('.node-selected');
+        const viewport = document.getElementById('result-viewport');
+        let prevRect = null;
+        if (anchorEl && viewport) prevRect = anchorEl.getBoundingClientRect();
+
+        // Run the action
+        actionFn();
+
+        // Restore position
+        if (anchorEl && prevRect && viewport) {
+            const newAnchorEl = document.getElementById(anchorEl.id);
+            if (newAnchorEl) {
+                const newRect = newAnchorEl.getBoundingClientRect();
+                viewport.scrollTop += (newRect.top - prevRect.top);
+                viewport.scrollLeft += (newRect.left - prevRect.left);
+            }
+        }
+    }
+
+    // 2. OVERRIDE THE MAIN TOGGLE FUNCTION
+    window.toggleTreeState = function() {
+        const selectBtn = document.getElementById('select-mode-btn');
+        const btn = document.getElementById('tree-toggle-btn');
+        const label = document.getElementById('toggle-label-text');
+        
+        // ROBUST CHECK: Look at the class on the DOM element
+        const isSelectActive = selectBtn && selectBtn.classList.contains('selection-mode-active');
+
+        // --- A. SELECTION MODE LOGIC ---
+        if (isSelectActive) {
+            // Safety Check
+            if (typeof selectedNodeIds === 'undefined' || selectedNodeIds.size === 0) {
+                alert("Select Mode is Active, but no nodes are selected.\n\nClick on nodes to select them.");
+                return;
+            }
+
+            runAnchorAction(() => {
+                const sub = getActiveSubject();
+                // Logic: If the first selected node is collapsed, we EXPAND selection. 
+                // Otherwise we COLLAPSE selection.
+                const firstId = selectedNodeIds.values().next().value;
+                const isFirstCollapsed = appState.expandedNodes.has(firstId);
+
+                if (isFirstCollapsed) {
+                    // EXPAND SELECTED
+                    btn.style.opacity = "1";
+                    const expandRecursive = (node) => {
+                        appState.expandedNodes.delete(node.id); 
+                        if(node.children) node.children.forEach(expandRecursive);
+                    };
+                    selectedNodeIds.forEach(id => {
+                        const data = findNodePath(sub.chapters, id);
+                        if(data && data.node) expandRecursive(data.node);
+                    });
+                } else {
+                    // COLLAPSE SELECTED
+                    btn.style.opacity = "0.7";
+                    const collapseRecursive = (node) => {
+                        if(node.children && node.children.length > 0) {
+                            appState.expandedNodes.add(node.id); 
+                            node.children.forEach(collapseRecursive);
+                        }
+                    };
+                    selectedNodeIds.forEach(id => {
+                        const data = findNodePath(sub.chapters, id);
+                        if(data && data.node) collapseRecursive(data.node);
+                    });
+                }
+                
+                saveData();
+                renderVisualizer();
+            });
+            return;
+        }
+
+        // --- B. GLOBAL LOGIC (Standard Behavior) ---
+        // This runs if Select Mode is OFF
+        if (isTreeFullyExpanded) {
+            // Collapse All
+            const allIds = [];
+            const sub = getActiveSubject();
+            const collectIds = (node, list) => {
+                if(node.children && node.children.length > 0) { list.push(node.id); node.children.forEach(child => collectIds(child, list)); }
+            };
+            sub.chapters.forEach(chap => collectIds(chap, allIds));
+            allIds.forEach(id => appState.expandedNodes.add(id));
+            
+            isTreeFullyExpanded = false;
+            
+            btn.classList.remove('state-expanded');
+            btn.classList.add('state-collapsed');
+            label.innerText = "Expand All";
+        } else {
+            // Expand All
+            appState.expandedNodes.clear();
+            isTreeFullyExpanded = true;
+            
+            btn.classList.remove('state-collapsed');
+            btn.classList.add('state-expanded');
+            label.innerText = "Collapse All";
+        }
+        renderVisualizer();
+    };
+
+    // 3. UI HELPER: UPDATE BUTTON COLOR/TEXT
+    // Hooks into the render loop to keep the button looking correct
+    const originalRender = window.renderVisualizer;
+    window.renderVisualizer = function() {
+        if(originalRender) originalRender();
+
+        const selectBtn = document.getElementById('select-mode-btn');
+        const isSelectActive = selectBtn && selectBtn.classList.contains('selection-mode-active');
+        
+        const btn = document.getElementById('tree-toggle-btn');
+        const label = document.getElementById('toggle-label-text');
+
+        if (isSelectActive) {
+            // We are in selection mode
+            btn.style.color = "#4f46e5"; // Indigo
+            btn.style.borderColor = "#c7d2fe";
+            
+            if (selectedNodeIds.size > 0) {
+                // Peek at first item to guess label
+                const firstId = selectedNodeIds.values().next().value;
+                const isCollapsed = appState.expandedNodes.has(firstId);
+                label.innerText = isCollapsed ? "Expand Selection" : "Collapse Selection";
+            } else {
+                label.innerText = "(Select Nodes)";
+            }
+        } else {
+            // We are in global mode
+            btn.style.color = ""; // Reset
+            btn.style.borderColor = "";
+            // btn.style.opacity = "1";
+            // Label is handled by the toggle logic, but we default it here just in case
+            label.innerText = isTreeFullyExpanded ? "Collapse All" : "Expand All";
+        }
+    };
+
+})();
+</script>
+
 </body>
 </html>
