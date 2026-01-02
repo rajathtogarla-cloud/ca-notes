@@ -1567,25 +1567,46 @@
         }
     });
 
+    // --- UPDATED KEYBOARD SHORTCUTS ---
     document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-            e.preventDefault(); undo();
+        const isNotesOpen = document.getElementById('notes-modal').classList.contains('open');
+        const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+
+        // 1. Undo (Ctrl + Z) - Context Aware
+        if (isCtrlOrMeta && e.key === 'z' && !e.shiftKey) {
+            if (isNotesOpen) return; // Let browser handle text undo
+            e.preventDefault(); 
+            undo();
         }
-        if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
-            e.preventDefault(); redo();
+
+        // 2. Redo (Ctrl + Y) - Context Aware
+        if (isCtrlOrMeta && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+            if (isNotesOpen) return; // Let browser handle text redo
+            e.preventDefault(); 
+            redo();
         }
-        
-        // Notes Modal Shortcuts
-        if (document.getElementById('notes-modal').classList.contains('open')) {
-            if (e.key === 'Escape') {
-                closeNotesModal();
+
+        // 3. GLOBAL SAVE (Ctrl + Enter) 
+        // Always triggers the main Cloud Save, even if notes are open
+        if (isCtrlOrMeta && e.key === 'Enter') {
+            e.preventDefault();
+            saveToCloud(); 
+        }
+
+        // 4. NOTE SAVE (Shift + Enter)
+        // Only works if the Notes Modal is open
+        if (e.shiftKey && e.key === 'Enter') {
+            if (isNotesOpen) {
+                e.preventDefault(); // Prevent newline if needed (or keep it if you prefer)
+                toggleNoteMode();   // Toggles from Edit -> View (Saving)
             }
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                toggleNoteMode();
-            }
+        }
+
+        // 5. Escape Key
+        if (e.key === 'Escape') {
+            if (isNotesOpen) closeNotesModal();
         }
     });
-
 
     // --- Persistence ---
     function saveData(record = true) {
@@ -1962,7 +1983,7 @@
             
             // --- UPDATED BUTTON FOR SAVE STATE ---
             btn.innerHTML = '✅';
-            btn.title = "Save(Ctrl+Enter)";
+            btn.title = "Save(Shift+Enter)";
             
             textarea.focus();
         } else {
@@ -1991,7 +2012,7 @@
 
             // --- UPDATED BUTTON FOR EDIT STATE ---
             btn.innerHTML = '🖊️';
-            btn.title = "Edit(Ctrl+Enter)";
+            btn.title = "Edit(Shift+Enter)";
         }
     }
 
