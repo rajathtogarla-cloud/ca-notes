@@ -13,6 +13,7 @@
             --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --chapter-color: #4f46e5;
+            --link-color: #059669;
             --chapter-bg: #fff;
             --level1-color: #d63384;
             --level2-color: #e67e22;
@@ -486,6 +487,7 @@
 
         /* Specific Colored Inputs for Editor */
         .text-input.chapter-input { border-left: 4px solid var(--chapter-color); color: #4f46e5; font-weight: 700; }
+        .text-input.link-input { border-left: 4px solid var(--link-color); color: #2E6F40; }
         .text-input.level-1-input { border-left: 4px solid var(--level1-color); color: #be185d; font-weight: 600; }
         .text-input.level-2-input { border-left: 4px solid var(--level2-color); color: #c2410c; font-weight: 600; }
         .text-input.level-3-input { border-left: 4px solid var(--level3-color); color: var(--level3-color); font-weight: 600; }
@@ -2536,7 +2538,7 @@
                 
                 <div class="input-group" style="margin-top: 0.8rem; margin-bottom:0;">
                     <label class="input-label">Link Address (Applies to all nodes)</label>
-                    <input class="text-input" autocomplete="off" type="text" value="${chap.link || ''}" onchange="updateChapterLink(this.value)" placeholder="https://...">
+                    <input class="text-input link-input" autocomplete="off" type="text" value="${chap.link || ''}" onchange="updateChapterLink(this.value)" placeholder="https://...">
                 </div>
             </div>
         `;
@@ -4973,7 +4975,7 @@
     }
 
     .redirect-btn:hover {
-        background-color: #4f46e5;
+        background-color: #111184;
         color: white;
         border-color: #4f46e5;
         box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
@@ -5353,7 +5355,7 @@
         }
     });
 </script>
-    
+
 <!----------------------------------------------------------------------------------------------------------------------------->
 
 </body>
