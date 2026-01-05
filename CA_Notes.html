@@ -5242,16 +5242,17 @@
                        ${nodePage}
                     </button>
                 `;
-            } else {
-                redirectBtn = `
-                    <button class="redirect-btn" 
-                       title="Open PDF" 
-                       onmousedown="event.stopPropagation()" 
-                       onclick="event.stopPropagation(); openSmartPdf('${baseUrl}')">
-                       
-                    </button>
-                `;
-            }
+            } 
+                // else {
+                //     redirectBtn = `
+                //         <button class="redirect-btn" 
+                //            title="Open PDF" 
+                //            onmousedown="event.stopPropagation()" 
+                //            onclick="event.stopPropagation(); openSmartPdf('${baseUrl}')">
+                           
+                //         </button>
+                //     `;
+                // }
         }
 
         card.id = 'node-' + node.id;
