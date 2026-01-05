@@ -153,13 +153,22 @@
         .btn-reset:hover { background: #fee2e2; }
 
         .btn-resetdata {
-            background: #fef2f2;
-            color: #ef4444; /* This affects text/border interaction */
-            border-color: #fca5a5;
+            background: #fff;
+            /* color: #ef4444; */
+            border: 1px solid #e2e8f0;
+            /* border-color: #fca5a5; */
             font-size: 1.2rem; /* Make the emoji slightly bigger */
             padding: 0 10px;   /* Adjust padding if it looks too wide/narrow */
         }
-        .btn-resetdata:hover { background: #fee2e2; }
+        .btn-resetdata:hover { 
+            transform: scale(1.1);
+            border-color: #fca5a5;
+        }
+
+        .btn-file-menu:hover {
+            transform: scale(1.1);
+            border-color: #fcd34d !important;
+        }
 
         .btn-import {
             background: #eff6ff;
@@ -188,7 +197,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* CENTER NAV GROUP */
+        /*1. CENTER NAV GROUP */
         .center-nav-group {
             display: flex;
             align-items: center;
@@ -196,6 +205,42 @@
             background: #f1f5f9;
             padding: 4px 12px;
             border-radius: 30px;
+        }
+
+        /* 2. Base Style for Tabs */
+        .nav-tab {
+            padding: 8px 24px;
+            border-radius: 8px; /* Smooth rounded corners */
+            font-weight: 600;
+            color: #64748b;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 3. Hover State for inactive tabs */
+        .nav-tab:hover {
+            background: #f1f5f9;
+            color: #334155;
+            transform: translateY(-1px);
+        }
+
+        /* 4. ACTIVE STATE - The "Attractive" Gradient */
+        .nav-tab.active {
+            /* Matches your Level 0 Node Gradient */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(118, 75, 162, 0.4); /* Glowing purple shadow */
+            border-color: transparent;
+            transform: translateY(-1px);
+        }
+
+        /* 5. Active State Hover */
+        .nav-tab.active:hover {
+            box-shadow: 0 6px 15px rgba(118, 75, 162, 0.5);
+            filter: brightness(1.1);
         }
 
         /* NOTE & ADD TOOLS STYLES */
@@ -242,23 +287,6 @@
         .nav-tabs {
             display: flex;
             gap: 0.5rem;
-        }
-
-        .nav-tab {
-            padding: 8px 24px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #64748b;
-            background: transparent;
-            transition: all 0.3s;
-        }
-
-        .nav-tab.active {
-            background: white;
-            color: #4f46e5;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         /* --- View Container --- */
@@ -561,7 +589,7 @@
             padding: 2rem;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            /* gap: 1rem; */
         }
 
         /* Specific Larger Modal for Markdown Notes */
@@ -911,8 +939,8 @@
             /* white-space: nowrap;  */
             
             /* Safety: If title is wider than screen, allow it to wrap */
-            /* overflow: hidden; 
-            text-overflow: ellipsis;  */
+            overflow: hidden; 
+            /* text-overflow: ellipsis;  */
         }
 
         /* DESCRIPTION: The "Follower" */
@@ -1084,7 +1112,7 @@
         <div class="subject-group">
             <select id="subject-selector" class="subject-select" onchange="switchSubject(this.value)">
             </select>
-            <button class="btn-subject-settings" onclick="openSubjectModal()" title="Manage Subjects">⚙️</button>
+            <button class="btn-subject-settings" onclick="openSubjectModal()" title="Manage Subject[s]">⚙️</button>
         </div>
 
         <div class="action-buttons">
@@ -1095,15 +1123,10 @@
                 ↪
             </button>
             
-            <button class="btn-action btn-import" onclick="openImportChoiceModal()">
-                <span>📥</span> Import
-            </button>
-
-            <button class="btn-action btn-save" onclick="openExportChoiceModal()">
-                <span>📤</span> Export
+            <button class="btn-action btn-file-menu" onclick="openFileMenu()" title="File Menu[i]" style="font-size: 1.2rem; background: #fff; border: 1px solid #e2e8f0;">
+                📁
             </button>
             
-            <!-- Hidden File Input for JSON Import -->
             <input type="file" id="json-upload" style="display:none" accept=".json" onchange="handleJSONImport(this)">
 
             <button class="btn-action btn-resetdata" onclick="resetAllData()" title="Reset Data">📛</button>
@@ -1134,7 +1157,13 @@
             
             <div class="col-chapters" id="col-chapters" style="width: 280px;">
                 <div class="col-header">
-                    <span>Chapters</span>
+                    <span style="display: flex; align-items: baseline; gap: 8px;"">
+                        Chapters
+                        <span style="font-size: 0.9rem; color: #64748b; font-weight: 400; white-space: nowrap;">
+                            Double click to View
+                        </span>
+                    </span>
+                    
                     <div class="header-actions">
                         <button class="btn-add" onclick="addChapter()">+</button>
                     </div>
@@ -1266,15 +1295,66 @@
         <p>Paste your content below to import into the <strong>current Subject</strong>.</p>
         <div class="fmt-hint">
             <strong>Format Guide:</strong><br>
-            Chapter Title (No indent)<br>
-            &nbsp;&nbsp;Level 1 Tab (1 tab or 2 spaces)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;Level 2 Topic (2 tabs or 4 spaces)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Level 3 Detail (3 tabs or 6+ spaces)
+            Chapter Title@pg (No indent)<br>
+            &nbsp;&nbsp;Level 1 Tab@pg (1 tab or 2 spaces)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;Level 2 Topic@pg (2 tabs or 4 spaces)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Level 3 Detail@pg (3 tabs or 6+ spaces)
         </div>
         <textarea id="import-text" class="import-textarea" placeholder="Chapter 1&#10;  Introduction Tab&#10;    Topic A&#10;      Detail 1&#10;      Detail 2&#10;Chapter 2&#10;  ..."></textarea>
         <div class="modal-actions">
             <button class="btn-action btn-reset" onclick="closeImportModal()">Cancel</button>
             <button class="btn-action btn-save" onclick="processImport()">Import Data</button>
+        </div>
+    </div>
+</div>
+
+<div id="file-menu-modal" class="modal-overlay">
+    <div class="modal" style="width: 900px; max-width: 95%;">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <h2 style="margin:0; font-size:1.4rem; color:#334155;"></h2> <!--File Manager-->
+            <button class="btn-icon" onclick="closeFileMenu()" style="font-size:1.2rem;">×</button>
+        </div>
+
+        <div style="display: flex; gap: 2rem; align-items: flex-start;">
+            
+            <div style="flex: 1; text-align: center;">
+                <h2 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Import Data</h2>
+                <p style="margin-bottom: 1rem;">Choose an import method:</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn-action btn-import" onclick="closeFileMenu(); chooseImport('bulk')">
+                        <span>📋</span> Text / Bulk
+                    </button>
+                    <button class="btn-action btn-json" onclick="closeFileMenu(); chooseImport('json')">
+                        <span>📄</span> JSON File
+                    </button>
+                </div>
+            </div>
+
+            <div style="width: 1px; background: #e2e8f0; align-self: stretch;"></div>
+
+            <div style="flex: 1; text-align: center;">
+                <h2 style="font-size: 1.2rem; margin-bottom: 0.5rem;">Export Data</h2>
+                <p style="margin-bottom: 1rem;">Choose an export format:</p>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn-action btn-json" onclick="closeFileMenu(); chooseExport('json')">
+                        <span>{ }</span> JSON Data
+                    </button>
+                    
+                    <button class="btn-action btn-cloud" onclick="closeFileMenu(); saveToCloud()" title="Ctrl + Enter">
+                        <span>🌐</span> Save to Cloud
+                    </button>
+
+                    <button class="btn-action btn-save" onclick="closeFileMenu(); chooseExport('html')">
+                        <span>🖥️</span> Standalone HTML
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="modal-actions" style="justify-content: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+            <button class="btn-action btn-reset" onclick="closeFileMenu()">Close</button>
         </div>
     </div>
 </div>
@@ -1866,6 +1946,7 @@
         lines.forEach(line => {
             if (!line.trim()) return;
 
+            // 1. Calculate Indent
             const match = line.match(/^(\s*)/);
             const indentStr = match ? match[0] : '';
             let spaceCount = 0;
@@ -1874,28 +1955,39 @@
                 else if (c === ' ') spaceCount += 1;
             }
 
-            const title = line.trim();
+            // 2. Parse Title and Page Number (@pg)
+            // Example: "Introduction to Tax @pg 5"
+            const rawLine = line.trim();
+            const parts = rawLine.split('@pg');
+            
+            const title = parts[0].trim();
+            // Store page number if it exists, else null
+            const pdfPage = (parts.length > 1) ? parts[1].trim() : null;
+            
             const id = generateId();
 
+            // Helper to create node object
+            const createNode = (t, p) => ({ id, title: t, pdfPage: p, desc: '', children: [] });
+
             if (spaceCount < 2) {
-                currentChap = { id, title, desc: '', children: [] };
+                currentChap = createNode(title, pdfPage);
                 newChapters.push(currentChap);
                 currentL1 = null; 
                 currentL2 = null;
             } else if (spaceCount < 4) {
                 if (currentChap) {
-                    currentL1 = { id, title, desc: '', children: [] };
+                    currentL1 = createNode(title, pdfPage);
                     currentChap.children.push(currentL1);
                     currentL2 = null;
                 }
             } else if (spaceCount < 6) {
                 if (currentL1) {
-                    currentL2 = { id, title, desc: '', children: [] };
+                    currentL2 = createNode(title, pdfPage);
                     currentL1.children.push(currentL2);
                 }
             } else {
                 if (currentL2) {
-                    const l3 = { id, title, desc: '', children: [] };
+                    const l3 = createNode(title, pdfPage);
                     currentL2.children.push(l3);
                 }
             }
@@ -1914,16 +2006,9 @@
 
         renderInputView();
         
-        // Update visualizer state
+        // Reset Visualizer
         collapseAll();
         isTreeFullyExpanded = false;
-        const btn = document.getElementById('tree-toggle-btn');
-        const label = document.getElementById('toggle-label-text');
-        if(btn) {
-             btn.classList.remove('state-expanded');
-             btn.classList.add('state-collapsed');
-             label.innerText = "Expand All";
-        }
         
         closeImportModal();
         alert('Import successful!');
@@ -2437,20 +2522,29 @@
         const container = document.getElementById('editor-area');
         const status = document.getElementById('editor-status');
         const chap = getActiveChapter();
+        
         if(!chap) { container.innerHTML = ''; status.innerText = ''; return; }
         const l1 = getActiveLevel1();
         
+        // --- CHAPTER CARD (Master Link Input is here) ---
         let html = `
             <div class="section-card" style="background:#f8fafc; border-color:#e2e8f0;">
-                <div class="input-group" style="margin-bottom:0;">
+                <div class="input-group">
                     <label class="input-label">Chapter Title</label>
                     <input class="text-input chapter-input" data-node-id="${chap.id}" autocomplete="off" type="text" value="${chap.title}" onchange="updateChapterTitle(this.value)" placeholder="Chapter Name">
                 </div>
+                
+                <div class="input-group" style="margin-top: 0.8rem; margin-bottom:0;">
+                    <label class="input-label">Link Address (Applies to all nodes)</label>
+                    <input class="text-input" autocomplete="off" type="text" value="${chap.link || ''}" onchange="updateChapterLink(this.value)" placeholder="https://...">
+                </div>
             </div>
         `;
+
         if (!l1) { html += '<div class="empty-msg">Select or create a Level 1 tab to edit its content.</div>'; container.innerHTML = html; status.innerText = 'Editing Chapter Settings'; return; }
         status.innerText = `Editing: ${l1.title}`;
 
+        // --- LEVEL 1 CARD (No Link Input) ---
         html += `
             <div class="section-card">
                 <div class="input-group">
@@ -2471,6 +2565,8 @@
             </div>
         `;
         container.innerHTML = html;
+        
+        // --- CHILDREN (No Link Inputs) ---
         const l2Container = document.getElementById('l2-container');
         l1.children.forEach(l2 => {
             const blk = document.createElement('div');
@@ -2502,6 +2598,15 @@
             `;
             l2Container.appendChild(blk);
         });
+    }
+
+    function updateChapterLink(val) {
+        const chap = getActiveChapter();
+        if(chap) {
+            chap.link = val;
+            saveData(); // Save to localStorage/Server
+            // renderVisualizer(); // Optional: update tree immediately
+        }
     }
 
     function addChapter() {
@@ -4138,163 +4243,1118 @@
     });
 </script>
 
+<!----------------------------------------------------------------------------------------------------------------------------->
 
+<style>
+    /* Badge Style Positioning - Top Right Edge */
+    .branch-actions-wrapper {
+        position: absolute;
+        top: -12px;
+        right: -8px;
+        display: flex;
+        gap: 4px;
+        z-index: 20; 
+    }
 
+    .btn-branch-action {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 1px solid #cbd5e1;
+        cursor: pointer;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+        padding: 0;
+        line-height: 1;
+    }
 
+    .btn-branch-action:hover {
+        transform: scale(1.15);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        z-index: 25;
+    }
 
-
-
-
-
-
-
+    .btn-branch-expand { color: #059669; border-color: #86efac; background: #ecfdf5; }
+    .btn-branch-collapse { color: #dc2626; border-color: #fca5a5; background: #fef2f2; }
+</style>
 
 <script>
+
 (function() {
-    // 1. HELPER: SCROLL ANCHORING (Keeps screen position stable)
+
+    // 1. STATE INITIALIZATION
+
+    appState.isolationMode = false;
+
+    appState.validIsolatedIds = new Set();
+
+
+
+    // 2. HELPER: Calculate which nodes to show in Isolation Mode
+
+    function updateIsolationMap() {
+
+        const sub = getActiveSubject();
+
+        const validIds = new Set();
+
+       
+
+        selectedNodeIds.forEach(selId => {
+
+            // A. Find path to root (Ancestors + Self)
+
+            const pathData = findNodePath(sub.chapters, selId);
+
+            if (!pathData) return;
+
+
+
+            // Add Ancestors
+
+            pathData.path.forEach(pId => validIds.add(pId));
+
+            // Add Self
+
+            validIds.add(selId);
+
+
+
+            // B. Add All Descendants (Recursive)
+
+            const addDescendants = (node) => {
+
+                if (node.children) {
+
+                    node.children.forEach(child => {
+
+                        validIds.add(child.id);
+
+                        addDescendants(child);
+
+                    });
+
+                }
+
+            };
+
+            addDescendants(pathData.node);
+
+        });
+
+
+
+        appState.validIsolatedIds = validIds;
+
+    }
+
+
+
+    // 3. HELPER: Scroll Anchoring
+
     function runAnchorAction(actionFn) {
-        // Find visual anchor (first selected node)
+
         const anchorEl = document.querySelector('.node-selected');
+
         const viewport = document.getElementById('result-viewport');
+
         let prevRect = null;
+
         if (anchorEl && viewport) prevRect = anchorEl.getBoundingClientRect();
 
-        // Run the action
+       
+
         actionFn();
 
-        // Restore position
+
+
         if (anchorEl && prevRect && viewport) {
+
             const newAnchorEl = document.getElementById(anchorEl.id);
+
             if (newAnchorEl) {
+
                 const newRect = newAnchorEl.getBoundingClientRect();
+
                 viewport.scrollTop += (newRect.top - prevRect.top);
+
                 viewport.scrollLeft += (newRect.left - prevRect.left);
+
+            }
+
+        }
+
+    }
+
+
+
+    // 4. OVERRIDE: Toggle Tree State (With Isolation Logic)
+
+    window.toggleTreeState = function() {
+
+        const selectBtn = document.getElementById('select-mode-btn');
+
+        const btn = document.getElementById('tree-toggle-btn');
+
+        const label = document.getElementById('toggle-label-text');
+
+       
+
+        const isSelectActive = selectBtn && selectBtn.classList.contains('selection-mode-active');
+
+
+
+        // --- A. SELECTION MODE LOGIC ---
+
+        if (isSelectActive) {
+
+            if (typeof selectedNodeIds === 'undefined' || selectedNodeIds.size === 0) {
+
+                alert("Select Mode is Active, but no nodes are selected.\n\nClick on nodes to select them.");
+
+                return;
+
+            }
+
+
+
+            runAnchorAction(() => {
+
+                const sub = getActiveSubject();
+
+                const firstId = selectedNodeIds.values().next().value;
+
+                const isFirstCollapsed = appState.expandedNodes.has(firstId);
+
+
+
+                if (isFirstCollapsed) {
+
+                    // --- ACTION: EXPAND & ISOLATE ---
+
+                    updateIsolationMap(); // Calculate paths
+
+                    appState.isolationMode = true; // Enable Filter
+
+
+
+                    // Expand Selected Nodes
+
+                    const expandRecursive = (node) => {
+
+                        appState.expandedNodes.delete(node.id);
+
+                        if(node.children) node.children.forEach(expandRecursive);
+
+                    };
+
+                    selectedNodeIds.forEach(id => {
+
+                        const data = findNodePath(sub.chapters, id);
+
+                        if(data && data.node) expandRecursive(data.node);
+
+                    });
+
+
+
+                    btn.style.opacity = "1"; // Visual Feedback
+
+                } else {
+
+                    // --- ACTION: COLLAPSE & SHOW ALL ---
+
+                    appState.isolationMode = false; // Disable Filter
+
+                    appState.validIsolatedIds.clear();
+
+
+
+                    // Collapse Selected Nodes
+
+                    const collapseRecursive = (node) => {
+
+                        if(node.children && node.children.length > 0) {
+
+                            appState.expandedNodes.add(node.id);
+
+                            node.children.forEach(collapseRecursive);
+
+                        }
+
+                    };
+
+                    selectedNodeIds.forEach(id => {
+
+                        const data = findNodePath(sub.chapters, id);
+
+                        if(data && data.node) collapseRecursive(data.node);
+
+                    });
+
+
+
+                    btn.style.opacity = "0.7";
+
+                }
+
+               
+
+                saveData();
+
+                renderVisualizer();
+
+            });
+
+            return;
+
+        }
+
+
+
+        // --- B. GLOBAL LOGIC (Standard Behavior) ---
+
+        // Force isolation off when using global toggle
+
+        appState.isolationMode = false;
+
+
+
+        if (isTreeFullyExpanded) {
+
+            collapseAll();
+
+            isTreeFullyExpanded = false;
+
+            btn.classList.remove('state-expanded');
+
+            btn.classList.add('state-collapsed');
+
+            label.innerText = "Expand All";
+
+        } else {
+
+            expandAll();
+
+            isTreeFullyExpanded = true;
+
+            btn.classList.remove('state-collapsed');
+
+            btn.classList.add('state-expanded');
+
+            label.innerText = "Collapse All";
+
+        }
+
+    };
+
+
+
+    // 5. OVERRIDE: Build Tree HTML (Adds Filter Logic)
+
+    window.buildTreeHTML = function(node, level) {
+
+        // --- FILTER CHECK ---
+
+        // If Isolation Mode is ON, skip nodes that are not in the valid set
+
+        if (appState.isolationMode && !appState.validIsolatedIds.has(node.id)) {
+
+            return document.createDocumentFragment(); // Return empty (Hidden)
+
+        }
+
+       
+
+        // (Preserve Search Filter if active)
+
+        if (window.isSearchActive) {
+
+            const isMatch = window.searchMatches.has(node.id);
+
+            const isPath = window.searchPathNodes.has(node.id);
+
+            if (!isMatch && !isPath) return document.createDocumentFragment();
+
+        }
+
+        // --------------------
+
+
+
+        const li = document.createElement('li');
+
+        const card = document.createElement('div');
+
+        const hasChild = node.children && node.children.length > 0;
+
+       
+
+        // Force expansion if it's the selected node in isolation mode (optional UX preference)
+
+        const isCollapsed = appState.expandedNodes.has(node.id);
+
+        const hasNotes = node.notes && node.notes.trim().length > 0;
+
+       
+
+        // CSS Classes
+
+        let cssClasses = `node level-${Math.min(level,3)} ${isCollapsed?'collapsed':''} ${selectedNodeIds.has(node.id)?'node-selected':''}`;
+
+        if (window.searchMatches && window.searchMatches.has(node.id)) cssClasses += ' search-match';
+
+        else if (window.searchPathNodes && window.searchPathNodes.has(node.id)) cssClasses += ' search-path';
+
+       
+
+        card.id = 'node-' + node.id;
+
+        card.className = cssClasses;
+
+
+
+        // Events
+
+        if(typeof handleHover === 'function') {
+
+            card.onmouseenter = (e) => handleHover(e, card);
+
+            card.onmouseleave = (e) => handleHover(e, card);
+
+        }
+
+        if(typeof trackMouse === 'function') card.onmousemove = (e) => trackMouse(e);
+
+       
+
+        // Content
+
+        const expander = hasChild ? `<span class="expander">${isCollapsed?'+':'-'}</span>` : '';
+
+        const bulb = `<button class="bulb-btn ${hasNotes?'has-notes':''}" onclick="openNotesModal(event,'${node.id}')">✦</button>`;
+
+        const desc = node.desc ? `<p>${node.desc}</p>` : '';
+
+       
+
+        card.innerHTML = `<h4>${node.title}</h4>${desc}${expander}${bulb}`;
+
+       
+
+        card.draggable = true;
+
+        card.ondragstart = (e) => handleVisDragStart(e, node.id);
+
+        card.ondragover = (e) => handleVisDragOver(e, node.id);
+
+        card.ondragleave = (e) => handleVisDragLeave(e);
+
+        card.ondrop = (e) => handleVisDrop(e, node.id);
+
+        card.onclick = (e) => handleNodeClick(e, node);
+
+       
+
+        li.appendChild(card);
+
+       
+
+        // Children
+
+        if(hasChild && !isCollapsed) {
+
+            const ul = document.createElement('ul');
+
+            let childCount = 0;
+
+            node.children.forEach(child => {
+
+                const childNode = buildTreeHTML(child, level+1);
+
+                // Only append if it returned a valid node (wasn't filtered)
+
+                if(childNode && (childNode.childNodes.length > 0 || childNode.nodeType === Node.ELEMENT_NODE)) {
+
+                    ul.appendChild(childNode);
+
+                    childCount++;
+
+                }
+
+            });
+
+            if(childCount > 0) li.appendChild(ul);
+
+        }
+
+       
+
+        if(level === 0) {
+
+            const ul = document.createElement('ul');
+
+            ul.style.paddingLeft = '0';
+
+            ul.appendChild(li);
+
+            return ul;
+
+        }
+
+        return li;
+
+    };
+
+
+
+    // 6. UI Update (Button Labels)
+
+    const originalRender = window.renderVisualizer;
+
+    window.renderVisualizer = function() {
+
+        if(originalRender) originalRender();
+
+
+
+        const selectBtn = document.getElementById('select-mode-btn');
+
+        const isSelectActive = selectBtn && selectBtn.classList.contains('selection-mode-active');
+
+        const toggleLabel = document.getElementById('toggle-label-text');
+
+
+
+        if (isSelectActive && selectedNodeIds.size > 0) {
+
+            // Check state of first selected node to determine label
+
+            const firstId = selectedNodeIds.values().next().value;
+
+            const isCollapsed = appState.expandedNodes.has(firstId);
+
+            // Dynamic Label
+
+            if (isCollapsed) {
+
+                 toggleLabel.innerText = "Focus & Expand"; // Hints at the new behavior
+
+            } else {
+
+                 toggleLabel.innerText = "Reset View";
+
+            }
+
+        }
+
+    };
+
+
+
+})();
+
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<script>
+/**
+ * FEATURE UPDATE: Double-Click Chapter to Focus & Visualize
+ * ---------------------------------------------------------
+ * 1. Double-clicking a Chapter in Input View jumps to Result View.
+ * 2. Result View filters to show ONLY that chapter.
+ * 3. A "Show All" button appears to reset the view.
+ * 4. UPDATE: Clicking "Show All" collapses the focused chapter.
+ */
+
+(function() {
+    // 1. Initialize State
+    appState.focusedChapterId = null;
+
+    // 2. Override: renderChaptersList
+    window.renderChaptersList = function() {
+        const container = document.getElementById('chapters-list');
+        container.innerHTML = '';
+        const sub = getActiveSubject();
+        
+        if(!sub) return;
+
+        sub.chapters.forEach((chap, index) => {
+            const div = document.createElement('div');
+            div.className = `chapter-item draggable-item ${chap.id === appState.activeChapterId ? 'active' : ''}`;
+            div.draggable = true;
+            
+            // Drag Events
+            div.ondragstart = (e) => handleDragStart(e, index, 'chapter');
+            div.ondragover = handleDragOver;
+            div.ondragenter = handleDragEnter;
+            div.ondragleave = handleDragLeave;
+            div.ondrop = (e) => handleDrop(e, index, 'chapter');
+            div.ondragend = handleDragEnd;
+
+            // --- DOUBLE CLICK TO JUMP ---
+            div.ondblclick = (e) => {
+                e.stopPropagation();
+                focusOnChapterInVis(chap.id);
+            };
+
+            // Single Click: Select
+            div.onclick = (e) => {
+                if(e.target.tagName === 'BUTTON') return; 
+                appState.activeChapterId = chap.id;
+                if (chap.children.length > 0) appState.activeLevel1Id = chap.children[0].id;
+                else appState.activeLevel1Id = null;
+                renderInputView();
+            };
+
+            // Content
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; flex:1; pointer-events:none;">
+                    <span class="drag-handle" style="pointer-events:auto;">⋮⋮</span>
+                    <span class="title-span" style="flex:1; margin-left:8px;">${chap.title || 'Untitled'}</span>
+                </div>
+                <button class="btn-icon" onclick="deleteChapter('${chap.id}', event)">×</button>
+            `;
+            
+            container.appendChild(div);
+        });
+    };
+
+    // 3. Focus Logic (Entry)
+    window.focusOnChapterInVis = function(id) {
+        appState.focusedChapterId = id;
+        appState.activeChapterId = id; // Sync selection
+        
+        // Auto-expand the target chapter so you can see inside immediately
+        appState.expandedNodes.delete(id); 
+        
+        switchView('result');
+        renderVisualizer(); 
+    };
+
+    // 4. Exit Logic (Updated)
+    window.exitFocusMode = function() {
+        // If there was a focused chapter, COLLAPSE it now
+        if (appState.focusedChapterId) {
+            appState.expandedNodes.add(appState.focusedChapterId);
+        }
+
+        // Clear focus and re-render full list
+        appState.focusedChapterId = null;
+        renderVisualizer();
+    };
+
+    // 5. Override: renderVisualizer
+    window.renderVisualizer = function() {
+        const container = document.getElementById('result-container');
+        container.innerHTML = '';
+        const sub = getActiveSubject();
+        
+        // --- FILTER LOGIC ---
+        let chaptersToRender = sub.chapters;
+        
+        // If a specific chapter is focused, filter the list
+        if (appState.focusedChapterId) {
+            const target = sub.chapters.find(c => c.id === appState.focusedChapterId);
+            if(target) chaptersToRender = [target];
+        }
+
+        // --- RENDER LOOP ---
+        chaptersToRender.forEach(chap => {
+            const treeRoot = document.createElement('div');
+            treeRoot.className = 'tree-ltr';
+            const treeContent = buildTreeHTML(chap, 0);
+            
+            // Render if valid content exists
+            if (treeContent && (treeContent.childNodes.length > 0 || treeContent.nodeType === Node.ELEMENT_NODE)) {
+                treeRoot.appendChild(treeContent);
+                container.appendChild(treeRoot);
+            }
+        });
+
+        // --- INJECT "SHOW ALL" BUTTON ---
+        updateFocusToolbar();
+        
+        // Update Labels
+        const toggleLabel = document.getElementById('toggle-label-text');
+        if(toggleLabel) toggleLabel.innerText = isTreeFullyExpanded ? "Collapse All" : "Expand All";
+    };
+
+    // 6. Toolbar Helper
+    function updateFocusToolbar() {
+        const toolbar = document.querySelector('.result-toolbar');
+        let focusBtnWrapper = document.getElementById('focus-exit-wrapper');
+
+        if (appState.focusedChapterId) {
+            if (!focusBtnWrapper) {
+                focusBtnWrapper = document.createElement('div');
+                focusBtnWrapper.id = 'focus-exit-wrapper';
+                focusBtnWrapper.className = 'btn-wrapper';
+                // Button style: Indigo background
+                focusBtnWrapper.innerHTML = `
+                    <button class="toggle-icon-btn" onclick="exitFocusMode()" style="color: #ffffff; background: #ffffff; border-color: #CBCBCB;">
+                        👀
+                    </button>
+                    <div class="toggle-label">Show All</div>
+                `;
+                toolbar.insertBefore(focusBtnWrapper, toolbar.firstChild);
+            }
+        } else {
+            if (focusBtnWrapper) {
+                focusBtnWrapper.remove();
             }
         }
     }
 
-    // 2. OVERRIDE THE MAIN TOGGLE FUNCTION
-    window.toggleTreeState = function() {
-        const selectBtn = document.getElementById('select-mode-btn');
-        const btn = document.getElementById('tree-toggle-btn');
-        const label = document.getElementById('toggle-label-text');
-        
-        // ROBUST CHECK: Look at the class on the DOM element
-        const isSelectActive = selectBtn && selectBtn.classList.contains('selection-mode-active');
-
-        // --- A. SELECTION MODE LOGIC ---
-        if (isSelectActive) {
-            // Safety Check
-            if (typeof selectedNodeIds === 'undefined' || selectedNodeIds.size === 0) {
-                alert("Select Mode is Active, but no nodes are selected.\n\nClick on nodes to select them.");
-                return;
-            }
-
-            runAnchorAction(() => {
-                const sub = getActiveSubject();
-                // Logic: If the first selected node is collapsed, we EXPAND selection. 
-                // Otherwise we COLLAPSE selection.
-                const firstId = selectedNodeIds.values().next().value;
-                const isFirstCollapsed = appState.expandedNodes.has(firstId);
-
-                if (isFirstCollapsed) {
-                    // EXPAND SELECTED
-                    btn.style.opacity = "1";
-                    const expandRecursive = (node) => {
-                        appState.expandedNodes.delete(node.id); 
-                        if(node.children) node.children.forEach(expandRecursive);
-                    };
-                    selectedNodeIds.forEach(id => {
-                        const data = findNodePath(sub.chapters, id);
-                        if(data && data.node) expandRecursive(data.node);
-                    });
-                } else {
-                    // COLLAPSE SELECTED
-                    btn.style.opacity = "0.7";
-                    const collapseRecursive = (node) => {
-                        if(node.children && node.children.length > 0) {
-                            appState.expandedNodes.add(node.id); 
-                            node.children.forEach(collapseRecursive);
-                        }
-                    };
-                    selectedNodeIds.forEach(id => {
-                        const data = findNodePath(sub.chapters, id);
-                        if(data && data.node) collapseRecursive(data.node);
-                    });
-                }
-                
-                saveData();
-                renderVisualizer();
-            });
-            return;
-        }
-
-        // --- B. GLOBAL LOGIC (Standard Behavior) ---
-        // This runs if Select Mode is OFF
-        if (isTreeFullyExpanded) {
-            // Collapse All
-            const allIds = [];
-            const sub = getActiveSubject();
-            const collectIds = (node, list) => {
-                if(node.children && node.children.length > 0) { list.push(node.id); node.children.forEach(child => collectIds(child, list)); }
-            };
-            sub.chapters.forEach(chap => collectIds(chap, allIds));
-            allIds.forEach(id => appState.expandedNodes.add(id));
-            
-            isTreeFullyExpanded = false;
-            
-            btn.classList.remove('state-expanded');
-            btn.classList.add('state-collapsed');
-            label.innerText = "Expand All";
-        } else {
-            // Expand All
-            appState.expandedNodes.clear();
-            isTreeFullyExpanded = true;
-            
-            btn.classList.remove('state-collapsed');
-            btn.classList.add('state-expanded');
-            label.innerText = "Collapse All";
-        }
-        renderVisualizer();
-    };
-
-    // 3. UI HELPER: UPDATE BUTTON COLOR/TEXT
-    // Hooks into the render loop to keep the button looking correct
-    const originalRender = window.renderVisualizer;
-    window.renderVisualizer = function() {
-        if(originalRender) originalRender();
-
-        const selectBtn = document.getElementById('select-mode-btn');
-        const isSelectActive = selectBtn && selectBtn.classList.contains('selection-mode-active');
-        
-        const btn = document.getElementById('tree-toggle-btn');
-        const label = document.getElementById('toggle-label-text');
-
-        if (isSelectActive) {
-            // We are in selection mode
-            btn.style.color = "#4f46e5"; // Indigo
-            btn.style.borderColor = "#c7d2fe";
-            
-            if (selectedNodeIds.size > 0) {
-                // Peek at first item to guess label
-                const firstId = selectedNodeIds.values().next().value;
-                const isCollapsed = appState.expandedNodes.has(firstId);
-                label.innerText = isCollapsed ? "Expand Selection" : "Collapse Selection";
-            } else {
-                label.innerText = "(Select Nodes)";
-            }
-        } else {
-            // We are in global mode
-            btn.style.color = ""; // Reset
-            btn.style.borderColor = "";
-            // btn.style.opacity = "1";
-            // Label is handled by the toggle logic, but we default it here just in case
-            label.innerText = isTreeFullyExpanded ? "Collapse All" : "Expand All";
-        }
-    };
+    // Initialize immediately
+    renderChaptersList();
 
 })();
 </script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<script>
+    function openFileMenu() {
+        document.getElementById('file-menu-modal').classList.add('open');
+    }
+
+    function closeFileMenu() {
+        document.getElementById('file-menu-modal').classList.remove('open');
+    }
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<style>
+    /* UPDATED: Dynamic width for page numbers */
+    .redirect-btn {
+        position: absolute;
+        top: -18px; /* Pop up slightly higher */
+        left: 50%;
+        transform: translateX(-50%);
+        
+        background-color: #fff;
+        border: 1px solid #cbd5e1;
+        color: #000000;
+        
+        /* Auto width for numbers like '120' */
+        width: auto;
+        min-width: 24px; 
+        height: 24px;
+        padding: 0 6px; /* Space for text */
+        border-radius: 12px; /* Pill shape */
+        
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 11px; /* Slightly smaller text */
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        z-index: 50;
+        
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Show on hover */
+    .node:hover .redirect-btn {
+        opacity: 1;
+        pointer-events: auto;
+        top: -22px; 
+    }
+
+    .redirect-btn:hover {
+        background-color: #4f46e5;
+        color: white;
+        border-color: #4f46e5;
+        box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+    }
+</style>
+
+<script>
+    // --- 1. PDF VIEWER WITH INVERT MODE ---
+    // --- 1. NUCLEAR RESET PDF LOADER ---
+    // --- 1. CSS INJECTION FOR INVERT MODE ---
+    // We inject this style once so the .pdf-inverted class actually works
+    (function injectPdfStyles() {
+        if (document.getElementById('pdf-viewer-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'pdf-viewer-styles';
+        style.innerHTML = `
+            /* This is the magic class that inverts colors */
+            .pdf-inverted {
+                filter: invert(100%) hue-rotate(180deg); 
+            }
+            /* Optional: transition for smooth toggle */
+            #pdf-frame-content {
+                transition: filter 0.3s ease;
+            }
+            /* --- HOVER LOGIC FOR YOUR NEW BUTTON --- */
+            #pdf-minimized-btn {
+                transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Smooth pop effect */
+            }
+            #pdf-minimized-btn:hover {
+                transform: scale(1.1); /* The 1.1 scale you asked for */
+            }
+        `;
+        document.head.appendChild(style);
+    })();
+
+    // --- 2. TOGGLE FUNCTION ---
+    window.togglePdfInvert = function() {
+        const iframe = document.getElementById('pdf-frame-content');
+        if (!iframe) return;
+        
+        iframe.classList.toggle('pdf-inverted');
+        
+        // Change the container background to match so we don't see white borders
+        const container = iframe.parentElement;
+        if (iframe.classList.contains('pdf-inverted')) {
+            container.style.background = '#121212'; // Dark background
+        } else {
+            container.style.background = '#ffffff'; // White background
+        }
+    };
+
+    // --- 3. WINDOW CONTROLS ---
+    window.minimizePdf = function() {
+        const modal = document.getElementById('pdf-overlay-modal');
+        const btn = document.getElementById('pdf-minimized-btn');
+        if (modal) modal.style.display = 'none';
+        if (btn) btn.style.display = 'flex';
+    };
+
+    window.restorePdf = function() {
+        const modal = document.getElementById('pdf-overlay-modal');
+        const btn = document.getElementById('pdf-minimized-btn');
+        if (modal) modal.style.display = 'flex';
+        if (btn) btn.style.display = 'none';
+    };
+
+    window.fullyClosePdf = function() {
+        const modal = document.getElementById('pdf-overlay-modal');
+        const btn = document.getElementById('pdf-minimized-btn');
+        const iframe = document.getElementById('pdf-frame-content');
+        
+        if (modal) modal.style.display = 'none';
+        if (btn) btn.style.display = 'none';
+        if (iframe) iframe.src = ''; // Stop processing to save memory
+    };
+
+    // --- 4. MAIN LOADER FUNCTION ---
+    // --- 4. MAIN LOADER FUNCTION (UPDATED FOR FOCUS FIX) ---
+    window.openSmartPdf = function(url, isNuclear = false) {
+        let modal = document.getElementById('pdf-overlay-modal');
+
+        // A. Create Modal (if it doesn't exist)
+        if (!modal) {
+            const modalHtml = `
+                <div id="pdf-overlay-modal" 
+                     tabindex="-1" 
+                     onmouseenter="this.focus()"
+                     style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:2147483647; display:flex; flex-direction:column; outline:none;">
+                    
+                    <div tabindex="-1" 
+                         onmouseenter="this.focus()" 
+                         style="background:#0f172a; padding:8px 15px; display:flex; justify-content:space-between; align-items:center; color:white; height:50px; outline:none;">
+                        
+                        <span style="font-weight:600;">Custom Viewer (Instant Jump)</span>
+                        <div style="display:flex; gap:10px;">
+                            <span style="font-size: 0.8em; color: #94a3b8; margin-right: 10px; align-self: center;">[R]eload &nbsp; [M]in &nbsp; [E]xpand &nbsp; [Esc]ape</span>
+                            <button onclick="togglePdfInvert()" style="background:#475569; color:white; border:none; border-radius:4px; padding:4px 12px; cursor:pointer;" title="Dark Mode (Invert)">🌗</button>
+                            <button onclick="minimizePdf()" style="background:#f59e0b; color:white; border:none; border-radius:4px; padding:4px 12px; cursor:pointer;" title="Minimize [M]">Min</button>
+                            <button onclick="fullyClosePdf()" style="background:#ef4444; color:white; border:none; border-radius:4px; padding:4px 12px; cursor:pointer;" title="Close [Esc]">Close</button>
+                        </div>
+                    </div>
+                    
+                    <div style="flex:1; background:#fff; position:relative;">
+                        <iframe id="pdf-frame-content" style="width:100%; height:100%; border:none;"></iframe>
+                    </div>
+                </div>
+
+                <div id="pdf-minimized-btn" onclick="restorePdf()" style="display:none; position:fixed; bottom:83px; right:30px; z-index:2147483647; background:#ffffff; color:black; padding:8px 12px; border-radius:50px; cursor:pointer; border:#CBCBCB; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);">⛶</div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            modal = document.getElementById('pdf-overlay-modal');
+
+            // --- KEYBOARD LISTENERS ---
+            document.addEventListener('keydown', function(e) {
+                const minimizedBtn = document.getElementById('pdf-minimized-btn');
+                const isModalOpen = modal && modal.style.display !== 'none';
+                const isMinimized = minimizedBtn && minimizedBtn.style.display !== 'none';
+
+                // Only run shortcuts if the PDF system is actually active
+                if (!isModalOpen && !isMinimized) return;
+
+                const key = e.key.toLowerCase();
+
+                // [R] for Nuclear Reload
+                if (key === 'r' && isModalOpen) {
+                    const currentUrl = modal.dataset.currentUrl;
+                    if (currentUrl) {
+                        e.preventDefault();
+                        window.openSmartPdf(currentUrl, true); // Force Nuclear
+                    }
+                }
+                // [E]xpand (works even if minimized)
+                else if (key === 'e' && isMinimized) {
+                    e.preventDefault();
+                    restorePdf();
+                }
+                // [M]inimize
+                else if (key === 'm' && isModalOpen) {
+                    e.preventDefault();
+                    minimizePdf();
+                }
+                // [Esc]ape
+                else if (key === 'escape' && isModalOpen) {
+                    e.preventDefault();
+                    fullyClosePdf();
+                }
+            });
+        }
+
+        // B. SAVE URL
+        modal.dataset.currentUrl = url;
+
+        const iframe = document.getElementById('pdf-frame-content');
+        modal.style.display = 'flex';
+        document.getElementById('pdf-minimized-btn').style.display = 'none';
+        
+        // Ensure focus starts on the modal container so shortcuts work immediately
+        modal.focus(); 
+
+        // C. PREPARE URL
+        const parts = url.split('#');
+        const filePath = parts[0];
+        const existingHash = parts[1] || '';
+        const fullPdfUrl = new URL(filePath, document.baseURI).href;
+        
+        const uniqueId = Date.now() + '_' + Math.floor(Math.random() * 1000000);
+        let finalHash = existingHash ? existingHash : 'page=1';
+        
+        // Add view params if missing
+        if (!finalHash.includes('view=')) finalHash += '&view=FitH'; 
+        finalHash += `&uid=${uniqueId}`;
+        
+        const viewerUrl = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(fullPdfUrl)}#${finalHash}`;
+
+        // D. EXECUTE LOAD STRATEGY
+        if (isNuclear) {
+            // STRATEGY A: NUCLEAR RESET (Triggered by 'R')
+            iframe.src = 'about:blank';
+            setTimeout(() => {
+                iframe.src = viewerUrl;
+                updateDebugBox(`NUCLEAR RELOAD:\n${viewerUrl}`, '#fee2e2', '#dc2626');
+            }, 50);
+        } else {
+            // STRATEGY B: FAST LOAD (Standard Click)
+            iframe.src = viewerUrl;
+            updateDebugBox(`FAST LOAD:\n${viewerUrl}`, '#ecfdf5', '#059669');
+        }
+    };
+
+    // Helper for debug box
+    function updateDebugBox(msg, bg, border) {
+        let debugBox = document.getElementById('url-debug-display');
+        if (debugBox) {
+            debugBox.innerHTML = `<strong>${msg}</strong>`;
+            debugBox.style.background = bg;
+            debugBox.style.borderColor = border;
+        }
+    }
+
+    // --- 2. NEW INVERT FUNCTION ---
+    window.togglePdfInvert = function() {
+        const iframe = document.getElementById('pdf-frame-content');
+        iframe.classList.toggle('pdf-inverted');
+        // If inverted, change background to dark to avoid white flashes
+        if (iframe.classList.contains('pdf-inverted')) {
+            iframe.parentElement.style.background = '#1a1a1a';
+        } else {
+            iframe.parentElement.style.background = '#fff';
+        }
+    };
+
+    // --- 3. WINDOW CONTROLS ---
+    window.minimizePdf = function() {
+        document.getElementById('pdf-overlay-modal').style.display = 'none';
+        document.getElementById('pdf-minimized-btn').style.display = 'flex';
+    };
+
+    window.restorePdf = function() {
+        document.getElementById('pdf-minimized-btn').style.display = 'none';
+        document.getElementById('pdf-overlay-modal').style.display = 'flex';
+    };
+
+    window.fullyClosePdf = function() {
+        document.getElementById('pdf-overlay-modal').style.display = 'none';
+        document.getElementById('pdf-minimized-btn').style.display = 'none';
+        document.getElementById('pdf-frame-content').src = '';
+    };
+
+    // --- 4. TREE RENDERER (Standard) ---
+    window.buildTreeHTML = function(node, level, inheritedLink = '') {
+        
+        let masterLink = inheritedLink;
+        if (level === 0 && node.link) {
+            masterLink = node.link;
+        }
+
+        if (appState.isolationMode && !appState.validIsolatedIds.has(node.id)) return document.createDocumentFragment(); 
+        if (window.isSearchActive) {
+            const isMatch = window.searchMatches.has(node.id);
+            const isPath = window.searchPathNodes.has(node.id);
+            if (!isMatch && !isPath) return document.createDocumentFragment();
+        }
+
+        const li = document.createElement('li');
+        const card = document.createElement('div');
+        const hasChild = node.children && node.children.length > 0;
+        const isCollapsed = appState.expandedNodes.has(node.id);
+        const hasNotes = node.notes && node.notes.trim().length > 0;
+        const isSelected = selectedNodeIds.has(node.id);
+        
+        const nodePage = node.pdfPage; 
+        let redirectBtn = '';
+
+        if (masterLink && masterLink.trim() !== '') {
+            const baseUrl = masterLink.split('#')[0];
+            
+            if (nodePage && nodePage.trim() !== '') {
+                const finalUrl = `${baseUrl}#page=${nodePage}`;
+                redirectBtn = `
+                    <button class="redirect-btn" 
+                       title="Page ${nodePage}" 
+                       onmousedown="event.stopPropagation()" 
+                       onclick="event.stopPropagation(); openSmartPdf('${finalUrl}')">
+                       ${nodePage}
+                    </button>
+                `;
+            } else {
+                redirectBtn = `
+                    <button class="redirect-btn" 
+                       title="Open PDF" 
+                       onmousedown="event.stopPropagation()" 
+                       onclick="event.stopPropagation(); openSmartPdf('${baseUrl}')">
+                       🌐
+                    </button>
+                `;
+            }
+        }
+
+        card.id = 'node-' + node.id;
+        let cssClasses = `node level-${Math.min(level,3)} ${isCollapsed?'collapsed':''} ${isSelected?'node-selected':''}`;
+        if (window.searchMatches && window.searchMatches.has(node.id)) cssClasses += ' search-match';
+        else if (window.searchPathNodes && window.searchPathNodes.has(node.id)) cssClasses += ' search-path';
+        card.className = cssClasses;
+
+        if(typeof handleHover === 'function') {
+            card.onmouseenter = (e) => handleHover(e, card);
+            card.onmouseleave = (e) => handleHover(e, card);
+        }
+        if(typeof trackMouse === 'function') card.onmousemove = (e) => trackMouse(e);
+
+        const expander = hasChild ? `<span class="expander">${isCollapsed?'+':'-'}</span>` : '';
+        const bulb = `<button class="bulb-btn ${hasNotes?'has-notes':''}" onclick="openNotesModal(event,'${node.id}')">✦</button>`;
+        const desc = node.desc ? `<p>${node.desc}</p>` : '';
+        
+        card.innerHTML = `<h4>${node.title}</h4>${desc}${expander}${bulb}${redirectBtn}`;
+        
+        card.draggable = true;
+        card.ondragstart = (e) => handleVisDragStart(e, node.id);
+        card.ondragover = (e) => handleVisDragOver(e, node.id);
+        card.ondragleave = (e) => handleVisDragLeave(e);
+        card.ondrop = (e) => handleVisDrop(e, node.id);
+        card.onclick = (e) => handleNodeClick(e, node);
+        
+        li.appendChild(card);
+        
+        if(hasChild && !isCollapsed) {
+            const ul = document.createElement('ul');
+            node.children.forEach(child => {
+                const childNode = buildTreeHTML(child, level+1, masterLink);
+                if(childNode && (childNode.childNodes.length > 0 || childNode.nodeType === Node.ELEMENT_NODE)) {
+                    ul.appendChild(childNode);
+                }
+            });
+            if(ul.children.length > 0) li.appendChild(ul);
+        }
+        
+        if(level === 0) {
+            const ul = document.createElement('ul');
+            ul.style.paddingLeft = '0';
+            ul.appendChild(li);
+            return ul;
+        }
+        return li;
+    };
+
+    if(typeof renderVisualizer === 'function') renderVisualizer();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<script>
+    // --- KEYBOARD SHORTCUTS ---
+    document.addEventListener('keydown', function(e) {
+        // 1. SAFETY CHECK:
+        // Do not trigger shortcuts if the user is currently typing in an input, textarea, or content editable area.
+        const tag = e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) {
+            return; 
+        }
+
+        // 2. Ignore if holding Ctrl/Alt/Meta (to allow browser shortcuts)
+        if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+        // 3. SHORTCUT LOGIC
+        switch(e.key) {
+            
+            // Left Arrow: Go to Data Entry (Input)
+            case 'ArrowLeft': 
+                e.preventDefault(); // Stop page scrolling
+                switchView('input');
+                break;
+
+            // Right Arrow: Go to Visualization (Result)
+            case 'ArrowRight':
+                e.preventDefault(); // Stop page scrolling
+                switchView('result');
+                break;
+
+            // 's' or 'S': Open Subject Modal
+            case 's':
+            case 'S':
+                e.preventDefault();
+                openSubjectModal();
+                // Auto-focus the input inside the modal for speed
+                setTimeout(() => {
+                    const input = document.getElementById('new-subject-input');
+                    if(input) input.focus();
+                }, 100);
+                break;
+
+            // 'i' or 'I': Open File Menu (Import/Export 📁)
+            case 'i':
+            case 'I':
+                e.preventDefault();
+                openFileMenu();
+                break;
+        }
+    });
+</script>
+    
+<!----------------------------------------------------------------------------------------------------------------------------->
 
 </body>
 </html>
