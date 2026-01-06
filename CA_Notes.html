@@ -388,6 +388,7 @@
             color: #4f46e5;
             border-color: #c7d2fe;
             font-weight: 600;
+            border-left: 4px solid var(--chapter-color);
         }
 
         .level1-item.active {
@@ -3397,34 +3398,68 @@
 </script>
 
 <style>
-    /* 1. Mobile Tool Styles */
+    /* 1. Mobile Tool Active State (Blue Glow for Toolbar) */
     .mobile-tool-active {
-        /* background-color: #3b82f6 !important;  */
         border-color: #2563eb !important;
         color: white !important; transform: scale(1.1);
         box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
     }
     
-    /* 2. Visualizer Node - Move Source Highlight */
-    /* We need to apply this class dynamically in JS, but simpler: use ID selector */
-    /* Since we don't have easy class injection in the tree builder without rewriting it, 
-       we will use a trick: Select by Attribute if we added one, OR just rely on logic. 
-       Actually, let's update the DOM directly on selection. */
-
-    /* 3. List View Styles */
+    /* 2. List View - Arrow Buttons (Default: HIDDEN on Desktop) */
     .btn-mobile-move {
+        /* --- VISUAL STYLES (From your code) --- */
         background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;
         min-width: 44px; height: 44px; font-size: 1.4rem;
-        display: flex; align-items: center; justify-content: center;
+        align-items: center; justify-content: center;
         color: #64748b; cursor: pointer; margin-right: 5px; z-index: 10;
+        
+        /* --- LOGIC CHANGE: Hide by default for Desktop --- */
+        display: none; 
     }
+
+    /* 3. List View - Drag Dots (Default: VISIBLE on Desktop) */
+    .drag-handle {
+        display: inline-block;
+        cursor: grab;
+        color: #cbd5e1;
+        font-size: 1.2rem;
+        padding: 0 8px;
+    }
+
+    /* --- 4. MOBILE OVERRIDE (Triggered by JS) --- */
+    /* When on mobile, FLIP the visibility */
+    body.is-mobile .btn-mobile-move {
+        display: flex; /* Show Arrows */
+    }
+    body.is-mobile .drag-handle {
+        display: none; /* Hide Dots */
+    }
+
+    /* --- 5. ACTIVE MOVE STATES (Green Highlights) --- */
+    
+    /* A. List View Item Active */
     .move-active {
         background-color: #dcfce7 !important;
         border: 2px dashed #16a34a !important;
     }
-    .move-active .btn-mobile-move { background: #16a34a; color: white; border-color: #15803d; }
-</style>
+    
+    /* Force Arrow to show if we are currently moving it, even if logic says otherwise */
+    .move-active .btn-mobile-move { 
+        display: flex !important; 
+        background: #16a34a; 
+        color: white; 
+        border-color: #15803d; 
+    }
 
+    /* B. Visualization Tree Node Active (The Green Box) */
+    .node.move-active {
+        background-color: #dcfce7 !important;
+        border-color: #16a34a !important;
+        box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.4) !important;
+        transform: scale(1.05);
+        z-index: 100;
+    }
+</style>
 <script>
     // Helper to highlight the source node in tree view
     setInterval(() => {
@@ -4789,7 +4824,12 @@
 
         sub.chapters.forEach((chap, index) => {
             const div = document.createElement('div');
-            div.className = `chapter-item draggable-item ${chap.id === appState.activeChapterId ? 'active' : ''}`;
+            
+            // 1. Calculate Moving State
+            const isActive = chap.id === appState.activeChapterId;
+            const isMoving = (window.mobileState && window.mobileState.mode === 'list-move' && window.mobileState.srcId === chap.id);
+
+            div.className = `chapter-item draggable-item ${isActive ? 'active' : ''} ${isMoving ? 'move-active' : ''}`;
             div.draggable = true;
             
             // Drag Events
@@ -4800,25 +4840,34 @@
             div.ondrop = (e) => handleDrop(e, index, 'chapter');
             div.ondragend = handleDragEnd;
 
-            // --- DOUBLE CLICK TO JUMP ---
+            // Double Click
             div.ondblclick = (e) => {
                 e.stopPropagation();
                 focusOnChapterInVis(chap.id);
             };
 
-            // Single Click: Select
+            // Single Click
             div.onclick = (e) => {
-                if(e.target.tagName === 'BUTTON') return; 
+                if(e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT') return; 
                 appState.activeChapterId = chap.id;
                 if (chap.children.length > 0) appState.activeLevel1Id = chap.children[0].id;
                 else appState.activeLevel1Id = null;
                 renderInputView();
             };
 
-            // Content
+            // HTML Content: Includes BOTH Arrow and Dots
+            // CSS will automatically decide which one to show based on the device
             div.innerHTML = `
-                <div style="display:flex; align-items:center; flex:1; pointer-events:none;">
-                    <span class="drag-handle" style="pointer-events:auto;">⋮⋮</span>
+                <div style="display:flex; align-items:center; flex:1;"> 
+                    
+                    <button class="btn-mobile-move" 
+                        ontouchstart="event.stopPropagation();" 
+                        onclick="list_handleMove('${chap.id}', 'chapter', event)">
+                        ${isMoving ? '⬇' : '⇅'}
+                    </button>
+
+                    <span class="drag-handle" style="margin-left: 5px;">⋮⋮</span>
+
                     <span class="title-span" style="flex:1; margin-left:8px;">${chap.title || 'Untitled'}</span>
                 </div>
                 <button class="btn-icon" onclick="deleteChapter('${chap.id}', event)">×</button>
@@ -4827,7 +4876,6 @@
             container.appendChild(div);
         });
     };
-
     // 3. Focus Logic (Entry)
     window.focusOnChapterInVis = function(id) {
         appState.focusedChapterId = id;
@@ -5207,6 +5255,8 @@
         const isSelected = selectedNodeIds.has(node.id);
         
         const nodePage = node.pdfPage; 
+        // FIX: Check if this node is the source of a move (Green Highlight)
+        const isMoveSource = (window.mobileState && window.mobileState.srcId === node.id && window.mobileState.tool === 'move');
         let redirectBtn = '';
 
         if (masterLink && masterLink.trim() !== '') {
@@ -5236,7 +5286,10 @@
         }
 
         card.id = 'node-' + node.id;
-        let cssClasses = `node level-${Math.min(level,3)} ${isCollapsed?'collapsed':''} ${isSelected?'node-selected':''}`;
+        
+        // FIX: Added ${isMoveSource ? 'move-active' : ''} to the class list
+        let cssClasses = `node level-${Math.min(level,3)} ${isCollapsed?'collapsed':''} ${isSelected?'node-selected':''} ${isMoveSource ? 'move-active' : ''}`;
+        
         if (window.searchMatches && window.searchMatches.has(node.id)) cssClasses += ' search-match';
         else if (window.searchPathNodes && window.searchPathNodes.has(node.id)) cssClasses += ' search-path';
         card.className = cssClasses;
