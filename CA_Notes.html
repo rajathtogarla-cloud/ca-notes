@@ -5400,5 +5400,189 @@
 
 <!----------------------------------------------------------------------------------------------------------------------------->
 
+<style>
+    /* Base style for Page Inputs */
+    .page-input {
+        width: 60px !important; 
+        text-align: center;
+        padding: 0.4rem !important;
+        font-size: 0.9rem;
+        font-weight: bold;
+        border-width: 1px;
+        border-style: solid;
+    }
+
+    /* Level 1 (Pink) */
+    .page-l1 {
+        background-color: #fff0f7;
+        border-color: #fbcfe8;
+        color: #be185d;
+    }
+    .page-l1:focus {
+        border-color: #d63384;
+        box-shadow: 0 0 0 3px rgba(214, 51, 132, 0.1);
+    }
+    .page-l1::placeholder { color: #fbcfe8; font-weight: normal; }
+
+    /* Level 2 (Orange) */
+    .page-l2 {
+        background-color: #fff7ed;
+        border-color: #fed7aa;
+        color: #c2410c;
+    }
+    .page-l2:focus {
+        border-color: #e67e22;
+        box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.1);
+    }
+    .page-l2::placeholder { color: #fed7aa; font-weight: normal; }
+
+    /* Level 3 (Green) */
+    .page-l3 {
+        background-color: #f0fdf4;
+        border-color: #86efac;
+        color: #059669;
+    }
+    .page-l3:focus {
+        border-color: #059669;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+    .page-l3::placeholder { color: #86efac; font-weight: normal; }
+</style>
+
+<script>
+(function() {
+    // 1. NEW FUNCTION: Update Level 1 Page
+    window.updateLevel1Page = function(val) {
+        const l1 = getActiveLevel1();
+        if(l1) { 
+            l1.pdfPage = val; 
+            saveData(); 
+            renderVisualizer(); 
+        }
+    };
+
+    // 2. NEW FUNCTION: Update Node (L2/L3) Page
+    window.updateNodePage = function(id, val) {
+        const l1 = getActiveLevel1();
+        
+        // Check Level 2
+        let n = l1.children.find(x => x.id === id);
+        if(n) { 
+            n.pdfPage = val; 
+            saveData(); 
+            renderVisualizer(); 
+            return; 
+        }
+
+        // Check Level 3
+        l1.children.forEach(l2 => {
+            let l3 = l2.children.find(x => x.id === id);
+            if(l3) { 
+                l3.pdfPage = val; 
+                saveData(); 
+                renderVisualizer(); 
+            }
+        });
+    };
+
+    // 3. OVERRIDE: Render Editor to include Color-Coded Page Inputs
+    window.renderEditor = function() {
+        const container = document.getElementById('editor-area');
+        const status = document.getElementById('editor-status');
+        const chap = getActiveChapter();
+        
+        if(!chap) { container.innerHTML = ''; status.innerText = ''; return; }
+        const l1 = getActiveLevel1();
+        
+        // --- CHAPTER CARD ---
+        let html = `
+            <div class="section-card" style="background:#f8fafc; border-color:#e2e8f0;">
+                <div class="input-group">
+                    <label class="input-label">Chapter Title</label>
+                    <input class="text-input chapter-input" data-node-id="${chap.id}" autocomplete="off" type="text" value="${chap.title}" onchange="updateChapterTitle(this.value)" placeholder="Chapter Name">
+                </div>
+                
+                <div class="input-group" style="margin-top: 0.8rem; margin-bottom:0;">
+                    <label class="input-label">Link Address (Applies to all nodes)</label>
+                    <input class="text-input link-input" autocomplete="off" type="text" value="${chap.link || ''}" onchange="updateChapterLink(this.value)" placeholder="https://...">
+                </div>
+            </div>
+        `;
+
+        if (!l1) { html += '<div class="empty-msg">Select or create a Level 1 tab to edit its content.</div>'; container.innerHTML = html; status.innerText = 'Editing Chapter Settings'; return; }
+        status.innerText = `Editing: ${l1.title}`;
+
+        // --- LEVEL 1 CARD (Pink Pg Input) ---
+        html += `
+            <div class="section-card">
+                <div class="input-group">
+                    <label class="input-label">Level 1 Title</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input class="text-input level-1-input" style="flex:1;" data-node-id="${l1.id}" autocomplete="off" type="text" value="${l1.title}" onchange="updateLevel1Title(this.value)">
+                        <input class="text-input page-input page-l1" autocomplete="off" type="text" value="${l1.pdfPage || ''}" onchange="updateLevel1Page(this.value)" placeholder="Pg No">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Description</label>
+                    <input class="text-input desc-input" autocomplete="off" type="text" value="${l1.desc || ''}" onchange="updateLevel1Desc(this.value)">
+                </div>
+                <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid #eee;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+                        <span class="input-label" style="margin:0;">Level 2 Items</span>
+                        <button class="btn-add orange" onclick="addLevel2()">+ Add Level 2</button>
+                    </div>
+                    <div id="l2-container"></div>
+                </div>
+            </div>
+        `;
+        container.innerHTML = html;
+        
+        // --- CHILDREN ---
+        const l2Container = document.getElementById('l2-container');
+        l1.children.forEach(l2 => {
+            const blk = document.createElement('div');
+            blk.className = 'level2-block';
+            let l3Html = '';
+            l2.children.forEach(l3 => {
+                // Level 3 (Green Pg Input)
+                l3Html += `
+                    <div class="level3-row">
+                        <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                            <div style="display:flex; gap: 5px;">
+                                <input class="text-input level-3-input" style="flex:1; padding:0.4rem; font-size:0.9rem;" data-node-id="${l3.id}" autocomplete="off" value="${l3.title}" onchange="updateNodeTitle('${l3.id}', this.value)" placeholder="Level 3 Title">
+                                <input class="text-input page-input page-l3" style="height: auto;" autocomplete="off" type="text" value="${l3.pdfPage || ''}" onchange="updateNodePage('${l3.id}', this.value)" placeholder="Pg">
+                            </div>
+                            <input class="text-input desc-input" autocomplete="off" style="padding:0.3rem; font-size:0.8rem;" value="${l3.desc || ''}" onchange="updateNodeDesc('${l3.id}', this.value)" placeholder="Description (Optional)">
+                        </div>
+                        <button class="btn-icon" onclick="deleteNode('${l3.id}', '${l2.id}')">×</button>
+                    </div>
+                `;
+            });
+            // Level 2 (Orange Pg Input)
+            blk.innerHTML = `
+                <div class="level2-header">
+                    <div class="level2-title-row">
+                        <input class="text-input level-2-input" style="flex:1;" data-node-id="${l2.id}" autocomplete="off" value="${l2.title}" onchange="updateNodeTitle('${l2.id}', this.value)" placeholder="Level 2 Title">
+                        <input class="text-input page-input page-l2" autocomplete="off" type="text" value="${l2.pdfPage || ''}" onchange="updateNodePage('${l2.id}', this.value)" placeholder="Pg">
+                        <button class="btn-icon" onclick="deleteNode('${l2.id}', '${l1.id}')">×</button>
+                    </div>
+                    <input class="text-input desc-input" autocomplete="off" value="${l2.desc || ''}" onchange="updateNodeDesc('${l2.id}', this.value)" placeholder="Level 2 Description (Optional)">
+                </div>
+                <div class="level3-list">
+                    ${l3Html}
+                    <button class="btn-add orange" style="background:#e0f2f1; color:#059669; margin-top:0.5rem;" onclick="addLevel3('${l2.id}')">+ L3</button>
+                </div>
+            `;
+            l2Container.appendChild(blk);
+        });
+    };
+    
+    // Refresh the view immediately
+    if(typeof renderEditor === 'function') renderEditor();
+})();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
 </body>
 </html>
