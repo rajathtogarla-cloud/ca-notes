@@ -4264,18 +4264,26 @@
 <!----------------------------------------------------------------------------------------------------------------------------->
 
 <script>
-    // --- FORCE ALL LINKS TO OPEN IN NEW TAB ---
+    // --- INTERCEPT LINKS TO OPEN IN MOZILLA CUSTOM VIEWER ---
     document.addEventListener('click', function(e) {
         // 1. Check if the clicked element (or its parent) is a link <a>
         const link = e.target.closest('a');
         
-        // 2. If it is a real link with an HTTP address...
+        // 2. If it is a real link with an HTTP/HTTPS address...
         if (link && link.href && !link.href.startsWith('javascript:') && !link.href.startsWith('#')) {
-            // 3. Force it to open in a new blank tab
-            link.target = '_blank';
             
-            // 4. Security best practice for new tabs
-            link.rel = 'noopener noreferrer';
+            // 3. Prevent standard browser navigation
+            e.preventDefault();
+            e.stopPropagation();
+
+            // 4. Route the URL to your existing "openSmartPdf" function
+            // This uses the same Mozilla viewer overlay used for your page redirects
+            if (typeof window.openSmartPdf === 'function') {
+                window.openSmartPdf(link.href);
+            } else {
+                // Fallback (only if the viewer isn't loaded yet)
+                window.open(link.href, '_blank');
+            }
         }
     });
 </script>
