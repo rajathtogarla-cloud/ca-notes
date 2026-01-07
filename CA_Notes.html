@@ -4269,8 +4269,8 @@
         // 1. Check if the clicked element (or its parent) is a link <a>
         const link = e.target.closest('a');
         
-        // 2. If it is a real link with an HTTP/HTTPS address...
-        if (link && link.href && !link.href.startsWith('javascript:') && !link.href.startsWith('#')) {
+        // ADD THIS: && !link.href.startsWith('blob:')
+        if (link && link.href && !link.href.startsWith('javascript:') && !link.href.startsWith('#') && !link.href.startsWith('blob:')) {
             
             // 3. Prevent standard browser navigation
             e.preventDefault();
