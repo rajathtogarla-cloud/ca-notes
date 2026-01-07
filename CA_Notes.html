@@ -5412,6 +5412,18 @@
         border-style: solid;
     }
 
+    /* Chapter Level (Blue) */
+    .page-chap {
+        background-color: #eff6ff;
+        border-color: #bfdbfe;
+        color: #1d4ed8;
+    }
+    .page-chap:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .page-chap::placeholder { color: #bfdbfe; font-weight: normal; }
+
     /* Level 1 (Pink) */
     .page-l1 {
         background-color: #fff0f7;
@@ -5451,7 +5463,17 @@
 
 <script>
 (function() {
-    // 1. NEW FUNCTION: Update Level 1 Page
+    // 1. NEW FUNCTION: Update Chapter Page
+    window.updateChapterPage = function(val) {
+        const chap = getActiveChapter();
+        if(chap) {
+            chap.pdfPage = val;
+            saveData();
+            renderVisualizer(); // Optional: if visualizer displays chapter page
+        }
+    };
+
+    // 2. NEW FUNCTION: Update Level 1 Page
     window.updateLevel1Page = function(val) {
         const l1 = getActiveLevel1();
         if(l1) { 
@@ -5461,7 +5483,7 @@
         }
     };
 
-    // 2. NEW FUNCTION: Update Node (L2/L3) Page
+    // 3. NEW FUNCTION: Update Node (L2/L3) Page
     window.updateNodePage = function(id, val) {
         const l1 = getActiveLevel1();
         
@@ -5485,7 +5507,7 @@
         });
     };
 
-    // 3. OVERRIDE: Render Editor to include Color-Coded Page Inputs
+    // 4. OVERRIDE: Render Editor
     window.renderEditor = function() {
         const container = document.getElementById('editor-area');
         const status = document.getElementById('editor-status');
@@ -5494,12 +5516,15 @@
         if(!chap) { container.innerHTML = ''; status.innerText = ''; return; }
         const l1 = getActiveLevel1();
         
-        // --- CHAPTER CARD ---
+        // --- CHAPTER CARD (Added Blue Pg Input) ---
         let html = `
             <div class="section-card" style="background:#f8fafc; border-color:#e2e8f0;">
                 <div class="input-group">
                     <label class="input-label">Chapter Title</label>
-                    <input class="text-input chapter-input" data-node-id="${chap.id}" autocomplete="off" type="text" value="${chap.title}" onchange="updateChapterTitle(this.value)" placeholder="Chapter Name">
+                    <div style="display: flex; gap: 10px;">
+                        <input class="text-input chapter-input" style="flex:1;" data-node-id="${chap.id}" autocomplete="off" type="text" value="${chap.title}" onchange="updateChapterTitle(this.value)" placeholder="Chapter Name">
+                        <input class="text-input page-input page-chap" autocomplete="off" type="text" value="${chap.pdfPage || ''}" onchange="updateChapterPage(this.value)" placeholder="Pg No">
+                    </div>
                 </div>
                 
                 <div class="input-group" style="margin-top: 0.8rem; margin-bottom:0;">
