@@ -5361,7 +5361,48 @@
         // 2. Ignore if holding Ctrl/Alt/Meta (to allow browser shortcuts)
         if (e.ctrlKey || e.altKey || e.metaKey) return;
 
-        // 3. SHORTCUT LOGIC
+        // --- NEW: FILE MENU SHORTCUTS ---
+        // These only activate when the File Menu is visible on screen
+        const fileMenu = document.getElementById('file-menu-modal');
+        const isFileMenuOpen = fileMenu && fileMenu.classList.contains('open');
+
+        if (isFileMenuOpen) {
+            switch(e.key.toLowerCase()) {
+                case 't': 
+                    e.preventDefault(); 
+                    closeFileMenu(); 
+                    chooseImport('bulk'); 
+                    break; // Text/Bulk
+                case 'j': 
+                    e.preventDefault(); 
+                    closeFileMenu(); 
+                    chooseImport('json'); 
+                    break; // JSON Import
+                case 'd': 
+                    e.preventDefault(); 
+                    closeFileMenu(); 
+                    chooseExport('json'); 
+                    break; // JSON Data Export
+                case 'c': 
+                    e.preventDefault(); 
+                    closeFileMenu(); 
+                    saveToCloud(); 
+                    break;        // Cloud Save
+                case 'h': 
+                    e.preventDefault(); 
+                    closeFileMenu(); 
+                    chooseExport('html'); 
+                    break; // HTML Export
+                case 'escape':
+                    e.preventDefault();
+                    closeFileMenu();
+                    break; // Close Menu
+            }
+            // If the menu is open, we don't want to trigger the global shortcuts below
+            return; 
+        }
+
+        // 3. GLOBAL SHORTCUT LOGIC (When menu is NOT open)
         switch(e.key) {
             
             // Left Arrow: Go to Data Entry (Input)
