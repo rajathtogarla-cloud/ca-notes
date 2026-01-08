@@ -1298,10 +1298,10 @@
         <p>Paste your content below to import into the <strong>current Subject</strong>.</p>
         <div class="fmt-hint">
             <strong>Format Guide:</strong><br>
-            Chapter Title@pg (No indent)<br>
-            &nbsp;&nbsp;Level 1 Tab@pg (1 tab or 2 spaces)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;Level 2 Topic@pg (2 tabs or 4 spaces)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Level 3 Detail@pg (3 tabs or 6+ spaces)
+            Chapter Title @pg 1 <span style="color:#999">(No hash)</span><br>
+            # Level 1 Tab @pg 5 <span style="color:#999">(One #)</span><br>
+            ## Level 2 Topic @pg 12 <span style="color:#999">(Two ##)</span><br>
+            ### Level 3 Detail @pg 15 <span style="color:#999">(Three ###)</span>
         </div>
         <textarea id="import-text" class="import-textarea" placeholder="Chapter 1&#10;  Introduction Tab&#10;    Topic A&#10;      Detail 1&#10;      Detail 2&#10;Chapter 2&#10;  ..."></textarea>
         <div class="modal-actions">
@@ -1947,21 +1947,29 @@
         let currentL2 = null;
         
         lines.forEach(line => {
-            if (!line.trim()) return;
+            const rawLine = line.trim();
+            if (!rawLine) return;
 
-            // 1. Calculate Indent
-            const match = line.match(/^(\s*)/);
-            const indentStr = match ? match[0] : '';
-            let spaceCount = 0;
-            for(let c of indentStr) {
-                if (c === '\t') spaceCount += 2;
-                else if (c === ' ') spaceCount += 1;
+            // 1. Determine Level based on Hash (#) prefixes
+            let level = 0; // 0=Chapter, 1=L1, 2=L2, 3=L3
+            let cleanText = rawLine;
+
+            if (rawLine.startsWith('###')) {
+                level = 3;
+                cleanText = rawLine.substring(3).trim();
+            } else if (rawLine.startsWith('##')) {
+                level = 2;
+                cleanText = rawLine.substring(2).trim();
+            } else if (rawLine.startsWith('#')) {
+                level = 1;
+                cleanText = rawLine.substring(1).trim();
+            } else {
+                level = 0; // Chapter (No hash)
             }
 
             // 2. Parse Title and Page Number (@pg)
             // Example: "Introduction to Tax @pg 5"
-            const rawLine = line.trim();
-            const parts = rawLine.split('@pg');
+            const parts = cleanText.split('@pg');
             
             const title = parts[0].trim();
             // Store page number if it exists, else null
@@ -1972,23 +1980,28 @@
             // Helper to create node object
             const createNode = (t, p) => ({ id, title: t, pdfPage: p, desc: '', children: [] });
 
-            if (spaceCount < 2) {
+            // 3. Build Hierarchy
+            if (level === 0) {
+                // Chapter
                 currentChap = createNode(title, pdfPage);
                 newChapters.push(currentChap);
                 currentL1 = null; 
                 currentL2 = null;
-            } else if (spaceCount < 4) {
+            } else if (level === 1) {
+                // Level 1
                 if (currentChap) {
                     currentL1 = createNode(title, pdfPage);
                     currentChap.children.push(currentL1);
                     currentL2 = null;
                 }
-            } else if (spaceCount < 6) {
+            } else if (level === 2) {
+                // Level 2
                 if (currentL1) {
                     currentL2 = createNode(title, pdfPage);
                     currentL1.children.push(currentL2);
                 }
-            } else {
+            } else if (level === 3) {
+                // Level 3
                 if (currentL2) {
                     const l3 = createNode(title, pdfPage);
                     currentL2.children.push(l3);
