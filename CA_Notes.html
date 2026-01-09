@@ -5517,6 +5517,36 @@
 
 <script>
 (function() {
+    // --- NEW HELPER: Copy Link from Previous Chapter ---
+    window.copyLinkFromPrevious = function() {
+        const sub = getActiveSubject();
+        const currentId = appState.activeChapterId;
+        const currentIndex = sub.chapters.findIndex(c => c.id === currentId);
+
+        if (currentIndex > 0) {
+            const prevChap = sub.chapters[currentIndex - 1];
+            if (prevChap.link && prevChap.link.trim() !== '') {
+                const currentChap = sub.chapters[currentIndex];
+                
+                // Update the link
+                currentChap.link = prevChap.link;
+                saveData();
+                
+                // Refresh the specific input to show the new value immediately
+                const input = document.querySelector('.link-input');
+                if (input) {
+                    input.value = currentChap.link;
+                    // Visual feedback (flash green)
+                    input.style.backgroundColor = '#dcfce7';
+                    setTimeout(() => input.style.backgroundColor = '', 500);
+                }
+            } else {
+                alert("The previous chapter does not have a link.");
+            }
+        } else {
+            alert("This is the first chapter; there is no previous tab to copy from.");
+        }
+    };
     // 1. NEW FUNCTION: Update Chapter Page
     window.updateChapterPage = function(val) {
         const chap = getActiveChapter();
@@ -5570,7 +5600,7 @@
         if(!chap) { container.innerHTML = ''; status.innerText = ''; return; }
         const l1 = getActiveLevel1();
         
-        // --- CHAPTER CARD (Added Blue Pg Input) ---
+        // --- CHAPTER CARD ---
         let html = `
             <div class="section-card" style="background:#f8fafc; border-color:#e2e8f0;">
                 <div class="input-group">
@@ -5583,7 +5613,13 @@
                 
                 <div class="input-group" style="margin-top: 0.8rem; margin-bottom:0;">
                     <label class="input-label">Link Address (Applies to all nodes)</label>
-                    <input class="text-input link-input" autocomplete="off" type="text" value="${chap.link || ''}" onchange="updateChapterLink(this.value)" placeholder="https://...">
+                    <div style="display: flex; gap: 8px;">
+                        <input class="text-input link-input" style="flex:1;" autocomplete="off" type="text" value="${chap.link || ''}" onchange="updateChapterLink(this.value)" placeholder="https://...">
+                        
+                        <button class="btn-action" onclick="copyLinkFromPrevious()" title="Copy Link from Previous Chapter" style="background:white; border:1px solid #cbd5e1; padding: 0 12px;">
+                            📋 
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -5591,7 +5627,7 @@
         if (!l1) { html += '<div class="empty-msg">Select or create a Level 1 tab to edit its content.</div>'; container.innerHTML = html; status.innerText = 'Editing Chapter Settings'; return; }
         status.innerText = `Editing: ${l1.title}`;
 
-        // --- LEVEL 1 CARD (Pink Pg Input) ---
+        // --- LEVEL 1 CARD ---
         html += `
             <div class="section-card">
                 <div class="input-group">
@@ -5616,14 +5652,14 @@
         `;
         container.innerHTML = html;
         
-        // --- CHILDREN ---
+        // --- CHILDREN RENDER LOOP ---
         const l2Container = document.getElementById('l2-container');
         l1.children.forEach(l2 => {
             const blk = document.createElement('div');
             blk.className = 'level2-block';
             let l3Html = '';
             l2.children.forEach(l3 => {
-                // Level 3 (Green Pg Input)
+                // Level 3 Row
                 l3Html += `
                     <div class="level3-row">
                         <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
@@ -5637,7 +5673,7 @@
                     </div>
                 `;
             });
-            // Level 2 (Orange Pg Input)
+            // Level 2 Block
             blk.innerHTML = `
                 <div class="level2-header">
                     <div class="level2-title-row">
