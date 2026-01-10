@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ind AS: Roadmap & Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #fff7ed 100%);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .gradient-text {
+            background: linear-gradient(to right, #059669, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .step-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .step-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+        }
+
+        .topic-card {
+            @apply bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-emerald-200 transition-colors;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 pb-12">
+
+    <!-- Navigation / Header -->
+    <nav class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl shadow-lg">AS</div>
+                <span class="font-bold text-xl tracking-tight text-slate-800">Ind<span class="text-emerald-600">AS</span> Guide</span>
+            </div>
+            <a href="#calculator" class="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2 rounded-full text-sm font-semibold transition shadow-md">
+                <i class="fa-solid fa-calculator mr-2"></i>Net Worth Calc
+            </a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 md:px-8 pt-12 space-y-16">
+
+        <!-- Hero Section -->
+        <header class="text-center space-y-6">
+            <h1 class="text-5xl md:text-7xl font-extrabold gradient-text pb-2 tracking-tight">Applicability Roadmap</h1>
+            <p class="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+                A comprehensive guide for Corporates, NBFCs, Banks, and Insurance companies.
+                Check your phase, net worth requirements, and exclusions below.
+            </p>
+        </header>
+
+        <!-- The Roadmap Section -->
+        <section class="space-y-8">
+            <div class="flex items-center gap-3 mb-8 border-b border-slate-200 pb-4">
+                <div class="bg-emerald-100 p-3 rounded-xl text-emerald-600 shadow-sm"><i class="fa-solid fa-map-location-dot text-2xl"></i></div>
+                <h2 class="text-3xl font-bold text-slate-800">Implementation Phases</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Corporates Card -->
+                <div class="glass-panel p-8 rounded-3xl shadow-xl border-t-4 border-emerald-500 step-card relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                        <i class="fa-solid fa-city text-9xl text-emerald-900"></i>
+                    </div>
+
+                    <div class="flex justify-between items-start mb-8 relative z-10">
+                        <div>
+                            <h3 class="text-2xl font-bold text-emerald-900">Corporates</h3>
+                            <p class="text-emerald-700 font-medium text-sm mt-1">Excl. Banks, NBFCs & Insurance</p>
+                        </div>
+                        <div class="bg-emerald-50 p-3 rounded-2xl">
+                            <i class="fa-solid fa-building text-3xl text-emerald-600"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-8 relative z-10">
+                        <!-- Timeline Line -->
+                        <div class="absolute left-[19px] top-2 bottom-4 w-0.5 bg-emerald-200"></div>
+
+                        <!-- Voluntary -->
+                        <div class="relative pl-12">
+                            <div class="absolute left-1.5 top-1.5 w-5 h-5 bg-white rounded-full border-4 border-emerald-300 z-10"></div>
+                            <span class="inline-block px-3 py-1 bg-emerald-50 text-emerald-700 rounded-lg text-xs font-bold mb-2 border border-emerald-100">Voluntary Adoption</span>
+                            <p class="text-slate-600 text-sm">Permitted for any company on or after <span class="font-semibold text-slate-800">1st April, 2015</span>.</p>
+                        </div>
+
+                        <!-- Phase I -->
+                        <div class="relative pl-12">
+                            <div class="absolute left-1 top-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-white shadow z-10"></div>
+                            <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold mb-2">1st April, 2016</span>
+                            <h4 class="font-bold text-lg text-slate-800">Phase I (Mandatory)</h4>
+                            <ul class="text-slate-600 text-sm mt-2 space-y-1 list-disc list-outside ml-4">
+                                <li>All Companies with Net Worth <span class="font-bold text-emerald-700">≥ ₹500 Crores</span>.</li>
+                                <li>Applies to Listed & Unlisted companies.</li>
+                                <li>Includes Holding, Subsidiaries, JVs & Associates.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Phase II -->
+                        <div class="relative pl-12">
+                            <div class="absolute left-1 top-1 w-6 h-6 bg-emerald-400 rounded-full border-4 border-white shadow z-10"></div>
+                            <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold mb-2">1st April, 2017</span>
+                            <h4 class="font-bold text-lg text-slate-800">Phase II (Mandatory)</h4>
+                            <ul class="text-slate-600 text-sm mt-2 space-y-1 list-disc list-outside ml-4">
+                                <li>All <span class="font-bold text-slate-800">Listed</span> companies (Net Worth < ₹500 Cr).</li>
+                                <li>Unlisted companies: Net Worth <span class="font-bold text-emerald-700">≥ ₹250 Cr</span> but < ₹500 Cr.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NBFC Card -->
+                <div class="glass-panel p-8 rounded-3xl shadow-xl border-t-4 border-amber-500 step-card relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                        <i class="fa-solid fa-coins text-9xl text-amber-900"></i>
+                    </div>
+
+                    <div class="flex justify-between items-start mb-8 relative z-10">
+                        <div>
+                            <h3 class="text-2xl font-bold text-amber-900">NBFC Sector</h3>
+                            <p class="text-amber-700 font-medium text-sm mt-1">Non-Banking Financial Companies</p>
+                        </div>
+                        <div class="bg-amber-50 p-3 rounded-2xl">
+                            <i class="fa-solid fa-sack-dollar text-3xl text-amber-500"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-8 relative z-10">
+                        <!-- Timeline Line -->
+                        <div class="absolute left-[19px] top-2 bottom-4 w-0.5 bg-amber-200"></div>
+
+                        <!-- Voluntary Warning -->
+                        <div class="relative pl-12">
+                            <div class="absolute left-1.5 top-1.5 w-5 h-5 bg-white rounded-full border-4 border-red-300 z-10"></div>
+                            <span class="inline-block px-3 py-1 bg-red-50 text-red-700 rounded-lg text-xs font-bold mb-2 border border-red-100">Restriction</span>
+                            <p class="text-slate-600 text-sm font-medium">Voluntary adoption is <span class="text-red-600 font-bold uppercase">NOT</span> permitted for NBFCs.</p>
+                        </div>
+
+                        <!-- Phase I -->
+                        <div class="relative pl-12">
+                            <div class="absolute left-1 top-1 w-6 h-6 bg-amber-500 rounded-full border-4 border-white shadow z-10"></div>
+                            <span class="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-lg text-xs font-bold mb-2">1st April, 2018</span>
+                            <h4 class="font-bold text-lg text-slate-800">Phase I</h4>
+                            <ul class="text-slate-600 text-sm mt-2 space-y-1 list-disc list-outside ml-4">
+                                <li>Listed & Unlisted NBFCs with Net Worth <span class="font-bold text-amber-700">≥ ₹500 Crores</span>.</li>
+                                <li>Includes Holding, Subsidiaries, JVs & Associates.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Phase II -->
+                        <div class="relative pl-12">
+                            <div class="absolute left-1 top-1 w-6 h-6 bg-amber-400 rounded-full border-4 border-white shadow z-10"></div>
+                            <span class="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-lg text-xs font-bold mb-2">1st April, 2019</span>
+                            <h4 class="font-bold text-lg text-slate-800">Phase II</h4>
+                            <ul class="text-slate-600 text-sm mt-2 space-y-1 list-disc list-outside ml-4">
+                                <li>All <span class="font-bold text-slate-800">Listed</span> NBFCs (Net Worth < ₹500 Cr).</li>
+                                <li>Unlisted NBFCs: Net Worth <span class="font-bold text-amber-700">≥ ₹250 Cr</span> but < ₹500 Cr.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Sectors Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Banks -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center relative overflow-hidden group hover:border-blue-200 transition-colors">
+                    <div class="bg-blue-50 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-building-columns text-2xl"></i>
+                    </div>
+                    <h4 class="font-bold text-lg text-slate-800">Scheduled Commercial Banks</h4>
+                    <p class="text-xs text-blue-600 font-semibold uppercase tracking-wider mt-1 mb-2">Deferred</p>
+                    <p class="text-sm text-slate-500">Applicability deferred by RBI until further notice. Existing GAAP continues.</p>
+                </div>
+
+                <!-- Insurance -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center relative overflow-hidden group hover:border-rose-200 transition-colors">
+                    <div class="bg-rose-50 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-600 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-umbrella text-2xl"></i>
+                    </div>
+                    <h4 class="font-bold text-lg text-slate-800">Insurance Companies</h4>
+                    <p class="text-xs text-rose-600 font-semibold uppercase tracking-wider mt-1 mb-2">Deferred</p>
+                    <p class="text-sm text-slate-500">Deferred by IRDAI. Separate implementation roadmap (Ind AS 117) expected approx FY 2027.</p>
+                </div>
+
+                <!-- Mutual Funds -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center relative overflow-hidden group hover:border-purple-200 transition-colors">
+                    <div class="bg-purple-50 w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 text-purple-600 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-chart-pie text-2xl"></i>
+                    </div>
+                    <h4 class="font-bold text-lg text-slate-800">Mutual Funds</h4>
+                    <p class="text-xs text-purple-600 font-semibold uppercase tracking-wider mt-1 mb-2">Applicable</p>
+                    <p class="text-sm text-slate-500">Mandatory applicability of Ind AS Financials from <span class="font-bold text-slate-700">1st April, 2023</span>.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- New Key Topics Section -->
+        <section class="space-y-8">
+            <div class="flex items-center gap-3 mb-8 border-b border-slate-200 pb-4">
+                <div class="bg-amber-100 p-3 rounded-xl text-amber-600 shadow-sm"><i class="fa-solid fa-book-open text-2xl"></i></div>
+                <h2 class="text-3xl font-bold text-slate-800">Key Implementation Rules</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- Topic 1: General Application Rules -->
+                <div class="topic-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-gavel text-xl text-indigo-500"></i>
+                        <h3 class="font-bold text-lg text-slate-800">General Application</h3>
+                    </div>
+                    <div class="space-y-3 text-sm text-slate-600">
+                        <p><strong class="text-slate-800">Irreversibility:</strong> Once IND AS is applied (voluntarily or mandatorily), it must be used for all subsequent years, even if criteria are no longer met.</p>
+                        <p><strong class="text-slate-800">Comparatives:</strong> First-time adopters must restate previous year's figures. <br>
+                        <em class="text-xs block mt-1 bg-slate-50 p-2 rounded">Example: Applying for FY 2017-18? Comparatives are for 2016-17. Transition Date: 01.04.2016.</em></p>
+                    </div>
+                </div>
+
+                <!-- Topic 2: Net Worth Calculation -->
+                <div class="topic-card md:col-span-2 lg:col-span-1 border-emerald-100 bg-emerald-50/30">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-calculator text-xl text-emerald-600"></i>
+                        <h3 class="font-bold text-lg text-slate-800">Net Worth Calculation</h3>
+                    </div>
+                    <div class="text-xs bg-white border border-emerald-100 p-3 rounded-lg mb-3 shadow-sm">
+                        <p class="font-mono text-emerald-900 mb-1 font-semibold">Net Worth = [A] - [B]</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><span class="font-bold">[A] Add:</span> Paid-up Capital, Reserves & Surplus (Gen Res, P&L, Sec Prem, Free Res, ESOP, Cap Res-Promoter/Grant)</div>
+                            <div><span class="font-bold">[B] Less:</span> Acc. Losses, Def. Exp, Misc. Exp, Fictitious Assets</div>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        <strong class="text-red-500">Exclude:</strong> Revaluation Reserve, Cap Res (Amalgamation), Calls in arrears, Share application money, Warrants.
+                    </div>
+                </div>
+
+                <!-- Topic 3: Listing Criteria -->
+                <div class="topic-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-list-check text-xl text-blue-500"></i>
+                        <h3 class="font-bold text-lg text-slate-800">Listing Criteria</h3>
+                    </div>
+                    <ul class="text-sm text-slate-600 space-y-2">
+                        <li><i class="fa-solid fa-check text-green-500 mr-2"></i>Applies if Equity/Debt is listed (or in process) on any recognized stock exchange (India/Abroad).</li>
+                        <li><i class="fa-solid fa-calendar-check text-slate-400 mr-2"></i>Status checked on <strong>31.03</strong>.</li>
+                        <li class="bg-blue-50 p-2 rounded text-blue-800 text-xs"><strong class="block mb-1">Exemption:</strong> Small companies (Paid-up < ₹25 Cr) listed on SME/ITP platforms without IPO.</li>
+                    </ul>
+                </div>
+
+                <!-- Topic 4: Group Companies -->
+                <div class="topic-card lg:col-span-2">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-sitemap text-xl text-purple-500"></i>
+                        <h3 class="font-bold text-lg text-slate-800">Group Companies (Chain Rule)</h3>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4 text-sm text-slate-600">
+                        <p><strong class="text-slate-800">Chain Applicability:</strong> If IND AS applies to ONE company, it applies to ALL (Holding + Subsidiary + Associate + JV). Applies to Standalone & Consolidated.</p>
+                        <p><strong class="text-slate-800">Foreign Subsidiaries:</strong> Keep local accounts but prepare IND AS financials for Indian parent consolidation.</p>
+                        <p><strong class="text-slate-800">Different Standards:</strong> If Holding & Subsidiary differ (one AS, one Ind AS), Subsidiary prepares extra set for consolidation matching Holding.</p>
+                        <p><strong class="text-slate-800">Timing:</strong> Relationship must exist at initial applicability date. Sold shares prior? Rule doesn't apply.</p>
+                    </div>
+                </div>
+
+                <!-- Topic 5: Sector Specific Rules -->
+                <div class="topic-card">
+                    <div class="flex items-center gap-3 mb-3">
+                        <i class="fa-solid fa-briefcase text-xl text-rose-500"></i>
+                        <h3 class="font-bold text-lg text-slate-800">Sector Specifics</h3>
+                    </div>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-ban text-rose-500 mt-1"></i>
+                            <span class="text-slate-600"><strong>NBFCs/Banks/Insurance:</strong> NO voluntary adoption. Must wait for mandate. RBI relaxations ≠ Exemption.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-clock text-rose-500 mt-1"></i>
+                            <span class="text-slate-600"><strong>Mutual Funds:</strong> Mandatory from 1st April 2023.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-hand-holding-heart text-rose-500 mt-1"></i>
+                            <span class="text-slate-600"><strong>Section 8 (Non-Profit):</strong> No exemption. Must follow if criteria met.</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Calculator Section -->
+        <section id="calculator" class="pt-8 pb-12">
+            <div class="flex items-center gap-3 mb-8 border-b border-slate-200 pb-4">
+                <div class="bg-indigo-100 p-3 rounded-xl text-indigo-600 shadow-sm"><i class="fa-solid fa-calculator text-2xl"></i></div>
+                <div>
+                    <h2 class="text-3xl font-bold text-slate-800">Net Worth Calculator</h2>
+                    <p class="text-sm text-slate-500">As per Section 2(57) of Companies Act, 2013</p>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-200 grid grid-cols-1 lg:grid-cols-3">
+                
+                <!-- Inputs -->
+                <div class="p-8 lg:col-span-2 space-y-8">
+                    <!-- Formula Box -->
+                    <div class="bg-gradient-to-r from-slate-50 to-indigo-50/50 p-5 rounded-xl border border-slate-100">
+                        <div class="flex items-start gap-3">
+                            <i class="fa-solid fa-circle-info text-indigo-500 mt-1"></i>
+                            <div class="text-sm text-slate-600">
+                                <strong class="text-indigo-900 block mb-1">Formula:</strong>
+                                (Paid-up Share Capital + All Reserves Created out of Profits + Securities Premium) <br>
+                                <span class="font-bold text-red-400">–</span> (Accumulated Losses + Deferred Expenditure + Misc. Expenditure)
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-slate-200 text-xs text-slate-500 flex gap-4">
+                            <span><i class="fa-solid fa-xmark text-red-400 mr-1"></i> Exclude Revaluation Reserves</span>
+                            <span><i class="fa-solid fa-xmark text-red-400 mr-1"></i> Exclude Depreciation Write-backs</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <!-- Additions Column -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold"><i class="fa-solid fa-plus"></i></div>
+                                <span class="text-sm font-bold text-slate-700 uppercase tracking-wider">Additions</span>
+                            </div>
+                            
+                            <div class="group">
+                                <label class="text-xs font-medium text-slate-500 mb-1 block group-focus-within:text-indigo-600 transition-colors">Paid-up Share Capital</label>
+                                <div class="flex items-center relative">
+                                    <span class="absolute left-3 text-slate-400 font-serif">₹</span>
+                                    <input type="number" id="shareCapital" class="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent outline-none transition-all font-semibold text-slate-700" placeholder="0">
+                                    <span class="absolute right-3 text-xs text-slate-400">Cr</span>
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <label class="text-xs font-medium text-slate-500 mb-1 block group-focus-within:text-indigo-600 transition-colors">Securities Premium</label>
+                                <div class="flex items-center relative">
+                                    <span class="absolute left-3 text-slate-400 font-serif">₹</span>
+                                    <input type="number" id="secPremium" class="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent outline-none transition-all font-semibold text-slate-700" placeholder="0">
+                                    <span class="absolute right-3 text-xs text-slate-400">Cr</span>
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <label class="text-xs font-medium text-slate-500 mb-1 block group-focus-within:text-indigo-600 transition-colors">Reserves (from Profits)</label>
+                                <div class="flex items-center relative">
+                                    <span class="absolute left-3 text-slate-400 font-serif">₹</span>
+                                    <input type="number" id="reserves" class="w-full pl-8 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent outline-none transition-all font-semibold text-slate-700" placeholder="0">
+                                    <span class="absolute right-3 text-xs text-slate-400">Cr</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Deductions Column -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold"><i class="fa-solid fa-minus"></i></div>
+                                <span class="text-sm font-bold text-slate-700 uppercase tracking-wider">Deductions</span>
+                            </div>
+
+                            <div class="group">
+                                <label class="text-xs font-medium text-slate-500 mb-1 block group-focus-within:text-red-500 transition-colors">Accumulated Losses</label>
+                                <div class="flex items-center relative">
+                                    <span class="absolute left-3 text-red-300 font-serif">₹</span>
+                                    <input type="number" id="losses" class="w-full pl-8 pr-4 py-3 bg-red-50/50 border border-red-100 rounded-xl focus:ring-2 focus:ring-red-500 focus:bg-white focus:border-transparent outline-none transition-all font-semibold text-slate-700" placeholder="0">
+                                    <span class="absolute right-3 text-xs text-red-300">Cr</span>
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <label class="text-xs font-medium text-slate-500 mb-1 block group-focus-within:text-red-500 transition-colors">Deferred Expenditure</label>
+                                <div class="flex items-center relative">
+                                    <span class="absolute left-3 text-red-300 font-serif">₹</span>
+                                    <input type="number" id="deferredExp" class="w-full pl-8 pr-4 py-3 bg-red-50/50 border border-red-100 rounded-xl focus:ring-2 focus:ring-red-500 focus:bg-white focus:border-transparent outline-none transition-all font-semibold text-slate-700" placeholder="0">
+                                    <span class="absolute right-3 text-xs text-red-300">Cr</span>
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <label class="text-xs font-medium text-slate-500 mb-1 block group-focus-within:text-red-500 transition-colors">Misc. Expenditure</label>
+                                <div class="flex items-center relative">
+                                    <span class="absolute left-3 text-red-300 font-serif">₹</span>
+                                    <input type="number" id="miscExp" class="w-full pl-8 pr-4 py-3 bg-red-50/50 border border-red-100 rounded-xl focus:ring-2 focus:ring-red-500 focus:bg-white focus:border-transparent outline-none transition-all font-semibold text-slate-700" placeholder="0">
+                                    <span class="absolute right-3 text-xs text-red-300">Cr</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-6 border-t border-slate-100 flex flex-col md:flex-row gap-6 items-center">
+                        <div class="flex gap-4 w-full md:w-auto">
+                            <label class="flex-1 md:flex-none relative cursor-pointer">
+                                <input type="radio" name="cType" value="corp" checked class="peer sr-only">
+                                <div class="p-3 px-6 rounded-xl border border-slate-200 peer-checked:bg-slate-800 peer-checked:text-white peer-checked:border-slate-800 transition-all text-center">
+                                    <span class="text-sm font-semibold">Corporate</span>
+                                </div>
+                            </label>
+                            <label class="flex-1 md:flex-none relative cursor-pointer">
+                                <input type="radio" name="cType" value="nbfc" class="peer sr-only">
+                                <div class="p-3 px-6 rounded-xl border border-slate-200 peer-checked:bg-amber-600 peer-checked:text-white peer-checked:border-amber-600 transition-all text-center">
+                                    <span class="text-sm font-semibold">NBFC</span>
+                                </div>
+                            </label>
+                        </div>
+                        <button onclick="calculate()" class="flex-1 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-indigo-200 active:scale-95 flex items-center justify-center gap-2">
+                            <span>Check Applicability</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Result Panel -->
+                <div class="bg-slate-900 text-white p-8 flex flex-col justify-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-10 opacity-10 transform translate-x-10 -translate-y-10">
+                        <i class="fa-solid fa-calculator text-[10rem]"></i>
+                    </div>
+
+                    <div id="result-placeholder" class="text-center opacity-60 flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4 animate-pulse">
+                            <i class="fa-solid fa-magnifying-glass-chart text-2xl"></i>
+                        </div>
+                        <h3 class="font-bold text-xl mb-1">Ready to Calculate</h3>
+                        <p class="text-sm">Enter your financial figures to see your Ind AS Phase.</p>
+                    </div>
+
+                    <div id="result-content" class="hidden relative z-10 animate-[fadeIn_0.5s_ease-out]">
+                        <div class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Calculated Net Worth</div>
+                        <div class="flex items-baseline gap-1 mb-8">
+                            <span class="text-2xl font-light text-slate-400">₹</span>
+                            <span id="final-amount" class="text-5xl font-bold text-white tracking-tighter">0</span>
+                            <span class="text-xl font-light text-slate-400">Cr</span>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs text-slate-400 uppercase tracking-wider">Applicability</span>
+                                    <i id="status-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+                                </div>
+                                <div id="status-text" class="font-bold text-xl text-emerald-400">Applicable</div>
+                            </div>
+
+                            <div class="p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-xs text-slate-400 uppercase tracking-wider">Phase Details</span>
+                                    <i class="fa-regular fa-calendar text-slate-400"></i>
+                                </div>
+                                <div id="phase-text" class="font-medium text-slate-200">Phase I</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-white/10">
+                            <p class="text-[10px] text-slate-500 leading-relaxed text-center">
+                                *Note: Applicability triggers for the standalone entity also mandate Ind AS for its Holding, Subsidiary, Associate, and Joint Venture companies.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        function calculate() {
+            // 1. Get Values (Default to 0)
+            const cap = parseFloat(document.getElementById('shareCapital').value) || 0;
+            const prem = parseFloat(document.getElementById('secPremium').value) || 0;
+            const res = parseFloat(document.getElementById('reserves').value) || 0;
+            
+            const loss = parseFloat(document.getElementById('losses').value) || 0;
+            const defExp = parseFloat(document.getElementById('deferredExp').value) || 0;
+            const miscExp = parseFloat(document.getElementById('miscExp').value) || 0;
+            const type = document.querySelector('input[name="cType"]:checked').value;
+
+            // 2. Compute Net Worth
+            const netWorth = (cap + prem + res) - (loss + defExp + miscExp);
+            
+            // 3. Update UI
+            document.getElementById('result-placeholder').classList.add('hidden');
+            document.getElementById('result-content').classList.remove('hidden');
+            
+            // Animate Number
+            const finalEl = document.getElementById('final-amount');
+            finalEl.innerText = netWorth.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+            
+            // 4. Determine Applicability logic
+            const statusEl = document.getElementById('status-text');
+            const phaseEl = document.getElementById('phase-text');
+            const iconEl = document.getElementById('status-icon');
+            
+            let status = "Not Mandatorily Applicable";
+            let phase = "N/A";
+            let colorClass = "text-slate-400";
+            let iconClass = "fa-circle-xmark";
+
+            if (type === 'corp') {
+                if (netWorth >= 500) {
+                    status = "Mandatory";
+                    phase = "Phase I (Applicable since 1st April, 2016)";
+                    colorClass = "text-emerald-400";
+                    iconClass = "fa-circle-check";
+                } else if (netWorth >= 250) {
+                    status = "Mandatory";
+                    phase = "Phase II (Applicable since 1st April, 2017)";
+                    colorClass = "text-emerald-400";
+                    iconClass = "fa-circle-check";
+                } else {
+                    status = "Voluntary Adoption Allowed";
+                    phase = "You may choose to adopt Ind AS voluntarily.";
+                    colorClass = "text-amber-400";
+                    iconClass = "fa-circle-info";
+                }
+            } else {
+                // NBFC
+                if (netWorth >= 500) {
+                    status = "Mandatory";
+                    phase = "NBFC Phase I (Applicable since 1st April, 2018)";
+                    colorClass = "text-amber-400";
+                    iconClass = "fa-circle-check";
+                } else if (netWorth >= 250) {
+                    status = "Mandatory";
+                    phase = "NBFC Phase II (Applicable since 1st April, 2019)";
+                    colorClass = "text-amber-400";
+                    iconClass = "fa-circle-check";
+                } else {
+                    status = "Not Applicable";
+                    phase = "Voluntary adoption is NOT permitted for NBFCs.";
+                    colorClass = "text-red-400";
+                    iconClass = "fa-ban";
+                }
+            }
+            
+            statusEl.innerText = status;
+            statusEl.className = `font-bold text-xl ${colorClass}`;
+            phaseEl.innerText = phase;
+            iconEl.className = `fa-solid ${iconClass} ${colorClass}`;
+        }
+    </script>
+</body>
+</html>
