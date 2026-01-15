@@ -3754,7 +3754,29 @@
             targetCenterY = rect.top + (rect.height / 2);
         }
 
-        let li = hoveredCard.closest('li');
+        // --- NEW: HANDLE DESCENDANTS (Look Downwards) ---
+        // Find the LI wrapping the hovered card
+        const parentLi = hoveredCard.closest('li');
+        
+        if (parentLi) {
+            // 1. Highlight the hovered card itself explicitly
+            hoveredCard.classList.add('path-active-node');
+            
+            // 2. If focused, find ALL open/visible child LIs and keep their lines visible
+            if (traceState.focus) {
+                parentLi.querySelectorAll('li').forEach(childLi => {
+                    childLi.classList.add('path-active-li');
+                });
+            }
+
+            // 3. Find ALL open/visible child Nodes and keep them visible
+            parentLi.querySelectorAll('.node').forEach(childNode => {
+                childNode.classList.add('path-active-node');
+            });
+        }
+
+        // --- EXISTING: HANDLE ANCESTORS (Look Upwards) ---
+        let li = parentLi;
         let pathData = []; 
 
         const getLevel = (node) => {
@@ -3771,7 +3793,7 @@
             
             let node = li.querySelector(':scope > .node');
             if (node) {
-                // IMPORTANT: Always mark this node as active for Focus Visibility logic
+                // Keep node visible
                 node.classList.add('path-active-node');
 
                 // A. Visual Highlight (Orange Border)
@@ -5415,6 +5437,28 @@
             return; 
         }
 
+        // --- NEW: TRACE MODE SHORTCUTS (t, h, a, f) ---
+        // Only active if Master Trace is turned ON
+        if (typeof traceState !== 'undefined' && traceState.master) {
+            const k = e.key.toLowerCase();
+            let btnClass = null;
+            let modeName = null;
+
+            if (k === 't') { modeName = 'text'; btnClass = '.icon-text'; }
+            else if (k === 'h') { modeName = 'highlight'; btnClass = '.icon-glow'; }
+            else if (k === 'a') { modeName = 'align'; btnClass = '.icon-align'; }
+            else if (k === 'f') { modeName = 'focus'; btnClass = '.icon-focus'; }
+
+            if (modeName && btnClass) {
+                const targetBtn = document.querySelector(`.btn-sub-opt${btnClass}`);
+                if (targetBtn) {
+                    e.preventDefault();
+                    toggleSubState(modeName, targetBtn);
+                    return; // Stop other global shortcuts
+                }
+            }
+        }
+
         // 3. GLOBAL SHORTCUT LOGIC (When menu is NOT open)
         switch(e.key) {
             
@@ -5696,6 +5740,205 @@
     if(typeof renderEditor === 'function') renderEditor();
 })();
 </script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<script>
+    /**
+     * HOVER INTERACTION UPDATE
+     * 1. Opens Notes on Bulb Hover.
+     * 2. Closes Notes when mouse leaves the Modal Box (Only in View Mode).
+     */
+
+    (function setupHoverInteractions() {
+        
+        // 1. Attach Mouse Leave Event to the Note Modal
+        const noteModal = document.querySelector('#notes-modal .modal.large-modal');
+        if (noteModal) {
+            noteModal.onmouseleave = function() {
+                // SAFETY: Do not auto-close if user is typing (Edit Mode)
+                if (typeof isNoteEditMode !== 'undefined' && isNoteEditMode) {
+                    return; 
+                }
+                closeNotesModal();
+            };
+        }
+
+        // 2. OVERRIDE: buildTreeHTML
+        // We update the specific line for the bulb button to include 'onmouseenter'
+        // This includes all previous logic (Isolation, Search, PDF Links, Moving)
+        window.buildTreeHTML = function(node, level, inheritedLink = '') {
+            
+            // --- INHERITANCE LOGIC ---
+            let masterLink = inheritedLink;
+            if (level === 0 && node.link) {
+                masterLink = node.link;
+            }
+
+            // --- FILTER LOGIC ---
+            if (appState.isolationMode && !appState.validIsolatedIds.has(node.id)) return document.createDocumentFragment(); 
+            if (window.isSearchActive) {
+                const isMatch = window.searchMatches.has(node.id);
+                const isPath = window.searchPathNodes.has(node.id);
+                if (!isMatch && !isPath) return document.createDocumentFragment();
+            }
+
+            const li = document.createElement('li');
+            const card = document.createElement('div');
+            const hasChild = node.children && node.children.length > 0;
+            const isCollapsed = appState.expandedNodes.has(node.id);
+            const hasNotes = node.notes && node.notes.trim().length > 0;
+            const isSelected = selectedNodeIds.has(node.id);
+            const nodePage = node.pdfPage; 
+            const isMoveSource = (window.mobileState && window.mobileState.srcId === node.id && window.mobileState.tool === 'move');
+            
+            // --- PDF BUTTON GENERATION ---
+            let redirectBtn = '';
+            if (masterLink && masterLink.trim() !== '') {
+                const baseUrl = masterLink.split('#')[0];
+                if (nodePage && nodePage.trim() !== '') {
+                    const finalUrl = `${baseUrl}#page=${nodePage}`;
+                    redirectBtn = `
+                        <button class="redirect-btn" 
+                           title="Page ${nodePage}" 
+                           onmousedown="event.stopPropagation()" 
+                           onclick="event.stopPropagation(); openSmartPdf('${finalUrl}')">
+                           ${nodePage}
+                        </button>
+                    `;
+                }  
+            }
+
+            // --- CARD SETUP ---
+            card.id = 'node-' + node.id;
+            let cssClasses = `node level-${Math.min(level,3)} ${isCollapsed?'collapsed':''} ${isSelected?'node-selected':''} ${isMoveSource ? 'move-active' : ''}`;
+            
+            if (window.searchMatches && window.searchMatches.has(node.id)) cssClasses += ' search-match';
+            else if (window.searchPathNodes && window.searchPathNodes.has(node.id)) cssClasses += ' search-path';
+            card.className = cssClasses;
+
+            // --- EVENTS ---
+            if(typeof handleHover === 'function') {
+                card.onmouseenter = (e) => handleHover(e, card);
+                card.onmouseleave = (e) => handleHover(e, card);
+            }
+            if(typeof trackMouse === 'function') card.onmousemove = (e) => trackMouse(e);
+
+            // --- CONTENT GENERATION ---
+            const expander = hasChild ? `<span class="expander">${isCollapsed?'+':'-'}</span>` : '';
+            const desc = node.desc ? `<p>${node.desc}</p>` : '';
+            
+            // *** UPDATED BULB BUTTON: Added onmouseenter event ***
+            const bulb = `<button class="bulb-btn ${hasNotes?'has-notes':''}" 
+                            onclick="openNotesModal(event,'${node.id}')" 
+                            onmouseenter="openNotesModal(event,'${node.id}')">✦</button>`;
+            
+            card.innerHTML = `<h4>${node.title}</h4>${desc}${expander}${bulb}${redirectBtn}`;
+            
+            card.draggable = true;
+            card.ondragstart = (e) => handleVisDragStart(e, node.id);
+            card.ondragover = (e) => handleVisDragOver(e, node.id);
+            card.ondragleave = (e) => handleVisDragLeave(e);
+            card.ondrop = (e) => handleVisDrop(e, node.id);
+            card.onclick = (e) => handleNodeClick(e, node);
+            
+            li.appendChild(card);
+            
+            if(hasChild && !isCollapsed) {
+                const ul = document.createElement('ul');
+                node.children.forEach(child => {
+                    const childNode = buildTreeHTML(child, level+1, masterLink);
+                    if(childNode && (childNode.childNodes.length > 0 || childNode.nodeType === Node.ELEMENT_NODE)) {
+                        ul.appendChild(childNode);
+                    }
+                });
+                if(ul.children.length > 0) li.appendChild(ul);
+            }
+            
+            if(level === 0) {
+                const ul = document.createElement('ul');
+                ul.style.paddingLeft = '0';
+                ul.appendChild(li);
+                return ul;
+            }
+            return li;
+        };
+
+        // Re-render to apply the new button logic immediately
+        if(typeof renderVisualizer === 'function') renderVisualizer();
+
+    })();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<script>
+    /**
+     * COPY ON MULTI-SELECT UPDATE (Trace Path Version)
+     * Copies the full ancestor path (e.g., "Chapter > Level 1 > Node") when selected.
+     */
+    (function enableAutoCopy() {
+        const previousHandler = window.handleNodeClick;
+
+        // Helper: Find the path of TITLES from root to target
+        function getPathTitles(chapters, targetId) {
+            for (let chap of chapters) {
+                const path = findPathRecursive(chap, targetId);
+                if (path) return path;
+            }
+            return null;
+        }
+
+        // Recursive search to build the title array
+        function findPathRecursive(node, targetId) {
+            if (node.id === targetId) {
+                return [node.title];
+            }
+            if (node.children) {
+                for (let child of node.children) {
+                    const path = findPathRecursive(child, targetId);
+                    if (path) {
+                        // Prepend current node title to the result from child
+                        return [node.title, ...path];
+                    }
+                }
+            }
+            return null;
+        }
+
+        window.handleNodeClick = function(e, node) {
+            // Check state BEFORE click
+            const wasSelected = (typeof isSelectionMode !== 'undefined' && isSelectionMode) 
+                                ? selectedNodeIds.has(node.id) 
+                                : false;
+
+            // Execute original logic
+            if (previousHandler) previousHandler(e, node);
+
+            // Check state AFTER click
+            if (typeof isSelectionMode !== 'undefined' && isSelectionMode) {
+                const isSelected = selectedNodeIds.has(node.id);
+                
+                // If newly selected
+                if (!wasSelected && isSelected) {
+                    const sub = getActiveSubject();
+                    const titles = getPathTitles(sub.chapters, node.id);
+                    
+                    if (titles) {
+                        // Join with " > " to create the trace path string
+                        // You can change ' > ' to ' _ ' or '\n' if preferred
+                        const textToCopy = titles.join(' > ');
+                        
+                        navigator.clipboard.writeText(textToCopy).catch(err => {
+                            console.warn("Clipboard write failed:", err);
+                        });
+                    }
+                }
+            }
+        };
+    })();
+</script>
+
 
 <!----------------------------------------------------------------------------------------------------------------------------->
 
