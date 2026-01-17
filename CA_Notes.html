@@ -2137,6 +2137,19 @@
                 preview.innerHTML = `<p>${content || '<em>No content</em>'}</p>`;
             }
 
+            // START AMENDMENT: Force New Tab & Stop PDF Interceptor
+            // ============================================================
+            const noteLinks = preview.querySelectorAll('a');
+            noteLinks.forEach(link => {
+                // 1. Force open in new tab
+                link.setAttribute('target', '_blank');
+                link.setAttribute('rel', 'noopener noreferrer');
+                
+                // 2. Stop Propagation: Prevents the global "PDF Viewer" 
+                // listener from catching this click and opening the iframe.
+                link.onclick = (e) => e.stopPropagation(); 
+            });
+
             // Switch Panes
             preview.classList.remove('hidden-pane');
             preview.classList.add('active-pane');
@@ -3907,7 +3920,7 @@
                 </div>
                 <div class="btn-wrapper">
                     <button class="btn-sub-opt icon-align" onclick="toggleSubState('align', this)">🔗</button>
-                    <div class="toggle-label" style="left: 45px; right: auto;">[A]lign</div>
+                    <div class="toggle-label" style="left: 45px; right: auto;">[A]lign <br> Hold Ctrl to lock alignment</div>
                 </div>
                 <div class="btn-wrapper">
                     <button class="btn-sub-opt icon-focus" onclick="toggleSubState('focus', this)">❄️</button>
@@ -5978,6 +5991,87 @@
     })();
 </script>
 
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<script>
+/**
+ * FEATURE UPDATE: Freeze Alignment (Ctrl) & Click-to-Exit
+ * -------------------------------------------------------
+ * 1. Freeze: Hold CTRL while hovering to lock alignment.
+ * 2. Exit + Action: Click any node while holding CTRL to turn Align Mode OFF,
+ * BUT still perform the standard click action (expand/collapse).
+ */
+(function() {
+    // 1. Global Freeze State
+    window.isAlignFrozen = false;
+
+    // 2. Override resetView: Prevent resetting if Frozen
+    const originalResetView = window.resetView;
+    window.resetView = function() {
+        if (window.isAlignFrozen && typeof traceState !== 'undefined' && traceState.align) return;
+        if (originalResetView) originalResetView();
+    };
+
+    // 3. Override handleHover: Prevent calculating new paths if Frozen
+    const originalHandleHover = window.handleHover;
+    window.handleHover = function(e, card) {
+        if (window.isAlignFrozen && typeof traceState !== 'undefined' && traceState.align) return;
+        if (originalHandleHover) originalHandleHover(e, card);
+    };
+
+    // 4. Keyboard Listeners
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Control' && typeof traceState !== 'undefined' && traceState.align) {
+            window.isAlignFrozen = true;
+        }
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'Control') {
+            window.isAlignFrozen = false;
+            if (typeof traceState !== 'undefined' && traceState.align) {
+                resetView();
+            }
+        }
+    });
+
+    // 5. Override Node Click
+    const originalHandleClick = window.handleNodeClick;
+    window.handleNodeClick = function(e, node) {
+        
+        // CHECK: Is Ctrl Held AND Align Mode Active?
+        if (e.ctrlKey && typeof traceState !== 'undefined' && traceState.align) {
+            
+            // A. Force Unfreeze
+            window.isAlignFrozen = false;
+
+            // B. Turn off Align Mode
+            const alignBtn = document.querySelector('.btn-sub-opt.icon-align');
+            if (typeof toggleSubState === 'function' && alignBtn) {
+                toggleSubState('align', alignBtn); 
+            } else {
+                traceState.align = false;
+                if(alignBtn) alignBtn.classList.remove('btn-on');
+            }
+
+            // C. Reset visual transforms immediately
+            if (typeof resetView === 'function') {
+                // We must bypass our own override to ensure it clears NOW
+                // Since isAlignFrozen is false, calling resetView() works.
+                resetView(); 
+            }
+            
+            // D. IMPORTANT: Do NOT return or stop propagation.
+            // Let the code continue to run the standard click handler below.
+        }
+
+        // Run the standard "Click Effect" (Expand/Collapse/Select)
+        if (originalHandleClick) originalHandleClick(e, node);
+    };
+
+})();
+</script>
 
 <!----------------------------------------------------------------------------------------------------------------------------->
 
