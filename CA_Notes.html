@@ -5238,18 +5238,34 @@
 
             // --- KEYBOARD LISTENERS (Keep these for Desktop) ---
             document.addEventListener('keydown', function(e) {
+                // 1. SAFETY CHECK: Stop if Notes are Open or user is typing
+                const notesModal = document.getElementById('notes-modal');
+                const isNotesOpen = notesModal && notesModal.classList.contains('open');
+                const isTyping = (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable);
+                
+                // If notes are open or typing, do NOT trigger PDF shortcuts
+                if (isNotesOpen || isTyping) return;
+
                 const minimizedBtn = document.getElementById('pdf-minimized-btn');
-                const isModalOpen = modal && modal.style.display !== 'none';
+                
+                // Re-fetch modal here to ensure we have the live reference
+                const liveModal = document.getElementById('pdf-overlay-modal');
+                
+                const isModalOpen = liveModal && liveModal.style.display !== 'none';
                 const isMinimized = minimizedBtn && minimizedBtn.style.display !== 'none';
 
                 if (!isModalOpen && !isMinimized) return;
+                
                 const key = e.key.toLowerCase();
 
                 if (key === 'r' && isModalOpen) {
-                    const currentUrl = modal.dataset.currentUrl;
+                    const currentUrl = liveModal.dataset.currentUrl;
                     if (currentUrl) { e.preventDefault(); window.openSmartPdf(currentUrl, true); }
                 }
-                else if (key === 'e' && isMinimized) { e.preventDefault(); restorePdf(); }
+                else if (key === 'e' && isMinimized) { 
+                    e.preventDefault(); 
+                    restorePdf(); 
+                }
                 else if (key === 'm' && isModalOpen) { e.preventDefault(); minimizePdf(); }
                 else if (key === 'escape' && isModalOpen) { e.preventDefault(); fullyClosePdf(); }
             });
