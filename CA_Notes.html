@@ -575,13 +575,17 @@
             align-items: center;
             justify-content: center;
             z-index: 100;
-            backdrop-filter: blur(2px);
+            
+            /* PERFORMANCE FIX: Removed blur(2px) to stop lag */
+            backdrop-filter: none; 
+            
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s;
         }
+
         .modal-overlay.open { opacity: 1; pointer-events: auto; }
-        
+
         .modal {
             background: white;
             width: 600px;
@@ -592,7 +596,10 @@
             padding: 2rem;
             display: flex;
             flex-direction: column;
-            /* gap: 1rem; */
+
+            /* PERFORMANCE FIX: Force GPU rendering */
+            transform: translateZ(0);
+            will-change: transform;
         }
 
         /* Specific Larger Modal for Markdown Notes */
@@ -673,12 +680,17 @@
         /* Markdown Preview Styling - HIGH CONTRAST UPDATE */
         .markdown-preview {
             overflow-y: auto;
-            background: #ffffff; /* Pure white background for max contrast */
-            color: #000000;      /* Pure Black Text */
+            background: #ffffff; 
+            color: #000000;      
             line-height: 1.6;
             font-family: 'Segoe UI', sans-serif;
             display: none; 
+
+            /* PERFORMANCE FIX: Optimization for scrolling */
+            will-change: scroll-position;
+            -webkit-overflow-scrolling: touch;
         }
+
         /* Show when active */
         .markdown-preview.active-pane { display: block; }
         .notes-textarea.active-pane { display: block; }
@@ -1110,6 +1122,15 @@
         }
         .emoji-btn:active {
             transform: scale(0.95);
+        }
+
+        /* --- KEYBOARD NAVIGATION STYLES --- */
+        .node.key-focused {
+            outline: 2px solid #2563eb !important;
+            outline-offset: 2px;
+            background-color: #eff6ff !important;
+            border-color: #3b82f6 !important;
+            z-index: 100;
         }
     </style>
 </head>
@@ -5529,18 +5550,6 @@
 
         // 3. GLOBAL SHORTCUT LOGIC (When menu is NOT open)
         switch(e.key) {
-            
-            // Left Arrow: Go to Data Entry (Input)
-            case 'ArrowLeft': 
-                e.preventDefault(); // Stop page scrolling
-                switchView('input');
-                break;
-
-            // Right Arrow: Go to Visualization (Result)
-            case 'ArrowRight':
-                e.preventDefault(); // Stop page scrolling
-                switchView('result');
-                break;
 
             // 's' or 'S': Open Subject Modal
             case 's':
@@ -6090,6 +6099,146 @@
 </script>
 
 <!----------------------------------------------------------------------------------------------------------------------------->
+
+<script>
+(function enableTreeNavigation() {
+    // 1. State for Keyboard Focus
+    window.navFocusId = null;
+
+    // 2. Helper: Apply Visual Focus
+    function applyNavFocus(id) {
+        // Remove old focus
+        document.querySelectorAll('.node.key-focused').forEach(el => el.classList.remove('key-focused'));
+        
+        if (!id) return;
+
+        const el = document.getElementById('node-' + id);
+        if (el) {
+            window.navFocusId = id;
+            el.classList.add('key-focused');
+            
+            // Smoothly scroll into view if off-screen
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+    }
+
+    // 3. Helper: Get Visible Nodes List (Linear)
+    function getVisibleNodes() {
+        // This grabs nodes in the order they appear on screen
+        return Array.from(document.querySelectorAll('#result-container .node'));
+    }
+
+    // 4. Override renderVisualizer to persist focus after updates
+    const originalRender = window.renderVisualizer;
+    window.renderVisualizer = function() {
+        if (originalRender) originalRender();
+        // Re-apply focus if it exists
+        if (window.navFocusId) applyNavFocus(window.navFocusId);
+    };
+
+    // 5. Sync Click with Keyboard Focus
+    const originalHandleClick = window.handleNodeClick;
+    window.handleNodeClick = function(e, node) {
+        if (originalHandleClick) originalHandleClick(e, node);
+        applyNavFocus(node.id);
+    };
+
+    // 6. MAIN KEYBOARD LISTENER (Replaces the old one)
+    document.addEventListener('keydown', function(e) {
+        // Safety: Ignore if typing
+        const tag = e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+        
+        // --- VIEW SWITCHING (Moved to CTRL + Arrows) ---
+        if (e.ctrlKey) {
+            if (e.key === 'ArrowLeft') { e.preventDefault(); switchView('input'); return; }
+            if (e.key === 'ArrowRight') { e.preventDefault(); switchView('result'); return; }
+        }
+
+        // --- TREE NAVIGATION (Only in Result View) ---
+        const isResultView = document.getElementById('result-view').classList.contains('active-view');
+        
+        if (isResultView) {
+            const visibleNodes = getVisibleNodes();
+            if (visibleNodes.length === 0) return;
+
+            // Find current index
+            let currentIndex = -1;
+            if (window.navFocusId) {
+                currentIndex = visibleNodes.findIndex(el => el.id === `node-${window.navFocusId}`);
+            }
+
+            // Defaults to first node if nothing focused
+            if (currentIndex === -1 && (e.key.startsWith('Arrow'))) {
+                applyNavFocus(visibleNodes[0].id.replace('node-', ''));
+                return;
+            }
+
+            const currentNode = visibleNodes[currentIndex];
+            const rawId = currentNode.id.replace('node-', '');
+            
+            // --- ARROW DOWN (Next Visible) ---
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const nextIndex = Math.min(currentIndex + 1, visibleNodes.length - 1);
+                applyNavFocus(visibleNodes[nextIndex].id.replace('node-', ''));
+            }
+
+            // --- ARROW UP (Prev Visible) ---
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const prevIndex = Math.max(currentIndex - 1, 0);
+                applyNavFocus(visibleNodes[prevIndex].id.replace('node-', ''));
+            }
+
+            // --- ARROW RIGHT (Expand or Next) ---
+            else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                // If collapsed (has 'collapsed' class), Expand it
+                if (currentNode.classList.contains('collapsed')) {
+                    // Trigger the click logic to expand
+                    currentNode.click(); 
+                } else {
+                    // If already expanded (or leaf), move down
+                    const nextIndex = Math.min(currentIndex + 1, visibleNodes.length - 1);
+                    applyNavFocus(visibleNodes[nextIndex].id.replace('node-', ''));
+                }
+            }
+
+            // --- ARROW LEFT (Collapse or Parent) ---
+            else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                // If expanded and has children (check for expander), Collapse it
+                const hasExpander = currentNode.querySelector('.expander');
+                const isCollapsed = currentNode.classList.contains('collapsed');
+
+                if (hasExpander && !isCollapsed) {
+                    currentNode.click(); // Collapse
+                } else {
+                    // Move to Parent
+                    // DOM traversal: node -> li -> ul -> li -> parentNode
+                    const parentLi = currentNode.closest('li').parentElement.closest('li');
+                    if (parentLi) {
+                        const parentNode = parentLi.querySelector('.node');
+                        if (parentNode) applyNavFocus(parentNode.id.replace('node-', ''));
+                    }
+                }
+            }
+            
+            // --- ENTER (Edit / Action) ---
+            else if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
+                e.preventDefault();
+                // Optional: Open Notes or Toggle
+                currentNode.click();
+            }
+        }
+    });
+
+})();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
 
 </body>
 </html>
