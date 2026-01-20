@@ -6107,116 +6107,136 @@
 
     // 2. Helper: Apply Visual Focus
     function applyNavFocus(id) {
-        // Remove old focus
         document.querySelectorAll('.node.key-focused').forEach(el => el.classList.remove('key-focused'));
-        
         if (!id) return;
 
         const el = document.getElementById('node-' + id);
         if (el) {
             window.navFocusId = id;
             el.classList.add('key-focused');
-            
-            // Smoothly scroll into view if off-screen
             el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
         }
     }
 
-    // 3. Helper: Get Visible Nodes List (Linear)
+    // 3. Helper: Get Visible Nodes
     function getVisibleNodes() {
-        // This grabs nodes in the order they appear on screen
         return Array.from(document.querySelectorAll('#result-container .node'));
     }
 
-    // 4. Override renderVisualizer to persist focus after updates
+    // 4. Helper: Visual Flash for Copy
+    function flashCopySuccess(id) {
+        const el = document.getElementById('node-' + id);
+        if(!el) return;
+        
+        const oldBorder = el.style.borderColor;
+        const oldBg = el.style.backgroundColor;
+        
+        el.style.transition = 'none';
+        el.style.borderColor = '#22c55e'; 
+        el.style.backgroundColor = '#dcfce7'; 
+        
+        setTimeout(() => {
+            el.style.transition = 'all 0.5s ease';
+            el.style.borderColor = oldBorder;
+            el.style.backgroundColor = oldBg;
+        }, 200);
+    }
+
+    // 5. Override renderVisualizer
     const originalRender = window.renderVisualizer;
     window.renderVisualizer = function() {
         if (originalRender) originalRender();
-        // Re-apply focus if it exists
         if (window.navFocusId) applyNavFocus(window.navFocusId);
     };
 
-    // 5. Sync Click with Keyboard Focus
+    // 6. Sync Click
     const originalHandleClick = window.handleNodeClick;
     window.handleNodeClick = function(e, node) {
         if (originalHandleClick) originalHandleClick(e, node);
         applyNavFocus(node.id);
     };
 
-    // 6. MAIN KEYBOARD LISTENER (Replaces the old one)
+    // 7. MAIN KEYBOARD LISTENER
     document.addEventListener('keydown', function(e) {
-        // Safety: Ignore if typing
+        
+        // --- VIEW SWITCHING (Global Override) ---
+        if (e.ctrlKey && e.key === 'ArrowLeft') { 
+            e.preventDefault(); 
+            document.activeElement.blur(); // <--- FIX: Unfocus text box
+            switchView('input'); 
+            return; 
+        }
+        if (e.ctrlKey && e.key === 'ArrowRight') { 
+            e.preventDefault(); 
+            document.activeElement.blur(); // <--- FIX: Unfocus text box
+            switchView('result'); 
+            return; 
+        }
+
+        // --- SAFETY CHECK ---
         const tag = e.target.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
         
-        // --- VIEW SWITCHING (Moved to CTRL + Arrows) ---
-        if (e.ctrlKey) {
-            if (e.key === 'ArrowLeft') { e.preventDefault(); switchView('input'); return; }
-            if (e.key === 'ArrowRight') { e.preventDefault(); switchView('result'); return; }
-        }
-
-        // --- TREE NAVIGATION (Only in Result View) ---
+        // --- TREE NAVIGATION ---
         const isResultView = document.getElementById('result-view').classList.contains('active-view');
         
         if (isResultView) {
+            
+            // COPY LOGIC
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+                if (window.navFocusId) {
+                    const el = document.getElementById('node-' + window.navFocusId);
+                    if (el) {
+                        e.preventDefault(); 
+                        const title = el.querySelector('h4').innerText;
+                        navigator.clipboard.writeText(title).then(() => {
+                            flashCopySuccess(window.navFocusId);
+                        });
+                    }
+                }
+                return; 
+            }
+
             const visibleNodes = getVisibleNodes();
             if (visibleNodes.length === 0) return;
 
-            // Find current index
             let currentIndex = -1;
-            if (window.navFocusId) {
-                currentIndex = visibleNodes.findIndex(el => el.id === `node-${window.navFocusId}`);
-            }
+            if (window.navFocusId) currentIndex = visibleNodes.findIndex(el => el.id === `node-${window.navFocusId}`);
 
-            // Defaults to first node if nothing focused
-            if (currentIndex === -1 && (e.key.startsWith('Arrow'))) {
+            if (currentIndex === -1 && e.key.startsWith('Arrow')) {
                 applyNavFocus(visibleNodes[0].id.replace('node-', ''));
                 return;
             }
 
             const currentNode = visibleNodes[currentIndex];
-            const rawId = currentNode.id.replace('node-', '');
             
-            // --- ARROW DOWN (Next Visible) ---
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
                 const nextIndex = Math.min(currentIndex + 1, visibleNodes.length - 1);
                 applyNavFocus(visibleNodes[nextIndex].id.replace('node-', ''));
             }
-
-            // --- ARROW UP (Prev Visible) ---
             else if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 const prevIndex = Math.max(currentIndex - 1, 0);
                 applyNavFocus(visibleNodes[prevIndex].id.replace('node-', ''));
             }
-
-            // --- ARROW RIGHT (Expand or Next) ---
             else if (e.key === 'ArrowRight') {
                 e.preventDefault();
-                // If collapsed (has 'collapsed' class), Expand it
                 if (currentNode.classList.contains('collapsed')) {
-                    // Trigger the click logic to expand
                     currentNode.click(); 
                 } else {
-                    // If already expanded (or leaf), move down
                     const nextIndex = Math.min(currentIndex + 1, visibleNodes.length - 1);
                     applyNavFocus(visibleNodes[nextIndex].id.replace('node-', ''));
                 }
             }
-
-            // --- ARROW LEFT (Collapse or Parent) ---
             else if (e.key === 'ArrowLeft') {
                 e.preventDefault();
-                // If expanded and has children (check for expander), Collapse it
                 const hasExpander = currentNode.querySelector('.expander');
                 const isCollapsed = currentNode.classList.contains('collapsed');
 
                 if (hasExpander && !isCollapsed) {
-                    currentNode.click(); // Collapse
+                    currentNode.click(); 
                 } else {
-                    // Move to Parent
-                    // DOM traversal: node -> li -> ul -> li -> parentNode
                     const parentLi = currentNode.closest('li').parentElement.closest('li');
                     if (parentLi) {
                         const parentNode = parentLi.querySelector('.node');
@@ -6224,21 +6244,255 @@
                     }
                 }
             }
-            
-            // --- ENTER (Edit / Action) ---
-            else if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
+            else if (e.key === 'Enter' && !e.ctrlKey) {
                 e.preventDefault();
-                // Optional: Open Notes or Toggle
                 currentNode.click();
             }
         }
     });
-
 })();
 </script>
 
 <!----------------------------------------------------------------------------------------------------------------------------->
 
+<style>
+    /* 1. Visual Style for Editor Drag Handles */
+    .editor-drag-handle {
+        cursor: grab;
+        color: #cbd5e1;
+        font-size: 1.2rem;
+        padding: 4px 8px;
+        user-select: none;
+        display: flex;
+        align-items: center;
+    }
+    .editor-drag-handle:hover {
+        color: #64748b;
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+
+    /* 2. Dragging States */
+    .editor-sortable.dragging {
+        opacity: 0.4;
+        border: 2px dashed #94a3b8;
+        background: #f8fafc;
+    }
+    .editor-sortable.drag-over {
+        border-top: 2px solid #4f46e5;
+    }
+</style>
+
+<script>
+(function enableEditorSorting() {
+    
+    // --- STATE ---
+    let editorDragState = {
+        srcId: null,
+        srcType: null, // 'level2' or 'level3'
+        parentId: null
+    };
+
+    // --- HANDLERS ---
+    window.handleEdDragStart = function(e, id, type, parentId) {
+        e.stopPropagation(); // Prevent bubbling to view container
+        editorDragState = { srcId: id, srcType: type, parentId: parentId };
+        e.dataTransfer.effectAllowed = 'move';
+        e.target.classList.add('dragging');
+    };
+
+    window.handleEdDragOver = function(e) {
+        e.preventDefault(); // Necessary to allow dropping
+        e.stopPropagation();
+        e.dataTransfer.dropEffect = 'move';
+        
+        // Visual feedback
+        const target = e.currentTarget;
+        if (!target.classList.contains('dragging')) {
+            target.classList.add('drag-over');
+        }
+    };
+
+    window.handleEdDragLeave = function(e) {
+        e.currentTarget.classList.remove('drag-over');
+    };
+
+    window.handleEdDrop = function(e, targetId, type, targetParentId) {
+        e.stopPropagation();
+        e.currentTarget.classList.remove('drag-over', 'dragging');
+
+        // Validation: Must match type and parent (sort within same list)
+        if (editorDragState.srcType !== type) return;
+        if (editorDragState.parentId !== targetParentId) return; // Strict sorting within same parent
+        if (editorDragState.srcId === targetId) return;
+
+        // Perform the Move
+        const sub = getActiveSubject();
+        const chap = sub.chapters.find(c => c.id === appState.activeChapterId);
+        const l1 = chap.children.find(l => l.id === appState.activeLevel1Id);
+
+        let list = null;
+
+        if (type === 'level2') {
+            list = l1.children;
+        } else if (type === 'level3') {
+            const l2 = l1.children.find(l => l.id === targetParentId);
+            if (l2) list = l2.children;
+        }
+
+        if (list) {
+            const srcIndex = list.findIndex(x => x.id === editorDragState.srcId);
+            const tgtIndex = list.findIndex(x => x.id === targetId);
+
+            if (srcIndex > -1 && tgtIndex > -1) {
+                // Remove and Insert
+                const [moved] = list.splice(srcIndex, 1);
+                list.splice(tgtIndex, 0, moved);
+                
+                saveData();
+                renderEditor(); // Refresh view
+                
+                // If visualizer is open, update it too
+                if (document.getElementById('result-view').classList.contains('active-view')) {
+                    renderVisualizer();
+                }
+            }
+        }
+    };
+
+    window.handleEdDragEnd = function(e) {
+        document.querySelectorAll('.editor-sortable').forEach(el => {
+            el.classList.remove('dragging', 'drag-over');
+        });
+        editorDragState = { srcId: null, srcType: null, parentId: null };
+    };
+
+    // --- OVERRIDE: renderEditor to include Drag Handles ---
+    window.renderEditor = function() {
+        const container = document.getElementById('editor-area');
+        const status = document.getElementById('editor-status');
+        const chap = getActiveChapter();
+        
+        if(!chap) { container.innerHTML = ''; status.innerText = ''; return; }
+        const l1 = getActiveLevel1();
+        
+        // --- CHAPTER CARD ---
+        let html = `
+            <div class="section-card" style="background:#f8fafc; border-color:#e2e8f0;">
+                <div class="input-group">
+                    <label class="input-label">Chapter Title</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input class="text-input chapter-input" style="flex:1;" data-node-id="${chap.id}" autocomplete="off" type="text" value="${chap.title}" onchange="updateChapterTitle(this.value)" placeholder="Chapter Name">
+                        <input class="text-input page-input page-chap" autocomplete="off" type="text" value="${chap.pdfPage || ''}" onchange="updateChapterPage(this.value)" placeholder="Pg No">
+                    </div>
+                </div>
+                
+                <div class="input-group" style="margin-top: 0.8rem; margin-bottom:0;">
+                    <label class="input-label">Link Address (Applies to all nodes)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input class="text-input link-input" style="flex:1;" autocomplete="off" type="text" value="${chap.link || ''}" onchange="updateChapterLink(this.value)" placeholder="https://...">
+                        <button class="btn-action" onclick="copyLinkFromPrevious()" title="Copy Link from Previous Chapter" style="background:white; border:1px solid #cbd5e1; padding: 0 12px;">📋</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (!l1) { html += '<div class="empty-msg">Select or create a Level 1 tab to edit its content.</div>'; container.innerHTML = html; status.innerText = 'Editing Chapter Settings'; return; }
+        status.innerText = `Editing: ${l1.title}`;
+
+        // --- LEVEL 1 CARD ---
+        html += `
+            <div class="section-card">
+                <div class="input-group">
+                    <label class="input-label">Level 1 Title</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input class="text-input level-1-input" style="flex:1;" data-node-id="${l1.id}" autocomplete="off" type="text" value="${l1.title}" onchange="updateLevel1Title(this.value)">
+                        <input class="text-input page-input page-l1" autocomplete="off" type="text" value="${l1.pdfPage || ''}" onchange="updateLevel1Page(this.value)" placeholder="Pg No">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Description</label>
+                    <input class="text-input desc-input" autocomplete="off" type="text" value="${l1.desc || ''}" onchange="updateLevel1Desc(this.value)">
+                </div>
+                <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid #eee;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:1rem;">
+                        <span class="input-label" style="margin:0;">Level 2 Items</span>
+                        <button class="btn-add orange" onclick="addLevel2()">+ Add Level 2</button>
+                    </div>
+                    <div id="l2-container"></div>
+                </div>
+            </div>
+        `;
+        container.innerHTML = html;
+        
+        // --- CHILDREN RENDER LOOP ---
+        const l2Container = document.getElementById('l2-container');
+        
+        l1.children.forEach(l2 => {
+            const blk = document.createElement('div');
+            
+            // --- DRAG ATTRIBUTES FOR LEVEL 2 ---
+            blk.className = 'level2-block editor-sortable';
+            blk.draggable = true;
+            blk.ondragstart = (e) => handleEdDragStart(e, l2.id, 'level2', l1.id);
+            blk.ondragover = handleEdDragOver;
+            blk.ondragleave = handleEdDragLeave;
+            blk.ondrop = (e) => handleEdDrop(e, l2.id, 'level2', l1.id);
+            blk.ondragend = handleEdDragEnd;
+
+            let l3Html = '';
+            l2.children.forEach(l3 => {
+                // --- DRAG ATTRIBUTES FOR LEVEL 3 ---
+                l3Html += `
+                    <div class="level3-row editor-sortable" draggable="true"
+                         ondragstart="handleEdDragStart(event, '${l3.id}', 'level3', '${l2.id}')"
+                         ondragover="handleEdDragOver(event)"
+                         ondragleave="handleEdDragLeave(event)"
+                         ondrop="handleEdDrop(event, '${l3.id}', 'level3', '${l2.id}')"
+                         ondragend="handleEdDragEnd(event)">
+                        
+                        <span class="editor-drag-handle">⋮⋮</span>
+                        
+                        <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                            <div style="display:flex; gap: 5px;">
+                                <input class="text-input level-3-input" style="flex:1; padding:0.4rem; font-size:0.9rem;" data-node-id="${l3.id}" autocomplete="off" value="${l3.title}" onchange="updateNodeTitle('${l3.id}', this.value)" placeholder="Level 3 Title">
+                                <input class="text-input page-input page-l3" style="height: auto;" autocomplete="off" type="text" value="${l3.pdfPage || ''}" onchange="updateNodePage('${l3.id}', this.value)" placeholder="Pg">
+                            </div>
+                            <input class="text-input desc-input" autocomplete="off" style="padding:0.3rem; font-size:0.8rem;" value="${l3.desc || ''}" onchange="updateNodeDesc('${l3.id}', this.value)" placeholder="Description (Optional)">
+                        </div>
+                        <button class="btn-icon" onclick="deleteNode('${l3.id}', '${l2.id}')">×</button>
+                    </div>
+                `;
+            });
+
+            blk.innerHTML = `
+                <div class="level2-header">
+                    <div class="level2-title-row">
+                        <span class="editor-drag-handle" style="margin-right: 5px;">⋮⋮</span>
+                        
+                        <input class="text-input level-2-input" style="flex:1;" data-node-id="${l2.id}" autocomplete="off" value="${l2.title}" onchange="updateNodeTitle('${l2.id}', this.value)" placeholder="Level 2 Title">
+                        <input class="text-input page-input page-l2" autocomplete="off" type="text" value="${l2.pdfPage || ''}" onchange="updateNodePage('${l2.id}', this.value)" placeholder="Pg">
+                        <button class="btn-icon" onclick="deleteNode('${l2.id}', '${l1.id}')">×</button>
+                    </div>
+                    <div style="padding-left: 28px;"> <input class="text-input desc-input" autocomplete="off" value="${l2.desc || ''}" onchange="updateNodeDesc('${l2.id}', this.value)" placeholder="Level 2 Description (Optional)">
+                    </div>
+                </div>
+                <div class="level3-list" style="padding-left: 2rem;">
+                    ${l3Html}
+                    <button class="btn-add orange" style="background:#e0f2f1; color:#059669; margin-top:0.5rem; margin-left: 28px;" onclick="addLevel3('${l2.id}')">+ L3</button>
+                </div>
+            `;
+            l2Container.appendChild(blk);
+        });
+    };
+
+    // Run once to apply changes
+    renderEditor();
+
+})();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
 
 </body>
 </html>
