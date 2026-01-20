@@ -6494,5 +6494,181 @@
 
 <!----------------------------------------------------------------------------------------------------------------------------->
 
+<script>
+(function enableTreeNavigation() {
+    // 1. State for Keyboard Focus
+    window.navFocusId = null;
+
+    // 2. Helper: Apply Visual Focus
+    function applyNavFocus(id) {
+        document.querySelectorAll('.node.key-focused').forEach(el => el.classList.remove('key-focused'));
+        if (!id) return;
+
+        const el = document.getElementById('node-' + id);
+        if (el) {
+            window.navFocusId = id;
+            el.classList.add('key-focused');
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        }
+    }
+
+    // 3. Helper: Get Visible Nodes
+    function getVisibleNodes() {
+        return Array.from(document.querySelectorAll('#result-container .node'));
+    }
+
+    // 4. Helper: Visual Flash for Copy
+    function flashCopySuccess(id) {
+        const el = document.getElementById('node-' + id);
+        if(!el) return;
+        
+        const oldBorder = el.style.borderColor;
+        const oldBg = el.style.backgroundColor;
+        
+        el.style.transition = 'none';
+        el.style.borderColor = '#22c55e'; 
+        el.style.backgroundColor = '#dcfce7'; 
+        
+        setTimeout(() => {
+            el.style.transition = 'all 0.5s ease';
+            el.style.borderColor = oldBorder;
+            el.style.backgroundColor = oldBg;
+        }, 200);
+    }
+
+    // 5. Override renderVisualizer
+    const originalRender = window.renderVisualizer;
+    window.renderVisualizer = function() {
+        if (originalRender) originalRender();
+        if (window.navFocusId) applyNavFocus(window.navFocusId);
+    };
+
+    // 6. Sync Click
+    const originalHandleClick = window.handleNodeClick;
+    window.handleNodeClick = function(e, node) {
+        if (originalHandleClick) originalHandleClick(e, node);
+        applyNavFocus(node.id);
+    };
+
+    // 7. MAIN KEYBOARD LISTENER (Capture Phase)
+    window.addEventListener('keydown', function(e) {
+        
+        // --- 0. MODAL GUARD (Notes & PDF) ---
+        // If either overlay is open, STOP here. 
+        // This prevents view switching but allows typing/shortcuts inside the modal.
+        const notesModal = document.getElementById('notes-modal');
+        const isNotesOpen = notesModal && notesModal.classList.contains('open');
+        
+        const pdfModal = document.getElementById('pdf-overlay-modal');
+        const isPdfOpen = pdfModal && pdfModal.style.display !== 'none';
+
+        if (isNotesOpen || isPdfOpen) {
+            return; 
+        }
+
+        // --- A. TEXT SELECTION GUARD (Ctrl + Shift + Arrow) ---
+        if (e.ctrlKey && e.shiftKey && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+            e.stopPropagation(); 
+            return; 
+        }
+
+        // --- B. VIEW SWITCHING (Ctrl + Arrow ONLY) ---
+        if (e.ctrlKey && !e.shiftKey) {
+            if (e.key === 'ArrowLeft') { 
+                e.preventDefault(); e.stopPropagation(); 
+                document.activeElement.blur(); 
+                switchView('input'); 
+                return; 
+            }
+            if (e.key === 'ArrowRight') { 
+                e.preventDefault(); e.stopPropagation(); 
+                document.activeElement.blur(); 
+                switchView('result'); 
+                return; 
+            }
+        }
+
+        // --- SAFETY CHECK (Typing in Main View) ---
+        const tag = e.target.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable) return;
+        
+        // --- C. TREE NAVIGATION (Result View Only) ---
+        const isResultView = document.getElementById('result-view').classList.contains('active-view');
+        
+        if (isResultView) {
+            
+            // COPY LOGIC
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+                if (window.navFocusId) {
+                    const el = document.getElementById('node-' + window.navFocusId);
+                    if (el) {
+                        e.preventDefault(); 
+                        const title = el.querySelector('h4').innerText;
+                        navigator.clipboard.writeText(title).then(() => {
+                            flashCopySuccess(window.navFocusId);
+                        });
+                    }
+                }
+                return; 
+            }
+
+            const visibleNodes = getVisibleNodes();
+            if (visibleNodes.length === 0) return;
+
+            let currentIndex = -1;
+            if (window.navFocusId) currentIndex = visibleNodes.findIndex(el => el.id === `node-${window.navFocusId}`);
+
+            if (currentIndex === -1 && e.key.startsWith('Arrow')) {
+                applyNavFocus(visibleNodes[0].id.replace('node-', ''));
+                return;
+            }
+
+            const currentNode = visibleNodes[currentIndex];
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault(); e.stopPropagation();
+                const nextIndex = Math.min(currentIndex + 1, visibleNodes.length - 1);
+                applyNavFocus(visibleNodes[nextIndex].id.replace('node-', ''));
+            }
+            else if (e.key === 'ArrowUp') {
+                e.preventDefault(); e.stopPropagation();
+                const prevIndex = Math.max(currentIndex - 1, 0);
+                applyNavFocus(visibleNodes[prevIndex].id.replace('node-', ''));
+            }
+            else if (e.key === 'ArrowRight') {
+                e.preventDefault(); e.stopPropagation();
+                if (currentNode.classList.contains('collapsed')) {
+                    currentNode.click(); 
+                } else {
+                    const nextIndex = Math.min(currentIndex + 1, visibleNodes.length - 1);
+                    applyNavFocus(visibleNodes[nextIndex].id.replace('node-', ''));
+                }
+            }
+            else if (e.key === 'ArrowLeft') {
+                e.preventDefault(); e.stopPropagation();
+                const hasExpander = currentNode.querySelector('.expander');
+                const isCollapsed = currentNode.classList.contains('collapsed');
+
+                if (hasExpander && !isCollapsed) {
+                    currentNode.click(); 
+                } else {
+                    const parentLi = currentNode.closest('li').parentElement.closest('li');
+                    if (parentLi) {
+                        const parentNode = parentLi.querySelector('.node');
+                        if (parentNode) applyNavFocus(parentNode.id.replace('node-', ''));
+                    }
+                }
+            }
+            else if (e.key === 'Enter' && !e.ctrlKey) {
+                e.preventDefault();
+                currentNode.click();
+            }
+        }
+    }, true); 
+})();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
 </body>
 </html>
