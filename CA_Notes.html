@@ -6579,5 +6579,461 @@
 
 <!----------------------------------------------------------------------------------------------------------------------------->
 
+<div id="enhanced-timer" class="timer-widget collapsed" onclick="expandWidget()">
+    
+    <svg class="timer-svg-container">
+        <defs>
+            <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#4f46e5" />
+                <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+        </defs>
+        <rect id="timer-border-rect" x="2" y="2" rx="25" ry="25" width="100%" height="100%" />
+    </svg>
+
+    <div class="timer-icon-label">⏱</div>
+
+    <div class="widget-content">
+        <select id="timer-sound-select" class="sound-select" onchange="previewSound()" onclick="event.stopPropagation()" title="Choose Alarm Sound">
+            <option value="bell">🔔 Bell</option>
+            <option value="beep">📟 Beep</option>
+            <option value="alarm">⏰ Alarm</option>
+        </select>
+
+        <div class="timer-display">
+            <input type="number" id="t-min" value="0" min="0" max="999" placeholder="00" onchange="validateTimerInput(this)" onclick="event.stopPropagation()">
+            <span class="colon">:</span>
+            <input type="number" id="t-sec" value="00" min="0" max="59" placeholder="00" onchange="validateTimerInput(this)" onclick="event.stopPropagation()">
+        </div>
+
+        <div id="ist-display" class="ist-text">IST 12:00 PM</div>
+
+        <div class="timer-controls">
+            <button id="btn-timer-toggle" onclick="toggleTimer(event)">▶</button>
+            <button id="btn-timer-reset" onclick="resetTimer(event)">⟲</button>
+        </div>
+        
+        </div>
+</div>
+
+<style>
+    /* --- 1. BASE WIDGET TRANSITIONS --- */
+    .timer-widget {
+        position: fixed; bottom: 20px; left: 20px; z-index: 9999;
+        background: rgba(255, 255, 255, 0.95); 
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        
+        /* Updated: Border is now handled by SVG, keep this faint or transparent */
+        border: 1px solid rgba(0, 0, 0, 0.05); 
+        
+        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
+        border-radius: 20px; 
+        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        overflow: visible; /* Changed to visible so SVG border doesn't clip */
+        
+        /* HIDDEN BY DEFAULT (For Input View) */
+        display: none; 
+    }
+
+    /* Class to show widget in Visualization View */
+    .timer-widget.timer-visible {
+        display: flex;
+    }
+
+    /* --- NEW: SVG BORDER STYLES --- */
+    .timer-svg-container {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none; /* Click-through */
+        z-index: -1;
+        overflow: visible;
+    }
+
+    #timer-border-rect {
+        fill: none;
+        stroke: url(#timerGradient);
+        stroke-width: 4px;
+        stroke-linecap: round;
+        stroke-dasharray: 0; 
+        stroke-dashoffset: 0;
+        transition: stroke-dashoffset 1s linear;
+        opacity: 0; /* Hidden when not running */
+    }
+
+    /* --- 2. STATE: COLLAPSED (ICON MODE) --- */
+    .timer-widget.collapsed {
+        width: 50px; height: 50px;
+        border-radius: 50%;
+        padding: 0;
+        align-items: center; justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .timer-widget.collapsed:hover { transform: scale(1.1); background: #fff; }
+    
+    .timer-icon-label {
+        font-size: 24px; display: none; user-select: none;
+        animation: popIn 0.3s ease;
+    }
+    .timer-widget.collapsed .timer-icon-label { display: block; }
+    .timer-widget.collapsed .widget-content,
+    .timer-widget.collapsed .ist-text { display: none; }
+
+    /* --- 3. STATE: EXPANDED (WIDGET MODE) --- */
+    .timer-widget:not(.collapsed) {
+        width: 160px; height: auto;
+        padding: 16px 24px;
+        flex-direction: column; align-items: center; gap: 10px;
+        cursor: default;
+    }
+    
+    .widget-content {
+        width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px;
+        opacity: 1; transition: opacity 0.3s 0.2s; 
+    }
+    .timer-widget.collapsed .widget-content { opacity: 0; transition: none; }
+
+    /* --- 4. INNER STYLES --- */
+    .sound-select {
+        background: rgba(0,0,0,0.04); border: none; border-radius: 4px;
+        color: #475569; font-size: 0.8rem; padding: 2px 5px; width: 100%;
+        outline: none; cursor: pointer; text-align: center; font-weight: 600;
+    }
+    .sound-select:hover { background: rgba(0,0,0,0.08); }
+
+    .timer-display {
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Segoe UI', monospace; font-size: 2.2rem; font-weight: 700; 
+        color: #475569; text-shadow: none;
+    }
+    .timer-display input {
+        background: transparent; border: none; color: inherit; width: 60px;
+        text-align: center; font-family: inherit; font-size: inherit; font-weight: inherit;
+        outline: none; padding: 0; margin: 0;
+    }
+    .timer-display input:focus { border-bottom: 2px solid #4f46e5; color: #4f46e5; }
+    .colon { padding-bottom: 8px; color: #94a3b8; }
+
+    .timer-controls { display: flex; gap: 15px; width: 100%; justify-content: center; }
+    .timer-controls button {
+        background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.05); 
+        color: #64748b; border-radius: 50%; width: 40px; height: 40px; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 1.1rem;
+    }
+    .timer-controls button:hover { background: rgba(0, 0, 0, 0.1); transform: scale(1.1); color: #0f172a; }
+    #btn-timer-toggle { color: #10b981; } 
+    .running #btn-timer-toggle { color: #f59e0b; } 
+
+    /* --- 5. ALARM STATE (Big Clock) --- */
+    .ist-text { height: 0; opacity: 0; overflow: hidden; transition: all 0.5s ease; text-align: center; }
+
+    /* --- 7. ALARM STATE (EXPANDED & WHITE) --- */
+    .timer-finished {
+        /* Center Screen */
+        bottom: 50% !important; left: 50% !important;
+        transform: translate(-50%, 50%) scale(1.8) !important;
+        background: #ffffff !important;
+        border-color: #ef4444 !important;
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0.1), 0 20px 50px rgba(0,0,0,0.2) !important;
+        pointer-events: auto;
+        animation: breatheRed 2s infinite;
+        justify-content: center;
+        padding: 30px;
+        min-width: 250px;
+    }
+
+    /* Hide inputs in alarm mode */
+    .timer-finished .timer-display,
+    .timer-finished .sound-select { display: none; }
+    /* Also hide the SVG border when finished/alarming */
+    .timer-finished .timer-svg-container { display: none; }
+
+    /* Show CLOCK in alarm mode */
+    .timer-finished .ist-text {
+        height: auto; opacity: 1; 
+        font-size: 2.2rem; 
+        font-weight: 800;
+        color: #475569; /* Black Text */
+        margin-bottom: 20px;
+        line-height: 1.2;
+    }
+    
+    @keyframes breatheRed { 
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 
+        50% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } 
+    }
+</style>
+
+<script>
+(function() {
+    let timerInterval = null;
+    let alarmInterval = null; 
+    let istInterval = null;
+    let totalSeconds = 0;
+    let remainingSeconds = 0;
+    let isRunning = false;
+    let isPaused = false;
+    let isAlarming = false;   
+
+    // --- 1. GLOBAL LISTENER FOR CLICK OUTSIDE ---
+    document.addEventListener('click', function(event) {
+        const widget = document.getElementById('enhanced-timer');
+        if (!widget) return;
+
+        const isClickInside = widget.contains(event.target);
+
+        // CONDITIONAL COLLAPSE
+        if (!isClickInside && !isRunning && !isAlarming && !widget.classList.contains('collapsed')) {
+            widget.classList.add('collapsed');
+        }
+    });
+
+    // --- 2. EXPAND WIDGET ---
+    window.expandWidget = function() {
+        document.getElementById('enhanced-timer').classList.remove('collapsed');
+    };
+
+    // --- 3. CORE LOGIC ---
+    window.toggleTimer = function(e) {
+        if(e) e.stopPropagation();
+        if (isAlarming) { stopAlarm(); return; }
+        if (isRunning) { pauseTimer(); } else { startTimer(); }
+    };
+
+    function startTimer() {
+        stopAlarm();
+        const minInput = document.getElementById('t-min');
+        const secInput = document.getElementById('t-sec');
+        const btn = document.getElementById('btn-timer-toggle');
+        const widget = document.getElementById('enhanced-timer');
+
+        if (!isPaused) {
+            let m = parseInt(minInput.value) || 0;
+            let s = parseInt(secInput.value) || 0;
+            if (m === 0 && s === 0) return;
+            totalSeconds = m * 60 + s;
+            remainingSeconds = totalSeconds;
+        }
+
+        isRunning = true;
+        isPaused = false;
+        
+        btn.innerHTML = '❚❚'; 
+        widget.classList.remove('collapsed'); 
+        widget.classList.remove('timer-finished');
+        
+        minInput.readOnly = true;
+        secInput.readOnly = true;
+
+        // Initialize Progress Bar immediately
+        updateProgress();
+
+        if(timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            if (remainingSeconds > 0) {
+                remainingSeconds--;
+                updateDisplay();
+                updateProgress();
+            } else {
+                timerFinished();
+            }
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPaused = true;
+        document.getElementById('btn-timer-toggle').innerHTML = '▶';
+    }
+
+    window.resetTimer = function(e) {
+        if(e) e.stopPropagation();
+        stopAlarm(); 
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPaused = false;
+        remainingSeconds = 0;
+        totalSeconds = 0;
+        
+        const minInput = document.getElementById('t-min');
+        const secInput = document.getElementById('t-sec');
+        const btn = document.getElementById('btn-timer-toggle');
+        const widget = document.getElementById('enhanced-timer');
+        
+        // Reset SVG
+        const rect = document.getElementById('timer-border-rect');
+        rect.style.strokeDasharray = '0';
+        rect.style.strokeDashoffset = '0';
+        rect.style.opacity = '0';
+
+        minInput.readOnly = false;
+        secInput.readOnly = false;
+        minInput.value = "0";
+        secInput.value = "00";
+        
+        btn.innerHTML = '▶';
+        widget.classList.remove('timer-finished');
+    };
+
+    function timerFinished() {
+        clearInterval(timerInterval);
+        isRunning = false;
+        isPaused = false;
+        updateDisplay();
+        
+        const widget = document.getElementById('enhanced-timer');
+        document.getElementById('t-min').readOnly = false;
+        document.getElementById('t-sec').readOnly = false;
+        document.getElementById('btn-timer-toggle').innerHTML = '■';
+        
+        widget.classList.add('timer-finished'); // Triggers big clock
+
+        updateIST(); 
+        istInterval = setInterval(updateIST, 1000);
+
+        isAlarming = true;
+        playSelectedSound();
+        alarmInterval = setInterval(playSelectedSound, 3000);
+    }
+
+    function stopAlarm() {
+        if (alarmInterval) { clearInterval(alarmInterval); alarmInterval = null; }
+        if (istInterval) { clearInterval(istInterval); istInterval = null; }
+        isAlarming = false;
+        document.getElementById('enhanced-timer').classList.remove('timer-finished');
+        document.getElementById('btn-timer-toggle').innerHTML = '▶';
+    }
+
+    function updateIST() {
+        const istLabel = document.getElementById('ist-display');
+        const now = new Date();
+        const options = { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+        const timeString = now.toLocaleTimeString('en-IN', options);
+        istLabel.innerHTML = `<div style="font-size: 0.4em; color: #64748b; letter-spacing: 2px; margin-bottom: 5px; text-transform:uppercase;">Current Time</div>${timeString}`;
+    }
+
+    function updateDisplay() {
+        const m = Math.floor(remainingSeconds / 60);
+        const s = remainingSeconds % 60;
+        document.getElementById('t-min').value = m;
+        document.getElementById('t-sec').value = s < 10 ? '0' + s : s;
+    }
+
+    // --- NEW: UPDATED PROGRESS LOGIC (CIRCULAR BORDER) ---
+    function updateProgress() {
+        const rect = document.getElementById('timer-border-rect');
+        const widget = document.getElementById('enhanced-timer');
+        
+        if (totalSeconds > 0) {
+            // 1. Get current widget dimensions (subtract stroke width padding)
+            const w = widget.offsetWidth - 4;
+            const h = widget.offsetHeight - 4;
+            
+            // 2. Adjust SVG Rect to fit widget
+            rect.setAttribute('width', w);
+            rect.setAttribute('height', h);
+            
+            // 3. Adjust Corner Radius (Round if collapsed, 20px if expanded)
+            if (widget.classList.contains('collapsed')) {
+                rect.setAttribute('rx', w / 2);
+                rect.setAttribute('ry', h / 2);
+            } else {
+                rect.setAttribute('rx', 20);
+                rect.setAttribute('ry', 20);
+            }
+
+            // 4. Calculate Path Length & Offset
+            const pathLength = rect.getTotalLength();
+            const percent = ((totalSeconds - remainingSeconds) / totalSeconds);
+            const drawOffset = pathLength * (1 - percent); // Calculate how much to "unwind"
+            
+            // 5. Apply Styles
+            rect.style.strokeDasharray = pathLength;
+            rect.style.strokeDashoffset = drawOffset;
+            rect.style.opacity = '1';
+        }
+    }
+
+    window.validateTimerInput = function(input) {
+        if (isAlarming) stopAlarm(); 
+        if (!isRunning) { isPaused = false; }
+        let val = parseInt(input.value);
+        if (isNaN(val) || val < 0) val = 0;
+        if (input.id === 't-sec' && val > 59) val = 59;
+        if (input.id === 't-min' && val > 999) val = 999;
+        if (input.id === 't-sec' && val < 10) input.value = "0" + val; else input.value = val;
+    };
+
+    // --- AUDIO ENGINE ---
+    window.previewSound = function() { playSelectedSound(1); }
+
+    function playSelectedSound(durationOverride = null) {
+        const type = document.getElementById('timer-sound-select').value;
+        if (type === 'bell') playBell();
+        else if (type === 'beep') playBeep();
+        else if (type === 'alarm') playAlarm();
+    }
+    // (Sound functions playBell, playBeep, playAlarm kept same as previous)
+    function playBell() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const t = ctx.currentTime;
+        const osc1 = ctx.createOscillator(); osc1.frequency.value = 523.25; 
+        const osc2 = ctx.createOscillator(); osc2.frequency.value = 783.99; 
+        const osc3 = ctx.createOscillator(); osc3.frequency.value = 1046.50; 
+        const gain = ctx.createGain();
+        osc1.connect(gain); osc2.connect(gain); osc3.connect(gain); gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0, t); gain.gain.linearRampToValueAtTime(0.3, t + 0.05); gain.gain.exponentialRampToValueAtTime(0.001, t + 3);
+        osc1.start(t); osc2.start(t); osc3.start(t); osc1.stop(t+3); osc2.stop(t+3); osc3.stop(t+3);
+    }
+    function playBeep() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator(); osc.type='square'; osc.frequency.setValueAtTime(880, t);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.1, t); gain.gain.setValueAtTime(0.1, t + 0.1); gain.gain.setValueAtTime(0, t + 0.1);
+        gain.gain.setValueAtTime(0.1, t + 0.2); gain.gain.setValueAtTime(0.1, t + 0.3); gain.gain.setValueAtTime(0, t + 0.3);
+        osc.connect(gain); gain.connect(ctx.destination); osc.start(t); osc.stop(t + 0.5);
+    }
+    function playAlarm() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator(); osc.type='sawtooth'; osc.frequency.setValueAtTime(440, t); osc.frequency.linearRampToValueAtTime(880, t + 0.5);
+        const gain = ctx.createGain(); gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t + 1);
+        osc.connect(gain); gain.connect(ctx.destination); osc.start(t); osc.stop(t + 1);
+    }
+
+    // --- 4. VIEW VISIBILITY TOGGLE ---
+    // This hooks into your main app's switchView function
+    const originalSwitchView = window.switchView;
+    window.switchView = function(view) {
+        // Run original logic
+        if(typeof originalSwitchView === 'function') originalSwitchView(view);
+        
+        // Timer Logic
+        const timerWidget = document.getElementById('enhanced-timer');
+        if(timerWidget) {
+            // Only show timer if in 'result' view
+            if (view === 'result') {
+                timerWidget.classList.add('timer-visible');
+            } else {
+                timerWidget.classList.remove('timer-visible');
+            }
+        }
+    };
+    
+    // Initial Check
+    setTimeout(() => {
+        const isResult = document.getElementById('result-view')?.classList.contains('active-view');
+        if(isResult) document.getElementById('enhanced-timer')?.classList.add('timer-visible');
+    }, 500);
+
+})();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
 </body>
 </html>
