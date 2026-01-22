@@ -6301,72 +6301,106 @@
 <script>
 (function enableEditorDragging() {
 
-    // 1. GLOBAL STATE FOR EDITOR DRAG
-    // We need to track the 'parent ID' for Level 3 items so we don't drag them into the wrong list.
+    // 1. GLOBAL STATE
     window.dragParentId = null;
 
-    // 2. OVERRIDE: HANDLE DRAG START
-    // Updated to accept a 'parentId' (essential for Level 3 items)
+    // 2. DRAG START (FIXED: Added e.stopPropagation)
     window.handleDragStart = function(e, index, type, parentId = null) {
-        // Prevent conflict with text selection
-        if (e.target.tagName === 'INPUT') return e.preventDefault();
+        e.stopPropagation(); // <--- THIS PREVENTS LEVEL 2 FROM HIJACKING THE DRAG
+        
+        if (e.target.tagName === 'INPUT') {
+            e.preventDefault();
+            return;
+        }
         
         dragSrcIndex = index;
         dragType = type;
-        window.dragParentId = parentId; // Save the parent ID (e.g., the Level 2 ID)
+        window.dragParentId = parentId; 
         
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', type); // For compatibility
+        e.dataTransfer.setData('text/plain', type);
         
-        // Visual feedback
-        setTimeout(() => e.target.classList.add('dragging'), 0);
+        // Add visual class
+        setTimeout(() => {
+            if(e.target) e.target.classList.add('dragging');
+        }, 0);
     };
 
-    // 3. OVERRIDE: HANDLE DROP
-    // --- HELPER: Remove existing Number or Letter prefixes ---
+    // 3. DRAG END (Cleanup State & Visuals)
+    window.handleEditorDragEnd = function(e) {
+        document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+        
+        dragSrcIndex = null;
+        dragType = null;
+        window.dragParentId = null;
+    };
+
+    // 4. DRAG OVER (Visual Feedback)
+    window.handleEditorDragOver = function(e) {
+        e.preventDefault();
+        e.stopPropagation(); 
+        e.dataTransfer.dropEffect = 'move';
+        
+        const l3 = e.target.closest('.level3-row');
+        if (l3) {
+            l3.classList.add('drag-over');
+            return;
+        }
+
+        const l2 = e.target.closest('.level2-block');
+        if (l2) {
+            l2.classList.add('drag-over');
+        }
+    };
+
+    window.handleEditorDragLeave = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const l3 = e.target.closest('.level3-row');
+        if (l3) l3.classList.remove('drag-over');
+
+        const l2 = e.target.closest('.level2-block');
+        if (l2) l2.classList.remove('drag-over');
+    };
+
+    // 5. DROP HANDLER
     function cleanTitle(title) {
-        // Regex removes "1. ", "12. ", "A. ", "Z. " from start of string
         return title.replace(/^([0-9]+|[A-Z]+)\.\s*/, '');
     }
 
-    // --- UPDATED: HANDLE DROP WITH SPECIFIC FORMATTING ---
     window.handleDrop = function(e, index, type, targetParentId = null) {
         e.stopPropagation();
         e.preventDefault();
         
-        // Cleanup visual styles
-        const item = e.target.closest('.draggable-item') || e.target.closest('.level2-block') || e.target.closest('.level3-row');
-        if (item) item.classList.remove('drag-over', 'dragging');
-        document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging'));
+        // 1. Remove Visuals Only
+        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
 
-        // Validation
-        if (dragSrcIndex === null || dragType !== type || dragSrcIndex === index) return false;
+        // 2. Validate State
+        if (dragSrcIndex === null || dragType !== type || dragSrcIndex === index) {
+            handleEditorDragEnd(e); 
+            return false;
+        }
         
-        // Strict Check: Level 3 items can currently only be reordered within the SAME Level 2 parent
-        if (type === 'level3' && dragParentId !== targetParentId) return false;
+        // Strict Check: L3 must stay in same L2 parent
+        if (type === 'level3' && window.dragParentId !== targetParentId) {
+            handleEditorDragEnd(e);
+            return false;
+        }
 
         const sub = getActiveSubject();
 
-        // --- RENUMBERING LOGIC ---
+        // Renumber Helper
         const renumberList = (list, itemType) => {
             list.forEach((node, idx) => {
                 const clean = cleanTitle(node.title);
-                let prefix = '';
-
-                if (itemType === 'level2') {
-                    // Level 2 = Capital Alpha (A., B., C...)
-                    // 65 is the ASCII code for 'A'
-                    prefix = String.fromCharCode(65 + idx) + '.';
-                } else {
-                    // Level 1 & Level 3 = Numeric (1., 2., 3...)
-                    prefix = (idx + 1) + '.';
-                }
-
+                let prefix = (itemType === 'level2') ? String.fromCharCode(65 + idx) + '.' : (idx + 1) + '.';
                 node.title = `${prefix} ${clean}`;
             });
         };
 
-        // 1. Reorder Chapters (No renumbering)
+        // 3. Execute Move
         if (type === 'chapter') {
             const items = [...sub.chapters];
             const [moved] = items.splice(dragSrcIndex, 1);
@@ -6375,37 +6409,30 @@
             saveData();
             renderChaptersList();
         } 
-        // 2. Reorder Level 1 (Numbers: 1, 2, 3...)
         else if (type === 'level1') {
             const chap = getActiveChapter();
             if (chap) {
                 const items = [...chap.children];
                 const [moved] = items.splice(dragSrcIndex, 1);
                 items.splice(index, 0, moved);
-                
-                renumberList(items, 'level1'); // Apply Numbers
-
+                renumberList(items, 'level1');
                 chap.children = items;
                 saveData();
                 renderLevel1List();
             }
         }
-        // 3. Reorder Level 2 (Alpha: A, B, C...)
         else if (type === 'level2') {
             const l1 = getActiveLevel1();
             if (l1) {
                 const items = [...l1.children];
                 const [moved] = items.splice(dragSrcIndex, 1);
                 items.splice(index, 0, moved);
-                
-                renumberList(items, 'level2'); // Apply Letters
-
+                renumberList(items, 'level2');
                 l1.children = items;
                 saveData();
                 renderEditor(); 
             }
         }
-        // 4. Reorder Level 3 (Numbers: 1, 2, 3...)
         else if (type === 'level3') {
             const l1 = getActiveLevel1();
             const l2 = l1.children.find(n => n.id === targetParentId);
@@ -6413,37 +6440,19 @@
                 const items = [...l2.children];
                 const [moved] = items.splice(dragSrcIndex, 1);
                 items.splice(index, 0, moved);
-                
-                renumberList(items, 'level3'); // Apply Numbers
-
+                renumberList(items, 'level3');
                 l2.children = items;
                 saveData();
                 renderEditor();
             }
         }
-        
-        // Reset Globals
-        dragSrcIndex = null;
-        dragType = null;
-        dragParentId = null;
+
+        // 4. Cleanup
+        handleEditorDragEnd(e);
         return false;
     };
 
-    // 4. HELPER: GENERIC DRAG OVER
-    window.handleEditorDragOver = function(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        const el = e.target.closest('.draggable-item') || e.target.closest('.level2-block') || e.target.closest('.level3-row');
-        if (el) el.classList.add('drag-over');
-    };
-
-    window.handleEditorDragLeave = function(e) {
-        const el = e.target.closest('.draggable-item') || e.target.closest('.level2-block') || e.target.closest('.level3-row');
-        if (el) el.classList.remove('drag-over');
-    };
-
-    // 5. OVERRIDE: RENDER EDITOR
-    // Updated to include draggable attributes and handles (⋮⋮)
+    // 6. RENDER EDITOR
     window.renderEditor = function() {
         const container = document.getElementById('editor-area');
         const status = document.getElementById('editor-status');
@@ -6452,7 +6461,7 @@
         if(!chap) { container.innerHTML = ''; status.innerText = ''; return; }
         const l1 = getActiveLevel1();
         
-        // --- CHAPTER CARD ---
+        // --- CHAPTER ---
         let html = `
             <div class="section-card" style="background:#f8fafc; border-color:#e2e8f0;">
                 <div class="input-group">
@@ -6462,7 +6471,6 @@
                         <input class="text-input page-input page-chap" autocomplete="off" type="text" value="${chap.pdfPage || ''}" onchange="updateChapterPage(this.value)" placeholder="Pg No">
                     </div>
                 </div>
-                
                 <div class="input-group" style="margin-top: 0.8rem; margin-bottom:0;">
                     <label class="input-label">Link Address</label>
                     <div style="display: flex; gap: 8px;">
@@ -6476,7 +6484,7 @@
         if (!l1) { html += '<div class="empty-msg">Select or create a Level 1 tab.</div>'; container.innerHTML = html; status.innerText = 'Editing Chapter Settings'; return; }
         status.innerText = `Editing: ${l1.title}`;
 
-        // --- LEVEL 1 CARD ---
+        // --- LEVEL 1 ---
         html += `
             <div class="section-card">
                 <div class="input-group">
@@ -6501,32 +6509,33 @@
         `;
         container.innerHTML = html;
         
-        // --- LEVEL 2 & 3 GENERATION (NOW DRAGGABLE) ---
+        // --- LEVEL 2 & 3 GENERATION ---
         const l2Container = document.getElementById('l2-container');
         
-        l1.children.forEach((l2, l2Index) => { // Added Index
+        l1.children.forEach((l2, l2Index) => {
             const blk = document.createElement('div');
             
-            // LEVEL 2 DRAG ATTRIBUTES
+            // L2 Draggable
             blk.className = 'level2-block';
             blk.draggable = true; 
             blk.ondragstart = (e) => handleDragStart(e, l2Index, 'level2');
+            blk.ondragend = (e) => handleEditorDragEnd(e); 
             blk.ondragover = handleEditorDragOver;
             blk.ondragleave = handleEditorDragLeave;
             blk.ondrop = (e) => handleDrop(e, l2Index, 'level2');
 
-            // --- LEVEL 3 ITEMS ---
+            // L3 Generation
             let l3Html = '';
-            l2.children.forEach((l3, l3Index) => { // Added Index
-                // Note: We pass 'l2.id' as the parentId so we know which list we are in
+            l2.children.forEach((l3, l3Index) => {
                 l3Html += `
                     <div class="level3-row" draggable="true" 
                          ondragstart="handleDragStart(event, ${l3Index}, 'level3', '${l2.id}')"
+                         ondragend="handleEditorDragEnd(event)"
                          ondragover="handleEditorDragOver(event)"
                          ondragleave="handleEditorDragLeave(event)"
                          ondrop="handleDrop(event, ${l3Index}, 'level3', '${l2.id}')">
                         
-                        <div style="display:flex; align-items:center; color:#cbd5e1; cursor:grab; padding-right:8px; font-size:1.2rem;">⋮⋮</div>
+                        <div style="display:flex; align-items:center; color:#cbd5e1; cursor:grab; padding-right:8px; font-size:1.2rem; user-select:none;">⋮⋮</div>
 
                         <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
                             <div style="display:flex; gap: 5px;">
@@ -6540,11 +6549,11 @@
                 `;
             });
 
-            // --- LEVEL 2 BLOCK ---
+            // L2 HTML
             blk.innerHTML = `
                 <div class="level2-header">
                     <div class="level2-title-row" style="display:flex; align-items:center;">
-                        <div style="display:flex; align-items:center; color:#cbd5e1; cursor:grab; padding-right:8px; font-size:1.2rem;">⋮⋮</div>
+                        <div style="display:flex; align-items:center; color:#cbd5e1; cursor:grab; padding-right:8px; font-size:1.2rem; user-select:none;">⋮⋮</div>
                         <input class="text-input level-2-input" style="flex:1;" data-node-id="${l2.id}" autocomplete="off" value="${l2.title}" onchange="updateNodeTitle('${l2.id}', this.value)" placeholder="Level 2 Title">
                         <input class="text-input page-input page-l2" autocomplete="off" type="text" value="${l2.pdfPage || ''}" onchange="updateNodePage('${l2.id}', this.value)" placeholder="Pg">
                         <button class="btn-icon" onclick="deleteNode('${l2.id}', '${l1.id}')">×</button>
@@ -6560,7 +6569,6 @@
         });
     };
 
-    // Force refresh immediately
     renderEditor();
 
 })();
