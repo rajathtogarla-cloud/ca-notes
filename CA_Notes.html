@@ -1124,13 +1124,152 @@
             transform: scale(0.95);
         }
 
-        /* --- KEYBOARD NAVIGATION STYLES --- */
-        .node.key-focused {
-            outline: 2px solid #2563eb !important;
-            outline-offset: 2px;
-            background-color: #eff6ff !important;
-            border-color: #3b82f6 !important;
+        /* --- SHARED STRUCTURE (Paste this once) --- */
+        /* Applies the base animation logic to Level 1, 2, and 3 */
+        .node.level-1.key-focused,
+        .node.level-2.key-focused,
+        .node.level-3.key-focused {
+            border-color: transparent !important;
+            outline: none !important;
+            position: relative;
             z-index: 100;
+            border-radius: 8px;
+            
+            /* Text Overrides */
+            -webkit-text-fill-color: black !important;
+            -webkit-background-clip: border-box !important;
+            background-clip: border-box !important;
+        }
+
+        /* Shared White Background (Readability Layer) */
+        .node.level-1.key-focused::before,
+        .node.level-2.key-focused::before,
+        .node.level-3.key-focused::before {
+            content: "";
+            position: absolute;
+            inset: 2px;
+            background: white;
+            border-radius: 6px;
+            z-index: -1;
+        }
+
+        /* Shared Animation Setup */
+        .node.level-1.key-focused::after,
+        .node.level-2.key-focused::after,
+        .node.level-3.key-focused::after {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            background-size: 300% 300%;
+            animation: magmaFlow 3s ease infinite; /* Uses the same flow animation */
+            z-index: -2;
+            border-radius: 8px;
+        }
+
+        /* --- LEVEL 1 SPECIFIC (Pink/Magenta: #d63384) --- */
+        .node.level-1.key-focused {
+            box-shadow: 0 0 15px rgba(214, 51, 132, 0.4) !important;
+        }
+        .node.level-1.key-focused::after {
+            background: linear-gradient(
+                60deg, 
+                #d63384, 
+                #ff6bb0,  /* Lighter Pink */
+                #d63384
+            );
+        }
+
+        /* --- LEVEL 2 SPECIFIC (Orange: #e67e22) --- */
+        .node.level-2.key-focused {
+            box-shadow: 0 0 15px rgba(230, 126, 34, 0.4) !important;
+        }
+        .node.level-2.key-focused::after {
+            background: linear-gradient(
+                60deg, 
+                #e67e22, 
+                #ffaa55,  /* Soft Peach/Orange */
+                #e67e22
+            );
+        }
+
+        /* --- LEVEL 3 SPECIFIC (Emerald Green: #059669) --- */
+        .node.level-3.key-focused {
+            box-shadow: 0 0 15px rgba(5, 150, 105, 0.4) !important;
+        }
+        .node.level-3.key-focused::after {
+            background: linear-gradient(
+                60deg, 
+                #059669, 
+                #34d399,  /* Mint Green */
+                #059669
+            );
+        }
+
+        /* 2. CHAPTER FOCUS (Magma Border) - Level 0 Only */
+        .node.level-0.key-focused {
+            /* 1. Reset standard borders so our animation takes over */
+            border-color: transparent !important;
+            outline: none !important;
+            
+            /* 2. Positioning context for the pseudo-elements */
+            position: relative;
+            z-index: 100;
+            
+            /* 3. A soft orange glow around the whole box */
+            box-shadow: 0 0 25px rgba(255, 69, 0, 0.4) !important;
+            
+            /* 4. Ensure rounded corners match the flow */
+            border-radius: 8px; 
+
+            /* 5. TEXT & CLIP OVERRIDES */
+            -webkit-text-fill-color: black !important;
+            -webkit-background-clip: border-box !important;
+            background-clip: border-box !important;
+
+            /* --- C. OPTIONAL: SIDE ICONS --- */
+            background-image: 
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' font-size='24'%3E🔥%3C/text%3E%3C/svg%3E"),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' font-size='24'%3E🔥%3C/text%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: left 10px center, right 10px center;
+            background-size: 20px;
+        }
+
+        /* --- A. THE WHITE BACKGROUND (Readability Layer) --- */
+        .node.level-0.key-focused::before {
+            content: "";
+            position: absolute;
+            inset: 2px;
+            background: white; 
+            border-radius: 6px; 
+            z-index: -1; 
+        }
+
+        /* --- B. THE ANIMATED FIRE BORDER --- */
+        .node.level-0.key-focused::after {
+            content: "";
+            position: absolute;
+            inset: -2px; 
+            
+            /* MODIFIED: Removed the bright yellow (#ffeb3b) to stop the shine */
+            background: linear-gradient(
+                60deg, 
+                #ff0000,   /* Red */
+                #ff5e00,   /* Deep Orange */
+                #ff0000    /* Red */
+            );
+            background-size: 300% 300%;
+            
+            animation: magmaFlow 3s ease infinite;
+            z-index: -2;
+            border-radius: 8px;
+        }
+
+        /* Animation Keyframes */
+        @keyframes magmaFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
     </style>
 </head>
