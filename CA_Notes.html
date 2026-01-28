@@ -1024,6 +1024,7 @@
 
         /* Level Specific Styles */
         .node.level-0 { background: var(--primary-gradient); color: white; font-size: 1.1rem; padding: 16px 24px; padding-left: 42px; }
+        .node.level-0 h4 { font-weight: 700 !important; }
         .node.level-1 { background: white; border-left: 4px solid var(--level1-color); }
         .node.level-1 h4 { color: #be185d; }
         .node.level-1 p { color: #64748b; }
@@ -1136,7 +1137,7 @@
             border-radius: 8px;
             
             /* Text Overrides */
-            -webkit-text-fill-color: black !important;
+            /* -webkit-text-fill-color: black !important; */
             -webkit-background-clip: border-box !important;
             background-clip: border-box !important;
         }
@@ -1216,13 +1217,16 @@
             z-index: 100;
             
             /* 3. A soft orange glow around the whole box */
-            box-shadow: 0 0 25px rgba(255, 69, 0, 0.4) !important;
+            box-shadow: 0 0 25px rgba(118, 75, 162, 0.5) !important;
             
             /* 4. Ensure rounded corners match the flow */
             border-radius: 8px; 
 
             /* 5. TEXT & CLIP OVERRIDES */
-            -webkit-text-fill-color: black !important;
+            /* UPDATED: Changed from black to #4f46e5 */
+            color: #4f46e5 !important;
+            -webkit-text-fill-color: #4f46e5 !important;
+            
             -webkit-background-clip: border-box !important;
             background-clip: border-box !important;
 
@@ -1251,12 +1255,11 @@
             position: absolute;
             inset: -2px; 
             
-            /* MODIFIED: Removed the bright yellow (#ffeb3b) to stop the shine */
             background: linear-gradient(
                 60deg, 
-                #ff0000,   /* Red */
-                #ff5e00,   /* Deep Orange */
-                #ff0000    /* Red */
+                #667eea,   /* Blue-ish */
+                #764ba2,   /* Purple-ish */
+                #667eea    /* Back to Blue-ish */
             );
             background-size: 300% 300%;
             
