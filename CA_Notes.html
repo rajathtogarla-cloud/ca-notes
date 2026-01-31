@@ -3335,7 +3335,32 @@
     });
 
     // --- SAVE LOGIC ---
-    window.saveToCloud = async function() {
+window.saveToCloud = async function() {
+        
+        // --- 1. DEFAULT DATA RESTRICTION START ---
+        // Check if there is only one subject AND it is named "Example Subject"
+        if (appState.subjects.length === 1 && appState.subjects[0].name === "Example Subject") {
+            alert("🚫 Save Restricted: You cannot save the default 'Example Subject' to the cloud.\n\nPlease create a new Subject (Press 'S') or rename the current one before saving.");
+            return; // Stop execution immediately
+        }
+        // --- DEFAULT DATA RESTRICTION END ---
+
+
+        // --- 2. REDO/PASSWORD PROTECTION START ---
+        const redoBtn = document.getElementById('btn-redo');
+        
+        if (redoBtn && !redoBtn.disabled) {
+            const userInput = prompt("⚠️ Warning: You have 'Redo' history available.\n\nSaving now will overwrite the cloud data and you will lose the ability to redo changes.\n\nPlease enter the password to confirm overwrite:");
+            
+            if (userInput !== "rajath") {
+                if (userInput !== null) { 
+                    alert("❌ Incorrect Password. Save cancelled.");
+                }
+                return; 
+            }
+        }
+        // --- REDO/PASSWORD PROTECTION END ---
+
         closeExportChoiceModal();
         const loadingOverlay = document.getElementById('loading-overlay');
         loadingOverlay.style.display = 'flex';
@@ -3375,7 +3400,19 @@
 
             await Promise.all(savePromises);
             
-            alert(`✅ Saved Successfully!\n\nStorage Report:\n${sizeReport}\n(Limit per file: 1.00 MB)`);
+            // --- 3. UPDATED SUCCESS MESSAGE LOGIC ---
+            const successModal = document.getElementById('success-modal');
+            const successContent = document.getElementById('success-modal-content');
+            
+            if (successModal && successContent) {
+                // Use the custom large modal
+                successContent.innerText = `${sizeReport}\n(Limit per file: 1.00 MB)`;
+                successModal.classList.add('open');
+            } else {
+                // Fallback to alert if HTML element is missing
+                alert(`✅ Saved Successfully!\n\nStorage Report:\n${sizeReport}\n(Limit per file: 1.00 MB)`);
+            }
+            // -------------------------------------
 
         } catch (e) {
             console.error(e);
@@ -7179,6 +7216,346 @@
         const isResult = document.getElementById('result-view')?.classList.contains('active-view');
         if(isResult) document.getElementById('enhanced-timer')?.classList.add('timer-visible');
     }, 500);
+
+})();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<style>
+    /* 1. Apply the Border to ALL nodes (including Chapters) */
+    .node.status-green {
+        border-right: 6px solid #22c55e !important; /* Green Border */
+    }
+    .node.status-yellow {
+        border-right: 6px solid #eab308 !important; /* Yellow Border */
+    }
+    .node.status-red {
+        border-right: 6px solid #ef4444 !important; /* Red Border */
+    }
+
+    /* 2. Apply Background Tints ONLY to Children (Level 1, 2, 3) 
+       We use ':not(.level-0)' so the Chapter's original gradient isn't touched. */
+    .node.status-green:not(.level-0) {
+        background: linear-gradient(to right, white 95%, #f0fdf4 100%);
+    }
+    .node.status-yellow:not(.level-0) {
+        background: linear-gradient(to right, white 95%, #fefce8 100%);
+    }
+    .node.status-red:not(.level-0) {
+        background: linear-gradient(to right, white 95%, #fef2f2 100%);
+    }
+
+    /* 3. Paint Mode Cursors (Visual Feedback) */
+    body.paint-green .node { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' style='fill:%2322c55e'><circle cx='10' cy='10' r='8'/></svg>"), auto !important; }
+    body.paint-yellow .node { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' style='fill:%23eab308'><circle cx='10' cy='10' r='8'/></svg>"), auto !important; }
+    body.paint-red .node { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' style='fill:%23ef4444'><circle cx='10' cy='10' r='8'/></svg>"), auto !important; }
+</style>
+
+<script>
+(function enableStatusPainting() {
+    
+    // 1. Global State for Key Tracking
+    window.paintModifier = null; // 'green', 'yellow', 'red', or null
+
+    // 2. Keyboard Listeners (Track G, Y, R)
+    document.addEventListener('keydown', (e) => {
+        // Ignore if typing in a text box
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+
+        const k = e.key.toLowerCase();
+        
+        if (k === 'g') setPaintMode('green');
+        else if (k === 'y') setPaintMode('yellow');
+        else if (k === 'r') setPaintMode('red');
+    });
+
+    document.addEventListener('keyup', (e) => {
+        const k = e.key.toLowerCase();
+        if (['g', 'y', 'r'].includes(k)) {
+            setPaintMode(null);
+        }
+    });
+
+    function setPaintMode(color) {
+        window.paintModifier = color;
+        // Update Body Class for Cursor Feedback
+        document.body.classList.remove('paint-green', 'paint-yellow', 'paint-red');
+        if (color) document.body.classList.add(`paint-${color}`);
+    }
+
+    // 3. Override Click Handler (The Logic)
+    // We capture the click *before* the standard handler does
+    const previousClickHandler = window.handleNodeClick;
+    
+    window.handleNodeClick = function(e, node) {
+        // If a paint key is held down...
+        if (window.paintModifier) {
+            e.stopPropagation(); // Stop normal expand/collapse
+            
+            // Toggle Logic: If already this color, remove it. Otherwise, set it.
+            if (node.statusColor === window.paintModifier) {
+                node.statusColor = null; 
+            } else {
+                node.statusColor = window.paintModifier;
+            }
+
+            saveData();         // Save to storage
+            renderVisualizer(); // Refresh view to show border
+            return;
+        }
+
+        // If no key held, run standard behavior
+        if (previousClickHandler) previousClickHandler(e, node);
+    };
+
+    // 4. Override Builder (The Visuals)
+    // We wrap the existing builder to inject our CSS class
+    const previousBuilder = window.buildTreeHTML;
+
+    window.buildTreeHTML = function(node, level, inheritedLink) {
+        // Generate the DOM using the existing complex logic
+        const dom = previousBuilder(node, level, inheritedLink);
+
+        // Safety Check
+        if (!dom || !node.statusColor) return dom;
+
+        // Try to find the specific node DIV inside the returned DOM
+        // The ID pattern is always "node-{id}"
+        let card = null;
+
+        // Handle DocumentFragment or Element
+        if (dom.querySelector) {
+            card = dom.querySelector(`#node-${node.id}`);
+        } else if (dom instanceof HTMLElement && dom.id === `node-${node.id}`) {
+            card = dom;
+        }
+
+        // Inject Class
+        if (card) {
+            card.classList.add(`status-${node.statusColor}`);
+            
+            // Optional: Add a subtle tooltip text update
+            const existingTitle = card.getAttribute('title') || '';
+            // card.setAttribute('title', existingTitle + ` [Status: ${node.statusColor.toUpperCase()}]`);
+        }
+
+        return dom;
+    };
+
+    // Force re-render to catch up
+    if(typeof renderVisualizer === 'function') renderVisualizer();
+
+})();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
+<style>
+    /* --- 1. PENDING NODE STYLES (The Tagged Node) --- */
+    .node.is-pending-node {
+        border-color: #ef4444 !important;       /* Red Border */
+        background-color: #fef2f2 !important;   /* Light Red BG */
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.2) !important; /* Glow */
+        position: relative;
+    }
+
+    /* The "Target" Icon Badge */
+    .node.is-pending-node::after {
+        content: "🎯";
+        position: absolute;
+        top: -12px;
+        right: -10px;
+        font-size: 1.2rem;
+        filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+        animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 50;
+    }
+
+    @keyframes bounceIn {
+        0% { transform: scale(0); opacity: 0; }
+        60% { transform: scale(1.2); opacity: 1; }
+        100% { transform: scale(1); }
+    }
+
+    /* --- 2. JUMP BUTTON STYLE (In Toolbar) --- */
+    #btn-jump-pending {
+        color: #ef4444 !important; /* Red Icon */
+        border-color: #fee2e2 !important;
+        background: #fff;
+        opacity: 0.5; /* Dimmed when no tag exists */
+        transition: all 0.3s ease;
+    }
+    
+    #btn-jump-pending.has-target {
+        opacity: 1;
+        background: #fef2f2;
+        border-color: #fca5a5 !important;
+        box-shadow: 0 4px 6px rgba(239, 68, 68, 0.15);
+        animation: pulseRed 2s infinite;
+    }
+
+    @keyframes pulseRed {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } 
+    }
+</style>
+
+<script>
+(function() {
+    // --- 1. STATE MANAGEMENT (UPDATED FOR CLOUD) ---
+    // Instead of localStorage, we save it to the Subject Object itself.
+    
+    const getPendingId = () => {
+        const sub = getActiveSubject();
+        return sub ? sub.pendingNodeId : null;
+    };
+
+    const setPendingId = (id) => {
+        const sub = getActiveSubject();
+        if (sub) {
+            if (id) sub.pendingNodeId = id;
+            else delete sub.pendingNodeId;
+            saveData(); // <--- CRITICAL: This ensures it gets ready for Cloud Upload
+        }
+    };
+
+    // --- 2. TOGGLE LOGIC ---
+    window.togglePendingTag = function(id) {
+        const current = getPendingId();
+        
+        if (current === id) {
+            setPendingId(null); // Remove
+        } else {
+            setPendingId(id);   // Set new
+        }
+        
+        updateJumpButtonState();
+        renderVisualizer(); 
+    };
+
+    // --- 3. JUMP LOGIC ---
+    window.jumpToPendingNode = function() {
+        const targetId = getPendingId();
+        
+        if (!targetId) {
+            alert("No node is tagged as Pending.\n\nHold 'Alt' and Click a node to tag it.");
+            return;
+        }
+
+        const sub = getActiveSubject();
+        const pathData = findNodePath(sub.chapters, targetId);
+        
+        if (!pathData) {
+            alert("The tagged node could not be found (it may have been deleted).");
+            setPendingId(null);
+            updateJumpButtonState();
+            renderVisualizer();
+            return;
+        }
+
+        // Expand parents
+        if (pathData.path && pathData.path.length > 0) {
+            pathData.path.forEach(parentId => appState.expandedNodes.delete(parentId));
+        }
+
+        saveData(); 
+        renderVisualizer();
+
+        // Scroll & Highlight
+        setTimeout(() => {
+            const el = document.getElementById('node-' + targetId);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                el.style.transition = 'transform 0.2s';
+                el.style.transform = 'scale(1.2)';
+                setTimeout(() => el.style.transform = 'scale(1)', 300);
+            }
+        }, 100);
+    };
+
+    // --- 4. INJECT TOOLBAR BUTTON ---
+    function updateJumpButtonState() {
+        const btn = document.getElementById('btn-jump-pending');
+        if (!btn) return;
+        
+        const hasTag = !!getPendingId();
+        if (hasTag) {
+            btn.classList.add('has-target');
+            btn.title = "Jump to Pending Node (Alt + J)";
+        } else {
+            btn.classList.remove('has-target');
+            btn.title = "No Pending Node Set (Alt + Click a node to set)";
+        }
+    }
+
+    (function initToolbarButton() {
+        const toolbar = document.querySelector('.result-toolbar');
+        if (!toolbar) return;
+        
+        if (!document.getElementById('btn-jump-pending')) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'btn-wrapper';
+            wrapper.innerHTML = `
+                <button id="btn-jump-pending" class="toggle-icon-btn" onclick="jumpToPendingNode()">
+                    🎯
+                </button>
+                <div class="toggle-label">Jump Pending</div>
+            `;
+            // Insert at the top
+            toolbar.insertBefore(wrapper, toolbar.firstChild);
+        }
+        updateJumpButtonState();
+    })();
+
+    // --- 5. OVERRIDES ---
+
+    // A. Intercept CLICK to handle "Alt + Click"
+    const originalHandleClick = window.handleNodeClick;
+    window.handleNodeClick = function(e, node) {
+        if (e.altKey) {
+            e.stopPropagation();
+            e.preventDefault();
+            togglePendingTag(node.id);
+            return;
+        }
+        if (originalHandleClick) originalHandleClick(e, node);
+    };
+
+    // B. Intercept BUILDER to add the CSS Class
+    const originalBuildTree = window.buildTreeHTML;
+    window.buildTreeHTML = function(node, level, inheritedLink) {
+        const li = originalBuildTree(node, level, inheritedLink);
+        
+        const pendingId = getPendingId();
+        
+        if (li && node.id === pendingId) {
+            const card = li.querySelector(`#node-${node.id}`);
+            if (card) {
+                card.classList.add('is-pending-node');
+            }
+        }
+        return li;
+    };
+
+    // --- 6. KEYBOARD SHORTCUT (Alt + J) ---
+    document.addEventListener('keydown', (e) => {
+        if (e.altKey && e.key.toLowerCase() === 'j') {
+            e.preventDefault();
+            jumpToPendingNode();
+        }
+    });
+
+    // Ensure button updates when visualizer renders (e.g. after subject switch)
+    const oldRender = window.renderVisualizer;
+    window.renderVisualizer = function() {
+        if(oldRender) oldRender();
+        updateJumpButtonState();
+    }
+
+    // Initial Render
+    updateJumpButtonState();
 
 })();
 </script>
