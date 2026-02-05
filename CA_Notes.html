@@ -7562,5 +7562,122 @@ window.saveToCloud = async function() {
 
 <!----------------------------------------------------------------------------------------------------------------------------->
 
+<script>
+(function() {
+    // 1. Remove old clock if exists (prevents duplicates during hot-reload/testing)
+    const oldClock = document.getElementById('header-clock-display');
+    if (oldClock) oldClock.remove();
+
+    // 2. Create the Clock Style
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .header-digital-clock {
+            /* Typography */
+            font-family: 'Consolas', 'Monaco', monospace; /* Tech/Code look */
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            
+            /* BRAND GRADIENT: Ensures visibility on White OR Dark backgrounds */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            
+            /* Shape & Depth */
+            padding: 8px 24px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle highlight border */
+            
+            /* Glow/Shadow for "Pop" */
+            box-shadow: 
+                0 4px 6px -1px rgba(102, 126, 234, 0.4), 
+                0 2px 4px -1px rgba(102, 126, 234, 0.2),
+                inset 0 1px 0 rgba(255,255,255,0.25); /* Inner shine */
+
+            /* Positioning */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 145px; 
+            margin: 0 15px; /* Spacing from other nav items */
+            
+            /* Text Definition */
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            
+            /* Animation */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: default;
+            user-select: none;
+            z-index: 50;
+        }
+
+        .header-digital-clock:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 
+                0 10px 15px -3px rgba(102, 126, 234, 0.5), 
+                0 4px 6px -2px rgba(102, 126, 234, 0.3);
+            filter: brightness(1.1); /* Slightly brighter on hover */
+        }
+        
+        .clock-sep {
+            margin: 0 2px;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+        
+        .clock-ampm {
+            font-size: 0.75em; 
+            margin-left: 6px; 
+            color: rgba(255,255,255,0.9);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // 3. Create the Clock Element
+    const clockDiv = document.createElement('div');
+    clockDiv.id = 'header-clock-display';
+    clockDiv.className = 'header-digital-clock';
+    clockDiv.title = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    clockDiv.innerHTML = 'Loading...';
+
+    // 4. Inject into Header (Center Position)
+    const header = document.querySelector('header');
+    const navGroup = document.querySelector('.center-nav-group');
+    
+    if (header && navGroup) {
+        // Insert right before the center tabs for balanced layout
+        header.insertBefore(clockDiv, navGroup);
+    }
+
+    // 5. Start Logic
+    function updateClock() {
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        hours = hours % 12;
+        hours = hours ? hours : 12; 
+        
+        const sep = `<span class="clock-sep">:</span>`;
+        
+        clockDiv.innerHTML = `${hours}${sep}${minutes}${sep}${seconds}<span class="clock-ampm">${ampm}</span>`;
+        
+        // Update tooltip at midnight
+        if(hours === 12 && minutes === '00' && seconds === '00') {
+            clockDiv.title = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock(); 
+
+})();
+</script>
+
+<!----------------------------------------------------------------------------------------------------------------------------->
+
 </body>
 </html>
