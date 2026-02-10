@@ -166,6 +166,18 @@
             border-color: #fca5a5;
         }
 
+        .btn-signout {
+            background: #fff;
+            /* color: #ef4444; */
+            border: 1px solid #e2e8f0;
+            /* border-color: #fca5a5; */
+            font-size: 1.2rem; /* Make the emoji slightly bigger */
+        }
+        .btn-signout:hover { 
+            transform: scale(1.1);
+            border-color: #fca5a5;
+        }
+
         .btn-file-menu:hover {
             transform: scale(1.1);
             border-color: #fcd34d !important;
@@ -1351,6 +1363,12 @@
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="switchView('input')">1. Data Entry</button>
             <button class="nav-tab" onclick="switchView('result')">2. Visualization</button>
+        </div>
+    </div>
+    <div class="action-buttons">            
+            <button id="btn-logout" class="btn-signout btn-action" style="color: #dc2626;" title="Sign Out">
+                ✘
+            </button>
         </div>
     </div>
 </header>
@@ -3195,14 +3213,100 @@
 
 </script>
 
+<style>
+    /* Login Overlay - Covers the whole screen */
+    #login-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.95); z-index: 20000;
+        display: flex; align-items: center; justify-content: center;
+        flex-direction: column;
+        transition: opacity 0.5s ease;
+    }
+    .hidden { opacity: 0; pointer-events: none; }
+
+    /* The White Box */
+    .login-box {
+        background: white; padding: 2.5rem; border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        width: 380px; text-align: center;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* Inputs */
+    .input-group-login {
+        margin-bottom: 1.2rem;
+        text-align: left;
+        position: relative; /* For the eye icon */
+    }
+    .login-label {
+        display: block; font-size: 0.85rem; color: #64748b; 
+        margin-bottom: 0.4rem; font-weight: 600;
+    }
+    .login-input {
+        width: 100%; padding: 12px; border: 1px solid #cbd5e1; 
+        border-radius: 8px; font-size: 1rem; outline: none;
+        transition: border-color 0.2s;
+    }
+    .login-input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+    /* Toggle Password Button (The Eye) */
+    .toggle-password {
+        position: absolute; right: 12px; top: 38px;
+        cursor: pointer; font-size: 1.1rem; color: #94a3b8;
+        background: none; border: none; padding: 0;
+    }
+    .toggle-password:hover { color: #4f46e5; }
+
+    /* Sign In Button */
+    .btn-login {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white; border: none; padding: 12px; 
+        border-radius: 8px; font-weight: bold; cursor: pointer; 
+        width: 100%; font-size: 1.05rem; margin-top: 0.5rem;
+        transition: transform 0.1s;
+    }
+    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+    .btn-login:active { transform: scale(0.98); }
+
+    /* Error Message */
+    .error-msg { 
+        background: #fef2f2; color: #ef4444; 
+        padding: 10px; border-radius: 6px; font-size: 0.9rem; 
+        margin-bottom: 1.5rem; display: none; border: 1px solid #fecaca;
+    }
+</style>
+
+<div id="login-overlay">
+    <div class="login-box">
+        <h2 style="margin-bottom: 0.5rem; color: #1e293b; font-size: 1.8rem;">Welcome Back</h2>
+        <p style="color: #64748b; margin-bottom: 1.5rem; font-size: 0.95rem;">Please sign in to access your notes</p>
+        
+        <div id="login-error" class="error-msg"></div>
+
+        <div class="input-group-login">
+            <label class="login-label">Email Address</label>
+            <input type="email" id="user-email" class="login-input" placeholder="name@example.com">
+        </div>
+
+        <div class="input-group-login">
+            <label class="login-label">Password</label>
+            <input type="password" id="user-pass" class="login-input" placeholder="Enter your password">
+            <button id="btn-show-pass" class="toggle-password" title="Show Password">👁️</button>
+        </div>
+
+        <button id="btn-submit-login" class="btn-login">Sign In</button>
+    </div>
+</div>
+
 <script type="module">
     // 1. Import Firebase libraries
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     // 2. Project Credentials
     const firebaseConfig = {
-        apiKey: "AIzaSyD6N8jHWJdLfc87NrBs8_ZgtKmRV1gR7h0 ",
+        apiKey: "AIzaSyD6N8jHWJdLfc87NrBs8_ZgtKmRV1gR7h0",
         authDomain: "ca-notes143.firebaseapp.com",
         projectId: "ca-notes143",
         storageBucket: "ca-notes143.firebasestorage.app",
@@ -3211,16 +3315,20 @@
         measurementId: "G-Q4LQ77ZDM6"
     };
 
-    // 3. Initialize connection
+    // 3. Initialize
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
 
     // --- REFS ---
     const metaRef = doc(db, "personal_notes", "ca_hq_meta"); 
     const oldLegacyRef = doc(db, "personal_notes", "ca_final_pad");
 
-    // --- SMART LOAD LOGIC ---
-    window.addEventListener('DOMContentLoaded', async () => {
+    // --- MAIN APP STARTUP (Only runs after login) ---
+    async function startApp() {
+        console.log("🔓 Access Granted. Loading App...");
+        document.getElementById('login-overlay').classList.add('hidden'); // Hide Login Screen
+        
         const overlay = document.getElementById('loading-overlay');
         
         try {
@@ -3267,7 +3375,6 @@
                     const loadedData = JSON.parse(cloudJson);
                     finalSubjects = loadedData.subjects;
                     finalActiveId = loadedData.activeSubjectId;
-                    alert("Legacy Data Loaded. Please click 'Save' to update format.");
                 }
             }
 
@@ -3278,7 +3385,6 @@
             const targetSubject = appState.subjects.find(s => s.id === finalActiveId);
             if(targetSubject) {
                 appState.activeSubjectId = finalActiveId;
-                // Pointer Fix
                 if (targetSubject.chapters.length > 0) {
                     appState.activeChapterId = targetSubject.chapters[0].id;
                     if (targetSubject.chapters[0].children.length > 0) {
@@ -3302,13 +3408,12 @@
                 });
             }
 
-            // STEP F: FORCE COLLAPSE (The Fix)
-            // We verify that the main app functions exist before calling them
+            // STEP F: FORCE COLLAPSE
             if (typeof collapseAll === 'function') {
-                appState.expandedNodes = new Set(); // Clear state
-                collapseAll(); // Force collapse logic
+                appState.expandedNodes = new Set(); 
+                collapseAll();
+                if(typeof isTreeFullyExpanded !== 'undefined') isTreeFullyExpanded = false;
                 
-                // Update the Toggle Button UI to match
                 const btn = document.getElementById('tree-toggle-btn');
                 const label = document.getElementById('toggle-label-text');
                 if(btn) {
@@ -3316,10 +3421,9 @@
                      btn.classList.add('state-collapsed');
                      if(label) label.innerText = "Expand All";
                 }
-                // Reset global flag
-                if(typeof isTreeFullyExpanded !== 'undefined') isTreeFullyExpanded = false;
             }
-
+            
+            // Switch to Visualization View briefly to init layout
             setTimeout(() => {
                 const visBtn = document.querySelectorAll('.nav-tab')[1];
                 const dataBtn = document.querySelectorAll('.nav-tab')[0];
@@ -3332,96 +3436,84 @@
         } finally {
             setTimeout(() => { if (overlay) overlay.style.display = 'none'; }, 500);
         }
+    }
+
+    // --- AUTHENTICATION LISTENER (This Handles Persistence) ---
+    // Firebase automatically checks your browser storage here.
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // SUCCESS: User was remembered from last time
+            console.log("✅ Auto-login recognized:", user.email);
+            startApp();
+        } else {
+            // FAIL: No previous login found. Showing Login Screen.
+            console.log("🔒 No active session. Waiting for user login.");
+            document.getElementById('login-overlay').classList.remove('hidden');
+        }
     });
 
-    // --- SAVE LOGIC ---
-window.saveToCloud = async function() {
-        
-        // --- 1. DEFAULT DATA RESTRICTION START ---
-        // Check if there is only one subject AND it is named "Example Subject"
-        if (appState.subjects.length === 1 && appState.subjects[0].name === "Example Subject") {
-            alert("🚫 Save Restricted: You cannot save the default 'Example Subject' to the cloud.\n\nPlease create a new Subject (Press 'S') or rename the current one before saving.");
-            return; // Stop execution immediately
+    // --- BUTTON: LOGIN CLICK HANDLER ---
+    document.getElementById('btn-submit-login').addEventListener('click', async () => {
+        const email = document.getElementById('user-email').value;
+        const pass = document.getElementById('user-pass').value;
+        const errorBox = document.getElementById('login-error');
+        const btn = document.getElementById('btn-submit-login');
+
+        // Simple validation
+        if(!email || !pass) {
+            errorBox.textContent = "Please enter both email and password.";
+            errorBox.style.display = 'block';
+            return;
         }
-        // --- DEFAULT DATA RESTRICTION END ---
 
-
-        // --- 2. REDO/PASSWORD PROTECTION START ---
-        const redoBtn = document.getElementById('btn-redo');
-        
-        if (redoBtn && !redoBtn.disabled) {
-            const userInput = prompt("⚠️ Warning: You have 'Redo' history available.\n\nSaving now will overwrite the cloud data and you will lose the ability to redo changes.\n\nPlease enter the password to confirm overwrite:");
-            
-            if (userInput !== "rajath") {
-                if (userInput !== null) { 
-                    alert("❌ Incorrect Password. Save cancelled.");
-                }
-                return; 
-            }
-        }
-        // --- REDO/PASSWORD PROTECTION END ---
-
-        closeExportChoiceModal();
-        const loadingOverlay = document.getElementById('loading-overlay');
-        loadingOverlay.style.display = 'flex';
-        loadingOverlay.querySelector('p').innerText = "Saving compact files...";
+        btn.textContent = "Verifying...";
+        btn.disabled = true;
+        errorBox.style.display = 'none';
 
         try {
-            let sizeReport = "";
-
-            // 1. Size Check
-            for (let sub of appState.subjects) {
-                const subJson = JSON.stringify(sub);
-                const sizeInBytes = new Blob([subJson]).size;
-                const sizeInMB = parseFloat((sizeInBytes / (1024 * 1024)).toFixed(3));
-                
-                sizeReport += `• ${sub.name}: ${sizeInMB} MB\n`;
-
-                if (sizeInMB > 0.98) throw new Error(`Subject "${sub.name}" is too large (${sizeInMB} MB). Limit is 1.00 MB.`);
-            }
-
-            // 2. Meta Data
-            const metaData = {
-                activeSubjectId: appState.activeSubjectId,
-                subjectList: appState.subjects.map(s => ({ id: s.id, name: s.name })),
-                lastUpdated: new Date().toLocaleString(),
-                version: 'v3_compact'
-            };
-
-            const savePromises = [];
-            savePromises.push(setDoc(metaRef, metaData));
-
-            // 3. Save
-            appState.subjects.forEach(sub => {
-                const subRef = doc(db, "ca_hq_subjects", sub.id);
-                const compactData = JSON.stringify(sub);
-                savePromises.push(setDoc(subRef, { subjectData: compactData }));
-            });
-
-            await Promise.all(savePromises);
+            await signInWithEmailAndPassword(auth, email, pass);
+            // NOTE: We don't need to call startApp() here. 
+            // 'onAuthStateChanged' above will detect the success and call it automatically.
+        } catch (error) {
+            console.error(error);
+            btn.textContent = "Sign In";
+            btn.disabled = false;
             
-            // --- 3. UPDATED SUCCESS MESSAGE LOGIC ---
-            const successModal = document.getElementById('success-modal');
-            const successContent = document.getElementById('success-modal-content');
+            let msg = "Incorrect email or password.";
+            if(error.code === "auth/invalid-email") msg = "That email address looks wrong.";
+            if(error.code === "auth/too-many-requests") msg = "Too many failed attempts. Try again later.";
             
-            if (successModal && successContent) {
-                // Use the custom large modal
-                successContent.innerText = `${sizeReport}\n(Limit per file: 1.00 MB)`;
-                successModal.classList.add('open');
-            } else {
-                // Fallback to alert if HTML element is missing
-                alert(`✅ Saved Successfully!\n\nStorage Report:\n${sizeReport}\n(Limit per file: 1.00 MB)`);
-            }
-            // -------------------------------------
-
-        } catch (e) {
-            console.error(e);
-            alert("Save Failed: " + e.message);
-        } finally {
-            loadingOverlay.style.display = 'none';
-            loadingOverlay.querySelector('p').innerText = "Syncing CA Notes...";
+            errorBox.textContent = msg;
+            errorBox.style.display = 'block';
         }
-    };
+    });
+
+    // --- BUTTON: SHOW PASSWORD TOGGLE ---
+    document.getElementById('btn-show-pass').addEventListener('click', () => {
+        const passInput = document.getElementById('user-pass');
+        const btn = document.getElementById('btn-show-pass');
+        
+        if (passInput.type === "password") {
+            passInput.type = "text";
+            btn.textContent = "🙈"; // Monkey covering eyes (Hide)
+        } else {
+            passInput.type = "password";
+            btn.textContent = "👁️"; // Eye (Show)
+        }
+    });
+    // --- BUTTON: LOGOUT HANDLER ---
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+        if(confirm("Are you sure you want to log out?")) {
+            try {
+                await signOut(auth); // Tells Firebase to clear credentials
+                console.log("Signed out.");
+                window.location.reload(); // Reloads page to clear memory and show Login Screen
+            } catch (error) {
+                console.error("Logout Error:", error);
+            }
+        }
+    });
+
 </script>
 
 <script>
@@ -7401,7 +7493,7 @@ window.saveToCloud = async function() {
         100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } 
     }
 </style>
-    
+
 <script>
 (function() {
     // --- 1. STATE MANAGEMENT (UPDATED FOR CLOUD) ---
@@ -7675,7 +7767,7 @@ window.saveToCloud = async function() {
     updateClock(); 
 
 })();
-</script>
+</script>   
 
 <!----------------------------------------------------------------------------------------------------------------------------->
 
