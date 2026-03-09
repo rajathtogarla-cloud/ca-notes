@@ -3324,6 +3324,234 @@
     const metaRef = doc(db, "personal_notes", "ca_hq_meta"); 
     const oldLegacyRef = doc(db, "personal_notes", "ca_final_pad");
 
+    // --- GLOBAL SAVE LOCK ---
+    window.isSavingInProgress = false;
+
+    // --- SAVE LOGIC ---
+    window.saveToCloud = async function() {
+        
+        // --- 0. PREVENT DOUBLE FIRING ---
+        if (window.isSavingInProgress) {
+            console.warn("Save blocked: A save is already in progress.");
+            return; 
+        }
+        window.isSavingInProgress = true; // Engage the lock
+
+        try {
+            // --- 1. DEFAULT DATA RESTRICTION START ---
+            if (appState.subjects.length === 1 && appState.subjects[0].name === "Example Subject") {
+                alert("🚫 Save Restricted: You cannot save the default 'Example Subject' to the cloud.\n\nPlease create a new Subject (Press 'S') or rename the current one before saving.");
+                return; 
+            }
+            // --- DEFAULT DATA RESTRICTION END ---
+
+            // --- 2. REDO/PASSWORD PROTECTION START ---
+            const redoBtn = document.getElementById('btn-redo');
+            if (redoBtn && !redoBtn.disabled) {
+                const userInput = prompt("⚠️ Warning: You have 'Redo' history available.\n\nSaving now will overwrite the cloud data and you will lose the ability to redo changes.\n\nPlease enter the password to confirm overwrite:");
+                
+                if (userInput !== "rajath") {
+                    if (userInput !== null) { 
+                        alert("❌ Incorrect Password. Save cancelled.");
+                    }
+                    return; 
+                }
+            }
+            // --- REDO/PASSWORD PROTECTION END ---
+
+            // Close export modal if it exists
+            if (typeof closeExportChoiceModal === "function") {
+                closeExportChoiceModal();
+            }
+
+            const saveBtns = document.querySelectorAll('.btn-cloud');
+            saveBtns.forEach(btn => btn.innerHTML = '<span>⏳</span> Saving...');
+
+            // --- 3. SHOW "SAVING" TOAST & BLUR OVERLAY ---
+            showSaveMessage("Saving compact files...", "loading");
+
+            let sizeReport = "";
+            const savePromises = [];
+
+            // 1. Size Check & Prepare Data
+            for (let sub of appState.subjects) {
+                const subJson = JSON.stringify(sub);
+                const sizeInBytes = new Blob([subJson]).size;
+                const sizeInMB = sizeInBytes / (1024 * 1024);
+                
+                // --- DYNAMIC KB / MB FORMATTING ---
+                let displaySize = "";
+                if (sizeInMB < 1) {
+                    const sizeInKB = sizeInBytes / 1024;
+                    displaySize = `${sizeInKB.toFixed(2)} KB`;
+                } else {
+                    displaySize = `${sizeInMB.toFixed(2)} MB`;
+                }
+                
+                sizeReport += `• ${sub.name}: ${displaySize}\n`;
+
+                if (sizeInMB > 0.98) {
+                    throw new Error(`Subject "${sub.name}" is too large (${displaySize}). Limit is 1.00 MB.`);
+                }
+
+                // Prepare save promise for this subject
+                const subRef = doc(db, "ca_hq_subjects", sub.id);
+                savePromises.push(setDoc(subRef, { subjectData: subJson }));
+            }
+
+            // 2. Meta Data
+            const metaData = {
+                activeSubjectId: appState.activeSubjectId,
+                subjectList: appState.subjects.map(s => ({ id: s.id, name: s.name })),
+                lastUpdated: new Date().toLocaleString(),
+                version: 'v3_compact'
+            };
+            savePromises.push(setDoc(metaRef, metaData));
+
+            // 3. Execute all saves concurrently for better performance
+            await Promise.all(savePromises);
+            
+            console.log("☁️ Successfully saved to Cloud!");
+            
+            // --- 4. SUCCESS TOAST & SYNC BLUR REMOVAL ---
+            showSaveMessage("Successfully saved to Cloud!", "success");
+            
+            saveBtns.forEach(btn => btn.innerHTML = '<span>✅</span> Saved!');
+            setTimeout(() => {
+                saveBtns.forEach(btn => btn.innerHTML = '<span>🌐</span> Save to Cloud');
+            }, 2000);
+
+            // --- 5. UPDATED SUCCESS MESSAGE LOGIC (SIZE REPORT) ---
+            const successModal = document.getElementById('success-modal');
+            const successContent = document.getElementById('success-modal-content');
+            
+            if (successModal && successContent) {
+                successContent.innerText = `${sizeReport}\n(Limit per file: 1.00 MB)`;
+                successModal.classList.add('open');
+            } else {
+                setTimeout(() => {
+                    alert(`✅ Saved Successfully!\n\nStorage Report:\n${sizeReport}\n(Limit per file: 1.00 MB)`);
+                }, 300);
+            }
+
+        } catch (error) {
+            console.error("Cloud Save Error:", error);
+            
+            // --- 6. ERROR TOAST & SYNC BLUR REMOVAL ---
+            showSaveMessage("Failed to save: " + error.message, "error");
+            
+            saveBtns.forEach(btn => btn.innerHTML = '<span>❌</span> Error');
+            setTimeout(() => {
+                saveBtns.forEach(btn => btn.innerHTML = '<span>🌐</span> Save to Cloud');
+            }, 2000);
+
+        } finally {
+            // --- 7. RELEASE THE LOCK ---
+            setTimeout(() => {
+                window.isSavingInProgress = false;
+            }, 2500); 
+        }
+    };
+
+    // --- ENHANCED MESSAGE BOX POPUP FUNCTION ---
+    window.showSaveMessage = function(msg, state = 'success') {
+        let toast = document.getElementById('cloud-save-toast');
+        let overlay = document.getElementById('cloud-save-overlay'); 
+        
+        // Create the blur overlay if it doesn't exist
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'cloud-save-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(255, 255, 255, 0.2); 
+                backdrop-filter: blur(5px); 
+                -webkit-backdrop-filter: blur(5px); 
+                z-index: 99998; 
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: all; 
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        // Create the toast if it doesn't exist yet
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'cloud-save-toast';
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(-100px);
+                padding: 12px 24px;
+                border-radius: 8px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+                font-weight: bold;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 1rem;
+                z-index: 99999;
+                transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                            background-color 0.3s ease, 
+                            color 0.3s ease, 
+                            border-color 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            document.body.appendChild(toast);
+        }
+
+        // Apply styles based on the current state
+        if (state === 'loading') {
+            toast.style.background = '#eff6ff'; 
+            toast.style.color = '#1d4ed8';      
+            toast.style.border = '1px solid #bfdbfe';
+            toast.innerHTML = `<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> ${msg}`;
+            
+            // Fade in the blur overlay
+            setTimeout(() => { if(overlay) overlay.style.opacity = '1'; }, 10);
+
+        } else if (state === 'error') {
+            toast.style.background = '#fef2f2'; 
+            toast.style.color = '#ef4444';      
+            toast.style.border = '1px solid #fca5a5';
+            toast.innerHTML = `<span>❌</span> ${msg}`;
+
+        } else {
+            toast.style.background = '#ecfdf5'; 
+            toast.style.color = '#059669';      
+            toast.style.border = '1px solid #6ee7b7';
+            toast.innerHTML = `<span>✅</span> ${msg}`;
+        }
+
+        // Slide the toast into view
+        setTimeout(() => {
+            if(toast) toast.style.transform = 'translateX(-50%) translateY(0)';
+        }, 10);
+
+        // Clear any existing closing timers
+        if (toast.closeTimeout) {
+            clearTimeout(toast.closeTimeout);
+        }
+
+        // Close the box AND the overlay after 2.5 seconds if finished
+        if (state !== 'loading') {
+            toast.closeTimeout = setTimeout(() => {
+                if(toast) toast.style.transform = 'translateX(-50%) translateY(-100px)';
+                if(overlay) overlay.style.opacity = '0';
+                setTimeout(() => {
+                    if(toast) toast.remove(); 
+                    if(overlay) overlay.remove();
+                }, 400); 
+            }, 2500);
+        }
+    };
+
     // --- MAIN APP STARTUP (Only runs after login) ---
     async function startApp() {
         console.log("🔓 Access Granted. Loading App...");
