@@ -119,6 +119,22 @@
         .highlight-restore {
             animation: highlightPulse 1.5s ease-out forwards;
         }
+
+        /* Pending Node Mobile Styles */
+        .mobile-pending-badge {
+            position: absolute;
+            top: -10px;
+            right: -8px;
+            font-size: 1.2rem;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+            z-index: 50;
+            animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-dark-bg dark:text-dark-text h-screen flex flex-col overflow-hidden transition-colors duration-200">
@@ -270,7 +286,7 @@
                 <i data-lucide="plus-circle" class="w-5 h-5"></i>
             </button>
 
-            <button onclick="window.jumpToPending()" class="flex-none text-amber-600 hover:bg-amber-50 dark:text-amber-500 dark:hover:bg-amber-900/20 p-2 rounded-full transition-colors relative" title="Go to Pending">
+            <button id="btnJumpPending" onclick="window.jumpToPending()" class="hidden flex-none text-amber-600 hover:bg-amber-50 dark:text-amber-500 dark:hover:bg-amber-900/20 p-2 rounded-full transition-colors relative" title="Go to Pending">
                 <i data-lucide="clock" class="w-5 h-5"></i>
             </button>
             
@@ -643,6 +659,16 @@
             const badge = document.getElementById('currentLevelBadge');
             const btnAddLevel = document.getElementById('btnAddLevel');
 
+            // TOGGLE BUTTON VISIBILITY
+            const btnJumpPending = document.getElementById('btnJumpPending');
+            if (currentView.level === 0) {
+                btnAddLevel.classList.remove('hidden');
+                if (btnJumpPending) btnJumpPending.classList.add('hidden'); // Hide on home screen
+            } else {
+                btnAddLevel.classList.add('hidden');
+                if (btnJumpPending) btnJumpPending.classList.remove('hidden'); // Show inside subjects
+            }
+
             // TOGGLE ADD BUTTON VISIBILITY
             if (currentView.level === 0) {
                 btnAddLevel.classList.remove('hidden');
@@ -701,17 +727,19 @@
             ][Math.min(level, 3)];
 
             // --- NEW: DEFINE HIGHLIGHT COLORS ---
-            // Maps level to [Main Color, Background Tint (20%), Fade Tint (5%)]
             const colorMap = [
-                ['#64748b', 'rgba(100, 116, 139, 0.2)', 'rgba(100, 116, 139, 0.05)'], // Lvl 0: Slate
-                ['#3b82f6', 'rgba(59, 130, 246, 0.2)', 'rgba(59, 130, 246, 0.05)'],   // Lvl 1: Blue
-                ['#14b8a6', 'rgba(20, 184, 166, 0.2)', 'rgba(20, 184, 166, 0.05)'],   // Lvl 2: Teal
-                ['#f59e0b', 'rgba(245, 158, 11, 0.2)', 'rgba(245, 158, 11, 0.05)']    // Lvl 3: Amber
+                ['#64748b', 'rgba(100, 116, 139, 0.2)', 'rgba(100, 116, 139, 0.05)'], 
+                ['#3b82f6', 'rgba(59, 130, 246, 0.2)', 'rgba(59, 130, 246, 0.05)'],   
+                ['#14b8a6', 'rgba(20, 184, 166, 0.2)', 'rgba(20, 184, 166, 0.05)'],   
+                ['#f59e0b', 'rgba(245, 158, 11, 0.2)', 'rgba(245, 158, 11, 0.05)']    
             ][Math.min(level, 3)];
 
             const card = document.createElement('div');
             card.id = 'node-' + item.id; 
             
+            // Check if this item is marked as pending in its subject
+            const isPending = rawData && rawData.subjects && rawData.subjects.some(sub => sub.pendingNodeId === item.id);
+
             // APPLY DYNAMIC COLORS
             card.style.setProperty('--pulse-color', colorMap[0]);
             card.style.setProperty('--pulse-bg', colorMap[1]);
@@ -719,6 +747,15 @@
 
             card.className = `level-card noselect relative bg-white dark:bg-dark-card rounded-xl shadow-sm border border-slate-200 dark:border-dark-border overflow-hidden flex flex-col ${hasChildren ? 'cursor-pointer' : ''}`;
             
+            // Add pending badge and styling if applicable
+            if (isPending) {
+                card.classList.add('mobile-pending-node');
+                const badge = document.createElement('div');
+                badge.className = 'mobile-pending-badge';
+                badge.textContent = '🎯';
+                card.appendChild(badge);
+            }
+
             // -- INTERACTION LOGIC --
             let longPressTimer = null;
             let isDragging = false;
@@ -1123,7 +1160,6 @@
              document.getElementById('clearSearchBtn').classList.add('hidden');
              if(navStack.length) history.back(); else window.loadData(rawData);
         }
-        
         // -- QUICK JUMP TO PENDING --
 
         // 1. Recursive Search by ID
@@ -1145,20 +1181,22 @@
         window.jumpToPending = function() {
             let targetId = null;
 
-            // A. Find the Pending ID (Checks all subjects to match Desktop logic)
-            if (rawData.subjects) {
-                for (let sub of rawData.subjects) {
-                    if (sub.pendingNodeId) {
-                        targetId = sub.pendingNodeId;
-                        break;
-                    }
-                }
+            // A. Find the current subject from the active view to get ITS pending node
+            let subjectNode = null;
+            if (currentView.items && currentView.items.length > 0) {
+                const result = window.findPathToNodeById(rawData.subjects || [], currentView.items[0].id);
+                if (result && result.path.length > 0) subjectNode = result.path[0];
+            } else if (navStack.length > 1 && navStack[1].items && navStack[1].items.length > 0) {
+                const result = window.findPathToNodeById(rawData.subjects || [], navStack[1].items[0].id);
+                if (result && result.path.length > 0) subjectNode = result.path[0];
             }
-            // Fallback for older saves
-            if (!targetId && rawData.pendingNodeId) targetId = rawData.pendingNodeId;
+
+            if (subjectNode && subjectNode.pendingNodeId) {
+                targetId = subjectNode.pendingNodeId;
+            }
 
             if (!targetId) {
-                alert("No 'Pending' node is currently assigned.");
+                alert("No 'Pending' node is assigned in this subject.");
                 return;
             }
 
@@ -1193,7 +1231,7 @@
             
             for (let i = 0; i < path.length; i++) {
                 const step = path[i];
-                if (i === path.length - 1) break; // Don't push the immediate parent to stack, it's the currentView
+                if (i === path.length - 1) break; // Don't push the immediate parent to stack
                 
                 navStack.push({
                     title: step.name || step.title,
@@ -1227,18 +1265,13 @@
             window.updateUI(true, 'right');
             document.getElementById('mainContainer').scrollTop = 0;
 
-            // F. 🎯 THE FIX: EXACT SCROLL & HIGHLIGHT 🎯
-            // We use a slight delay to allow the slide-in animation to finish rendering the DOM elements
+            // F. EXACT SCROLL & HIGHLIGHT
             setTimeout(() => {
                 const el = document.getElementById('node-' + foundNode.id);
                 if (el) {
-                    // Scroll exactly to the node so it centers on the mobile screen
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // Trigger the pulsing highlight animation defined in your CSS
                     el.classList.add('highlight-restore');
                     
-                    // Add a temporary red glow to heavily emphasize it is the "Pending" target
                     const oldShadow = el.style.boxShadow;
                     const oldBorder = el.style.borderColor;
                     el.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.4)';
@@ -1253,7 +1286,7 @@
             }, 350); 
         };
 
-        // 3. Set Pending Logic (Proper Cloud Sync Integration)
+        // 3. Set Pending Logic (Multiple Subject Support & Toggle)
         window.setAsPending = function() {
             if(!activeItem) return;
             
@@ -1263,16 +1296,17 @@
             if (result && result.path.length > 0) {
                 const subjectNode = result.path[0]; 
                 
-                // Clear old pending IDs from all subjects
-                rawData.subjects.forEach(s => delete s.pendingNodeId);
+                // Toggle logic: If already pending, remove it. Otherwise set it.
+                if (subjectNode.pendingNodeId === activeItem.id) {
+                    delete subjectNode.pendingNodeId;
+                    alert(`Removed pending status from "${activeItem.name || activeItem.title}".`);
+                } else {
+                    subjectNode.pendingNodeId = activeItem.id;
+                    alert(`"${activeItem.name || activeItem.title}" is now the Pending item for this subject.`);
+                }
                 
-                // Set it on the correct subject
-                subjectNode.pendingNodeId = activeItem.id;
-                
-                // Immediately force a cloud save so Desktop sees the update instantly
-                window.saveToCloud(); 
-                
-                alert(`"${activeItem.name || activeItem.title}" is now the Pending item.`);
+                window.updateUI(false); // Force re-render to update the target icon
+                window.saveToCloud();   // Sync to cloud
             } else {
                 alert("Error setting pending item.");
             }
