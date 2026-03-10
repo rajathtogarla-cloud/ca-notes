@@ -1123,6 +1123,7 @@
              document.getElementById('clearSearchBtn').classList.add('hidden');
              if(navStack.length) history.back(); else window.loadData(rawData);
         }
+        
         // -- QUICK JUMP TO PENDING --
 
         // 1. Recursive Search by ID
@@ -1144,7 +1145,7 @@
         window.jumpToPending = function() {
             let targetId = null;
 
-            // A. Find the Pending ID (Look inside Subjects to match Desktop logic)
+            // A. Find the Pending ID (Checks all subjects to match Desktop logic)
             if (rawData.subjects) {
                 for (let sub of rawData.subjects) {
                     if (sub.pendingNodeId) {
@@ -1153,7 +1154,7 @@
                     }
                 }
             }
-            // Fallback just in case it was saved the old way
+            // Fallback for older saves
             if (!targetId && rawData.pendingNodeId) targetId = rawData.pendingNodeId;
 
             if (!targetId) {
@@ -1171,10 +1172,18 @@
 
             const { foundNode, path } = result;
 
-            // C. Reconstruct History correctly for the Back button
+            // C. Save the current state so we can return here if we hit browser back
+            const scrollPos = document.getElementById('mainContainer').scrollTop;
+            const currentStateToSave = { 
+                navStack: navStack,
+                currentView: currentView,
+                restoreScroll: scrollPos,
+                restoreHighlight: null
+            };
+            history.replaceState(currentStateToSave, document.title, null);
+
+            // D. Reconstruct navStack representing the path to the target folder
             navStack = []; 
-            
-            // Always start at the root ("All Subjects")
             navStack.push({
                 title: 'All Subjects',
                 items: rawData.subjects || [],
@@ -1182,42 +1191,85 @@
                 parentLink: null
             });
             
-            // Add each step of the path
-            path.forEach((step, index) => {
+            for (let i = 0; i < path.length; i++) {
+                const step = path[i];
+                if (i === path.length - 1) break; // Don't push the immediate parent to stack, it's the currentView
+                
                 navStack.push({
                     title: step.name || step.title,
                     items: step.chapters || step.children || [],
-                    level: index + 1,
+                    level: i + 1,
                     parentLink: step.link || null
                 });
-            });
+            }
 
-            // D. Navigate & Highlight
-            // Pop the last item to be our "Target View", and set currentView to the parent
-            const targetView = navStack.pop();
-            currentView = navStack.pop() || { items: rawData.subjects || [], title: 'All Subjects', level: 0, parentLink: null }; 
-            
-            // Execute navigation to correctly push to history and render the view
-            window.navigateTo(targetView.title, targetView.items, targetView.level, targetView.parentLink, foundNode.id);
+            // The folder containing the pending item becomes our active view
+            const parentNode = path.length > 0 ? path[path.length - 1] : null;
+            if (parentNode) {
+                currentView = {
+                    title: parentNode.name || parentNode.title,
+                    items: parentNode.chapters || parentNode.children || [],
+                    level: path.length,
+                    parentLink: parentNode.link || null
+                };
+            } else {
+                currentView = {
+                    title: 'All Subjects',
+                    items: rawData.subjects || [],
+                    level: 0,
+                    parentLink: null
+                };
+                navStack = []; 
+            }
+
+            // E. Push deep link to history and Render
+            history.pushState({ navStack: navStack, currentView: currentView }, currentView.title, null);
+            window.updateUI(true, 'right');
+            document.getElementById('mainContainer').scrollTop = 0;
+
+            // F. 🎯 THE FIX: EXACT SCROLL & HIGHLIGHT 🎯
+            // We use a slight delay to allow the slide-in animation to finish rendering the DOM elements
+            setTimeout(() => {
+                const el = document.getElementById('node-' + foundNode.id);
+                if (el) {
+                    // Scroll exactly to the node so it centers on the mobile screen
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // Trigger the pulsing highlight animation defined in your CSS
+                    el.classList.add('highlight-restore');
+                    
+                    // Add a temporary red glow to heavily emphasize it is the "Pending" target
+                    const oldShadow = el.style.boxShadow;
+                    const oldBorder = el.style.borderColor;
+                    el.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.4)';
+                    el.style.borderColor = '#ef4444';
+                    
+                    setTimeout(() => {
+                        el.classList.remove('highlight-restore');
+                        el.style.boxShadow = oldShadow;
+                        el.style.borderColor = oldBorder;
+                    }, 2500);
+                }
+            }, 350); 
         };
 
-        // 3. Set Pending Logic
+        // 3. Set Pending Logic (Proper Cloud Sync Integration)
         window.setAsPending = function() {
             if(!activeItem) return;
             
-            // A. Find which subject this item belongs to
+            // Find which subject this item belongs to
             const result = window.findPathToNodeById(rawData.subjects || [], activeItem.id);
             
             if (result && result.path.length > 0) {
-                const subjectNode = result.path[0]; // The root of the path is the Subject
+                const subjectNode = result.path[0]; 
                 
-                // B. Clear old pending IDs from all subjects to prevent duplicates
+                // Clear old pending IDs from all subjects
                 rawData.subjects.forEach(s => delete s.pendingNodeId);
                 
-                // C. Set it on the correct subject (Matches Desktop logic!)
+                // Set it on the correct subject
                 subjectNode.pendingNodeId = activeItem.id;
                 
-                // D. Auto-sync to cloud so Desktop sees the update immediately
+                // Immediately force a cloud save so Desktop sees the update instantly
                 window.saveToCloud(); 
                 
                 alert(`"${activeItem.name || activeItem.title}" is now the Pending item.`);
