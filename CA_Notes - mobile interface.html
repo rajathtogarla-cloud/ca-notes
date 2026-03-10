@@ -1210,58 +1210,53 @@
 
             const { foundNode, path } = result;
 
-            // C. Save the current state so we can return here if we hit browser back
+            // C. Save the current state so we can return here if we hit browser back repeatedly
             const scrollPos = document.getElementById('mainContainer').scrollTop;
             const currentStateToSave = { 
-                navStack: navStack,
-                currentView: currentView,
+                navStack: [...navStack],
+                currentView: {...currentView},
                 restoreScroll: scrollPos,
                 restoreHighlight: null
             };
             history.replaceState(currentStateToSave, document.title, null);
 
-            // D. Reconstruct navStack representing the path to the target folder
-            navStack = []; 
-            navStack.push({
+            // D. BUILD SYNTHETIC HISTORY STACK
+            // Start from the absolute Root (Home)
+            let tempNavStack = [];
+            let tempCurrentView = {
                 title: 'All Subjects',
                 items: rawData.subjects || [],
                 level: 0,
                 parentLink: null
-            });
+            };
             
+            // Push the Home root as the base of our jump
+            history.pushState({ navStack: tempNavStack, currentView: tempCurrentView }, tempCurrentView.title, null);
+
+            // Step through the path array, pushing an intermediate history state for every folder
             for (let i = 0; i < path.length; i++) {
                 const step = path[i];
-                if (i === path.length - 1) break; // Don't push the immediate parent to stack
                 
-                navStack.push({
+                // Copy the current view into the stack
+                tempNavStack = [...tempNavStack, tempCurrentView];
+                
+                // Move to the next level
+                tempCurrentView = {
                     title: step.name || step.title,
                     items: step.chapters || step.children || [],
                     level: i + 1,
-                    parentLink: step.link || null
-                });
+                    parentLink: step.link || tempCurrentView.parentLink
+                };
+                
+                // Push this intermediate state to the browser history
+                history.pushState({ navStack: tempNavStack, currentView: tempCurrentView }, tempCurrentView.title, null);
             }
 
-            // The folder containing the pending item becomes our active view
-            const parentNode = path.length > 0 ? path[path.length - 1] : null;
-            if (parentNode) {
-                currentView = {
-                    title: parentNode.name || parentNode.title,
-                    items: parentNode.chapters || parentNode.children || [],
-                    level: path.length,
-                    parentLink: parentNode.link || null
-                };
-            } else {
-                currentView = {
-                    title: 'All Subjects',
-                    items: rawData.subjects || [],
-                    level: 0,
-                    parentLink: null
-                };
-                navStack = []; 
-            }
+            // E. Apply to actual global state
+            navStack = tempNavStack;
+            currentView = tempCurrentView;
 
-            // E. Push deep link to history and Render
-            history.pushState({ navStack: navStack, currentView: currentView }, currentView.title, null);
+            // Update UI
             window.updateUI(true, 'right');
             document.getElementById('mainContainer').scrollTop = 0;
 
