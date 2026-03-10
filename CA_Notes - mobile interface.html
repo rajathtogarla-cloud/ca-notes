@@ -1128,15 +1128,11 @@
         // 1. Recursive Search by ID
         window.findPathToNodeById = function(nodes, targetId, currentPath = []) {
             for (let node of nodes) {
-                // Check if this is the specific node ID we are looking for
                 if (node.id === targetId) {
-                    return { foundNode: node, path: currentPath }; // Return the node and the path to get there
+                    return { foundNode: node, path: currentPath }; 
                 }
-
-                // If not, check its children
                 const children = node.chapters || node.children;
                 if (children && children.length > 0) {
-                    // Recurse deeper
                     const result = window.findPathToNodeById(children, targetId, [...currentPath, node]);
                     if (result) return result;
                 }
@@ -1146,9 +1142,19 @@
 
         // 2. The Action Function
         window.jumpToPending = function() {
-            // A. Get the Target ID from your data
-            // (Assumes "pendingNodeId" is at the root of your JSON file)
-            const targetId = rawData.pendingNodeId;
+            let targetId = null;
+
+            // A. Find the Pending ID (Look inside Subjects to match Desktop logic)
+            if (rawData.subjects) {
+                for (let sub of rawData.subjects) {
+                    if (sub.pendingNodeId) {
+                        targetId = sub.pendingNodeId;
+                        break;
+                    }
+                }
+            }
+            // Fallback just in case it was saved the old way
+            if (!targetId && rawData.pendingNodeId) targetId = rawData.pendingNodeId;
 
             if (!targetId) {
                 alert("No 'Pending' node is currently assigned.");
@@ -1165,54 +1171,62 @@
 
             const { foundNode, path } = result;
 
-            // C. Reconstruct History (So "Back" button works)
+            // C. Reconstruct History correctly for the Back button
             navStack = []; 
             
-            // Rebuild the stack from the path we found
+            // Always start at the root ("All Subjects")
+            navStack.push({
+                title: 'All Subjects',
+                items: rawData.subjects || [],
+                level: 0,
+                parentLink: null
+            });
+            
+            // Add each step of the path
             path.forEach((step, index) => {
                 navStack.push({
                     title: step.name || step.title,
                     items: step.chapters || step.children || [],
-                    level: index,
-                    scrollPos: 0 
+                    level: index + 1,
+                    parentLink: step.link || null
                 });
             });
 
-            // D. Determine the Parent View
-            // We want to open the FOLDER containing the pending item
-            let targetItems, targetTitle, targetLevel, targetLink;
+            // D. Navigate & Highlight
+            // Pop the last item to be our "Target View", and set currentView to the parent
+            const targetView = navStack.pop();
+            currentView = navStack.pop() || { items: rawData.subjects || [], title: 'All Subjects', level: 0, parentLink: null }; 
             
-            if (path.length === 0) {
-                // It's at the root level
-                targetItems = rawData.subjects;
-                targetTitle = "All Subjects";
-                targetLevel = 0;
-                targetLink = null;
-            } else {
-                // It's inside a folder/chapter
-                const parentNode = path[path.length - 1];
-                targetItems = parentNode.chapters || parentNode.children;
-                targetTitle = parentNode.name || parentNode.title;
-                targetLevel = path.length;
-                targetLink = parentNode.link || null;
-            }
+            // Execute navigation to correctly push to history and render the view
+            window.navigateTo(targetView.title, targetView.items, targetView.level, targetView.parentLink, foundNode.id);
+        };
 
-            // E. Navigate & Highlight
-            // Passing 'foundNode.id' as the last argument triggers the scroll & pulse effect
-            window.navigateTo(targetTitle, targetItems, targetLevel, targetLink, foundNode.id);
-        }
+        // 3. Set Pending Logic
         window.setAsPending = function() {
             if(!activeItem) return;
             
-            // Save the ID to the root data
-            rawData.pendingNodeId = activeItem.id;
+            // A. Find which subject this item belongs to
+            const result = window.findPathToNodeById(rawData.subjects || [], activeItem.id);
             
-            // Optional: Save to cloud immediately so it syncs
-            // window.saveToCloud(); 
+            if (result && result.path.length > 0) {
+                const subjectNode = result.path[0]; // The root of the path is the Subject
+                
+                // B. Clear old pending IDs from all subjects to prevent duplicates
+                rawData.subjects.forEach(s => delete s.pendingNodeId);
+                
+                // C. Set it on the correct subject (Matches Desktop logic!)
+                subjectNode.pendingNodeId = activeItem.id;
+                
+                // D. Auto-sync to cloud so Desktop sees the update immediately
+                window.saveToCloud(); 
+                
+                alert(`"${activeItem.name || activeItem.title}" is now the Pending item.`);
+            } else {
+                alert("Error setting pending item.");
+            }
             
-            alert(`"${activeItem.name || activeItem.title}" is now the Pending item.`);
             window.closeAllOverlays();
-        }
+        };
     </script>
 </body>
 </html>
