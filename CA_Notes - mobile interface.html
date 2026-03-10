@@ -1,0 +1,1217 @@
+    <!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Course Hierarchy Viewer</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#000000',      /* Pure Black Background */
+                            card: '#111111',    /* Very Dark Grey for Cards */
+                            border: '#333333',  /* Dark Grey Borders */
+                            text: '#ffffff',    /* Pure White Text */
+                            subtext: '#a3a3a3', /* Light Grey Subtext */
+                            hover: '#1a1a1a'    /* Hover state */
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .noselect {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        input.allow-select, textarea.allow-select {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .dark ::-webkit-scrollbar-thumb { background: #333333; }
+        
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+            transition: opacity 0.3s;
+        }
+        
+        /* Marquee Animation - FIXED FADE */
+        .marquee-wrapper {
+            overflow: hidden; white-space: nowrap; position: relative;
+            /* Changed to start black (visible) immediately */
+            mask-image: linear-gradient(to right, black 0%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, black 0%, black 90%, transparent);
+        }
+        .animate-marquee {
+            display: inline-block; padding-left: 100%;
+            animation: marquee 12s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+
+        #fileInput { display: none; }
+        .level-card { transition: transform 0.1s ease, background-color 0.2s; }
+        .level-card:active { transform: scale(0.98); }
+
+        /* Markdown Styles */
+        .markdown-body { font-size: 0.875rem; line-height: 1.6; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 600; margin-top: 1em; margin-bottom: 0.5em; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5em; }
+        .markdown-body blockquote { border-left: 4px solid #cbd5e1; padding-left: 1em; font-style: italic; }
+        .markdown-body code { background-color: rgba(0,0,0,0.05); padding: 0.1em 0.3em; border-radius: 0.25rem; font-family: monospace; color: #ef4444; }
+        /* Add this to make links Blue and Underlined in Light Mode */
+        .markdown-body a { color: #2563eb; text-decoration: underline; }
+        
+        /* Dark Mode Specifics for Markdown */
+        .dark .markdown-body { color: #e2e8f0; }
+        .dark .markdown-body h1, .dark .markdown-body h2 { color: #ffffff; }
+        .dark .markdown-body blockquote { border-left-color: #333333; color: #a3a3a3; }
+        .dark .markdown-body code { background-color: rgba(255,255,255,0.15); }
+        .dark .markdown-body a { color: #60a5fa; }
+
+        /* Dynamic Highlight Animation */
+        @keyframes highlightPulse {
+            0% { 
+                background-color: var(--pulse-bg); 
+                border-color: var(--pulse-color); 
+                transform: scale(1.02); 
+                box-shadow: 0 0 15px var(--pulse-bg);
+            }
+            50% { 
+                background-color: var(--pulse-bg-fade); 
+                border-color: var(--pulse-color); 
+                transform: scale(1); 
+            }
+            100% { 
+                background-color: transparent; 
+                border-color: inherit; 
+                transform: scale(1); 
+                box-shadow: none;
+            }
+        }
+        .highlight-restore {
+            animation: highlightPulse 1.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-dark-bg dark:text-dark-text h-screen flex flex-col overflow-hidden transition-colors duration-200">
+
+    <div id="loading-overlay" class="bg-white/95 dark:bg-dark-bg/95">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 dark:border-indigo-400"></div>
+        <p id="loading-text" class="text-slate-600 dark:text-dark-subtext font-medium animate-pulse">Initializing...</p>
+    </div>
+
+    <div id="mobile-login-overlay" class="fixed inset-0 z-[100] hidden flex-col items-center justify-center bg-slate-50/95 dark:bg-dark-bg/95 backdrop-blur-sm transition-opacity">
+        <div class="w-11/12 max-w-sm bg-white dark:bg-dark-card rounded-2xl shadow-2xl p-6 border border-slate-200 dark:border-dark-border">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-800 dark:text-dark-text mb-1">Welcome Back</h2>
+                <p class="text-sm text-slate-500 dark:text-dark-subtext">Sign in to sync your notes</p>
+            </div>
+            
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400 text-center"></div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-dark-subtext uppercase mb-1">Email</label>
+                    <input type="email" id="mobile-user-email" class="w-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="name@example.com">
+                </div>
+                
+                <div class="relative">
+                    <label class="block text-xs font-bold text-slate-500 dark:text-dark-subtext uppercase mb-1">Password</label>
+                    <input type="password" id="mobile-user-pass" class="w-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Enter password">
+                    <button type="button" id="mobile-btn-show-pass" class="absolute right-3 top-8 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400"><i data-lucide="eye" class="w-5 h-5"></i></button>
+                </div>
+
+                <button id="mobile-btn-submit-login" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-colors mt-2 shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-2">
+                    <span>Sign In</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="optionsOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center" aria-hidden="true">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeAllOverlays()"></div>
+        <div class="relative bg-white dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100 opacity-100 border border-slate-200 dark:border-dark-border">
+            <h3 class="text-center text-lg font-bold text-slate-800 dark:text-dark-text mb-6">Item Options</h3>
+            
+            <div class="grid grid-cols-3 gap-y-6 gap-x-2">
+                <button onclick="window.openEditModal()" class="flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 group-active:bg-blue-100 dark:group-active:bg-blue-900/40 transition-colors"><i data-lucide="pencil" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-medium text-slate-600 dark:text-dark-subtext">Edit</span>
+                </button>
+                <button onclick="window.openNotesModal()" class="flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 group-active:bg-purple-100 dark:group-active:bg-purple-900/40 transition-colors"><span class="text-xl font-bold">✦</span></div>
+                    <span class="text-xs font-medium text-slate-600 dark:text-dark-subtext">Notes</span>
+                </button>
+                <button onclick="window.switchToPathView()" class="flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-active:bg-indigo-100 dark:group-active:bg-indigo-900/40 transition-colors"><i data-lucide="map" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-medium text-slate-600 dark:text-dark-subtext">Path</span>
+                </button>
+                <button id="btnOptionAddChild" onclick="window.addChildItem()" class="flex flex-col items-center gap-2 group transition-opacity">
+                    <div class="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 group-active:bg-green-100 dark:group-active:bg-green-900/40 transition-colors"><i data-lucide="plus" class="w-6 h-6"></i></div>
+                    <span class="text-xs font-medium text-slate-600 dark:text-dark-subtext">Add Child</span>
+                </button>
+                <button onclick="window.startMoveOperation()" class="flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400 group-active:bg-amber-100 dark:group-active:bg-amber-900/40 transition-colors"><i data-lucide="move" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-medium text-slate-600 dark:text-dark-subtext">Move</span>
+                </button>
+                <button onclick="window.deleteItem()" class="flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center text-red-600 dark:text-red-400 group-active:bg-red-100 dark:group-active:bg-red-900/40 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></div>
+                    <span class="text-xs font-medium text-slate-600 dark:text-dark-subtext">Delete</span>
+                </button>
+                <button onclick="window.setAsPending()" class="flex flex-col items-center gap-2 group">
+                    <div class="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400 group-active:bg-amber-100 dark:group-active:bg-amber-900/40 transition-colors">
+                        <i data-lucide="bookmark" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-xs font-medium text-slate-600 dark:text-dark-subtext">Set Pending</span>
+                </button>
+            </div>
+            <button onclick="closeAllOverlays()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-dark-text"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+    </div>
+
+    <div id="editOverlay" class="fixed inset-0 z-[60] hidden flex items-end sm:items-center justify-center" aria-hidden="true">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeAllOverlays()"></div>
+        <div class="relative bg-white dark:bg-dark-card w-full sm:w-96 rounded-t-2xl sm:rounded-2xl shadow-xl p-6 transform transition-transform duration-300 translate-y-0 border border-slate-200 dark:border-dark-border">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-dark-text mb-4">Edit Item</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-dark-subtext uppercase mb-1">Title</label>
+                    <textarea id="editTitleInput" rows="2" class="allow-select w-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 dark:text-dark-subtext uppercase mb-1">PDF Page Number</label>
+                    <input type="number" id="editPageInput" class="allow-select w-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 23">
+                </div>
+                <button onclick="window.saveEdit()" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-xl active:bg-blue-700 transition-colors shadow-lg shadow-blue-200 dark:shadow-none">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notesOverlay" class="fixed inset-0 z-[60] hidden flex items-end sm:items-center justify-center" aria-hidden="true">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeAllOverlays()"></div>
+        <div class="relative bg-white dark:bg-dark-card w-full sm:w-96 rounded-t-2xl sm:rounded-2xl shadow-xl p-6 transform transition-transform duration-300 translate-y-0 h-[70vh] flex flex-col border border-slate-200 dark:border-dark-border">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-dark-text flex items-center gap-2"><span class="text-purple-600 dark:text-purple-400">✦</span> Notes</h3>
+                <button onclick="window.saveNotes()" class="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 px-3 py-1 bg-blue-50 dark:bg-dark-bg rounded-full">Save & Close</button>
+            </div>
+            <div class="flex gap-2 mb-3 border-b border-slate-100 dark:border-dark-border">
+                <button id="tabWrite" onclick="window.toggleNotesTab('write')" class="pb-2 text-sm font-medium border-b-2 border-purple-600 text-purple-700 dark:text-purple-400 transition-colors">Write</button>
+                <button id="tabPreview" onclick="window.toggleNotesTab('preview')" class="pb-2 text-sm font-medium border-b-2 border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-dark-subtext transition-colors">Preview</button>
+            </div>
+            <div class="flex-1 min-h-0 relative">
+                <textarea id="notesInput" class="allow-select w-full h-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-lg p-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none resize-none font-mono" placeholder="Type Markdown here..."></textarea>
+                <div id="notesPreview" class="hidden w-full h-full bg-white dark:bg-dark-bg border border-slate-100 dark:border-dark-border rounded-lg p-3 overflow-y-auto markdown-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="pathOverlay" class="fixed inset-0 z-[60] hidden" aria-hidden="true">
+        <div class="absolute inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity opacity-0" onclick="closeAllOverlays()"></div>
+        <div class="absolute top-0 left-0 right-0 bg-white dark:bg-dark-card shadow-xl transform -translate-y-full transition-transform duration-300 ease-out rounded-b-2xl max-h-[70vh] overflow-y-auto border-b border-slate-200 dark:border-dark-border" id="pathContentPanel">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-bold text-slate-400 dark:text-dark-subtext uppercase tracking-wider">Item Location</h3>
+                    <button onclick="closeAllOverlays()" class="p-1 bg-slate-100 dark:bg-dark-bg rounded-full text-slate-500 dark:text-dark-subtext"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div id="pathList" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="moveActionBar" class="fixed bottom-0 left-0 right-0 bg-white dark:bg-dark-card border-t border-slate-200 dark:border-dark-border p-4 shadow-lg z-[70] hidden flex items-center justify-between transform transition-transform translate-y-full">
+        <div class="flex flex-col">
+            <span class="text-xs font-bold text-slate-400 dark:text-dark-subtext uppercase">Moving</span>
+            <span id="movingItemName" class="text-sm font-semibold text-slate-800 dark:text-dark-text truncate max-w-[150px]">Item Name</span>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.cancelMove()" class="px-4 py-2 bg-slate-100 dark:bg-dark-bg text-slate-600 dark:text-dark-subtext rounded-lg text-sm font-medium">Cancel</button>
+            <button onclick="window.pasteMove()" class="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-bold shadow-md shadow-amber-200 dark:shadow-none">Paste Here</button>
+        </div>
+    </div>
+
+    <header class="bg-white dark:bg-dark-card shadow-sm z-20 flex-none border-b border-slate-200 dark:border-dark-border transition-colors">
+        <div class="px-4 py-3 flex items-center gap-3 h-16">
+            <button id="backBtn" class="hidden p-2 -ml-2 text-slate-600 dark:text-dark-subtext hover:bg-slate-100 dark:hover:bg-dark-hover rounded-full transition-colors"><i data-lucide="arrow-left" class="w-6 h-6"></i></button>
+            <div class="flex-1 min-w-0 overflow-hidden flex flex-col justify-center h-full">
+                <div id="headerTitleWrapper" class="marquee-wrapper w-full">
+                    <h1 id="headerTitle" class="text-lg font-bold text-slate-800 dark:text-dark-text marquee-content">Course Nav</h1>
+                </div>
+            </div>
+            
+            <button id="btnAddLevel" onclick="window.addLevelItem()" class="flex-none text-slate-500 dark:text-dark-subtext hover:bg-slate-100 dark:hover:bg-dark-hover p-2 rounded-full transition-colors hidden" title="Add Item Here">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            </button>
+
+            <button onclick="window.jumpToPending()" class="flex-none text-amber-600 hover:bg-amber-50 dark:text-amber-500 dark:hover:bg-amber-900/20 p-2 rounded-full transition-colors relative" title="Go to Pending">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+            </button>
+            
+            <button onclick="window.toggleDarkMode()" class="flex-none text-slate-500 dark:text-dark-subtext hover:bg-slate-100 dark:hover:bg-dark-hover p-2 rounded-full transition-colors">
+                <span class="text-xl">🌗</span>
+            </button>
+
+            <button onclick="window.saveToCloud()" class="flex-none text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 p-2 rounded-full transition-colors"><i data-lucide="cloud-upload" class="w-5 h-5"></i></button>
+            <button onclick="document.getElementById('fileInput').click()" class="flex-none text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 p-2 rounded-full transition-colors"><i data-lucide="upload" class="w-5 h-5"></i></button>
+            <input type="file" id="fileInput" accept=".json" onchange="window.handleFileUpload(event)">
+
+            <button onclick="window.saveToCloud()" class="flex-none text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 p-2 rounded-full transition-colors"><i data-lucide="cloud-upload" class="w-5 h-5"></i></button>
+            <button onclick="document.getElementById('fileInput').click()" class="flex-none text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 p-2 rounded-full transition-colors"><i data-lucide="upload" class="w-5 h-5"></i></button>
+            
+            <button id="mobile-btn-logout" class="flex-none text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-full transition-colors" title="Sign Out">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+            
+            <input type="file" id="fileInput" accept=".json" onchange="window.handleFileUpload(event)">
+        </div>
+        <div class="px-4 pb-3">
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+                <input type="text" id="searchInput" placeholder="Search..." class="allow-select w-full bg-slate-100 dark:bg-dark-bg dark:text-dark-text border-none rounded-xl py-2.5 pl-10 pr-10 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder-slate-400" oninput="window.handleSearch(this.value)">
+                <button id="clearSearchBtn" onclick="window.clearSearch()" class="hidden absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+
+    </header>
+
+    <main id="mainContainer" class="flex-1 overflow-y-auto p-3 pb-20 bg-slate-50 dark:bg-dark-bg transition-colors">
+        <div class="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
+            <p>Initializing Viewer...</p>
+        </div>
+    </main>
+
+    <footer class="bg-white dark:bg-dark-card border-t border-slate-200 dark:border-dark-border px-4 py-2 text-xs text-slate-500 dark:text-dark-subtext flex justify-between items-center flex-none shadow-[0_-1px_3px_rgba(0,0,0,0.05)] transition-colors">
+        <span id="statsNodes">0 Items</span>
+        <span id="currentLevelBadge" class="bg-slate-100 dark:bg-dark-hover px-2 py-0.5 rounded text-slate-600 dark:text-dark-text font-medium">Home</span>
+    </footer>
+
+    <script type="module">
+        // 1. IMPORT FIREBASE (Cleaned up - no duplicates!)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // 2. CONFIGURE MARKED (Links open in new tab)
+        if (typeof marked !== 'undefined') {
+            marked.use({
+                renderer: {
+                    link(href, title, text) {
+                        if (typeof href === 'object' && href !== null) {
+                            const token = href;
+                            const linkText = this.parser.parseInline(token.tokens); 
+                            return `<a href="${token.href}" target="_blank" rel="noopener noreferrer" title="${token.title || ''}">${linkText}</a>`;
+                        }
+                        return `<a href="${href}" target="_blank" rel="noopener noreferrer" title="${title || ''}">${text}</a>`;
+                    }
+                }
+            });
+        }
+
+        // 3. FIREBASE INIT
+        let db = null;
+        let auth = null;
+        let metaRef = null;
+        let oldLegacyRef = null;
+
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyD6N8jHWJdLfc87NrBs8_ZgtKmRV1gR7h0",
+                authDomain: "ca-notes143.firebaseapp.com",
+                projectId: "ca-notes143",
+                storageBucket: "ca-notes143.firebasestorage.app",
+                messagingSenderId: "519846107572",
+                appId: "1:519846107572:web:42747869d5aa5896a47ae1",
+                measurementId: "G-Q4LQ77ZDM6"
+            };
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            metaRef = doc(db, "personal_notes", "ca_hq_meta");
+            oldLegacyRef = doc(db, "personal_notes", "ca_final_pad");
+        } catch (e) {
+            console.warn("Firebase Init Failed (Likely offline).", e);
+        }
+
+        // 4. DATA & STATE
+        const DEFAULT_DATA = {
+          "subjects": [
+            { "id": "EX_Sub", "name": "Example Subject", "chapters": [
+                { "id": "ch1", "title": "Start Here", "desc": "Long press items for options.", "children": [] }
+            ]}
+          ]
+        };
+
+        let rawData = null;
+        let navStack = []; 
+        let currentView = { items: [], title: 'All Subjects', level: 0, parentLink: null };
+        let activeItem = null;
+        let activeItemList = null; 
+        let activeItemLevel = 0;
+        let moveClipboard = { item: null, sourceList: null };
+
+        // 5. APP INIT & AUTHENTICATION
+        const overlay = document.getElementById('loading-overlay');
+        const loadText = document.getElementById('loading-text');
+        const loginOverlay = document.getElementById('mobile-login-overlay');
+        
+        const isDark = localStorage.getItem('darkMode') === 'true';
+        if(isDark) document.documentElement.classList.add('dark');
+
+        // Failsafe if auth crashed completely
+        if (!auth) {
+            if(loadText) {
+                loadText.innerText = "Offline Mode (Firebase Blocked)";
+                loadText.classList.add("text-amber-500", "text-center", "px-4");
+                loadText.innerHTML += `<br><br><button onclick="window.loadData(DEFAULT_DATA); document.getElementById('loading-overlay').style.display='none';" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg text-sm mt-4">Load Offline Mode</button>`;
+            }
+        } else {
+            // Listen for Authentication State IMMEDIATELY (No DOMContentLoaded wrapper)
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    if (loginOverlay) {
+                        loginOverlay.classList.remove('flex');
+                        loginOverlay.classList.add('hidden');
+                    }
+                    if (overlay) overlay.style.display = 'flex';
+
+                    if(db) {
+                        try {
+                            if (loadText) loadText.innerText = "Syncing Cloud Data...";
+                            let finalSubjects = [];
+                            
+                            const fetchWithTimeout = (promise, ms) => {
+                                let timeoutId;
+                                const timeoutPromise = new Promise((_, reject) => {
+                                    timeoutId = setTimeout(() => reject(new Error("Connection Timeout (Took longer than 15s)")), ms);
+                                });
+                                return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+                            };
+
+                            const metaSnap = await fetchWithTimeout(getDoc(metaRef), 15000);
+                            
+                            if (metaSnap.exists()) {
+                                if (loadText) loadText.innerText = "Downloading Subjects...";
+                                const metaData = metaSnap.data();
+                                const subjectList = metaData.subjectList || [];
+                                
+                                const promises = subjectList.map(subItem => getDoc(doc(db, "ca_hq_subjects", subItem.id)));
+                                const snapshots = await fetchWithTimeout(Promise.all(promises), 15000);
+                                
+                                snapshots.forEach(snap => {
+                                    if(snap.exists()) {
+                                        const r = snap.data();
+                                        finalSubjects.push(r.subjectData ? JSON.parse(r.subjectData) : r);
+                                    }
+                                });
+                            } else {
+                                const oldSnap = await fetchWithTimeout(getDoc(oldLegacyRef), 15000);
+                                if (oldSnap.exists()) finalSubjects = JSON.parse(oldSnap.data().hierarchyData).subjects || [];
+                            }
+
+                            if(finalSubjects.length > 0) {
+                                if (loadText) loadText.innerText = "Building UI...";
+                                setTimeout(() => {
+                                    try {
+                                        if (window.loadData) window.loadData({ subjects: finalSubjects });
+                                        if (overlay) overlay.style.display = 'none';
+                                    } catch(e) {
+                                        console.error("UI Render Error:", e);
+                                        if (loadText) {
+                                            loadText.innerText = "Render Error: " + e.message;
+                                            loadText.classList.add("text-red-500", "text-center", "px-4");
+                                            loadText.innerHTML += `<br><br><button onclick="document.getElementById('loading-overlay').style.display='none'" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg text-sm">Force Close Overlay</button>`;
+                                        }
+                                    }
+                                }, 100);
+                                return;
+                            }
+                        } catch (e) {
+                            console.error("Cloud load error", e);
+                            if (loadText) {
+                                loadText.innerText = "Sync Failed: " + e.message;
+                                loadText.classList.add("text-red-500", "text-center", "px-4");
+                                loadText.innerHTML += `<br><br><button onclick="window.loadData(DEFAULT_DATA); document.getElementById('loading-overlay').style.display='none';" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg text-sm mt-4">Load Offline Mode</button>`;
+                            }
+                            return; 
+                        }
+                    }
+
+                    // Fallback
+                    if (loadText) loadText.innerText = "Loading Default Data...";
+                    setTimeout(() => { 
+                        if (window.loadData) window.loadData(DEFAULT_DATA);
+                        if (overlay) overlay.style.display = 'none'; 
+                    }, 500);
+
+                } else {
+                    // NO USER - SHOW LOGIN
+                    if (overlay) overlay.style.display = 'none';
+                    if (loginOverlay) {
+                        loginOverlay.classList.remove('hidden');
+                        loginOverlay.classList.add('flex');
+                    }
+                    if (window.lucide) lucide.createIcons();
+                }
+            });
+        }
+
+        // 6. LOGIN/LOGOUT LISTENERS
+        document.getElementById('mobile-btn-submit-login')?.addEventListener('click', async () => {
+            const email = document.getElementById('mobile-user-email').value;
+            const pass = document.getElementById('mobile-user-pass').value;
+            const errorBox = document.getElementById('login-error');
+            const btn = document.getElementById('mobile-btn-submit-login');
+
+            if(!email || !pass) {
+                errorBox.textContent = "Please enter both email and password.";
+                errorBox.classList.remove('hidden');
+                return;
+            }
+
+            btn.innerHTML = `<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div><span>Verifying...</span>`;
+            btn.disabled = true;
+            errorBox.classList.add('hidden');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (error) {
+                console.error(error);
+                btn.innerHTML = `<span>Sign In</span>`;
+                btn.disabled = false;
+                
+                let msg = "Incorrect email or password.";
+                if(error.code === "auth/invalid-email") msg = "Invalid email format.";
+                if(error.code === "auth/too-many-requests") msg = "Too many attempts. Try again later.";
+                
+                errorBox.textContent = msg;
+                errorBox.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('mobile-btn-logout')?.addEventListener('click', async () => {
+            if(confirm("Are you sure you want to log out?")) {
+                try {
+                    await signOut(auth);
+                    console.log("Signed out.");
+                    window.location.reload(); 
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                    alert("Failed to log out: " + error.message);
+                }
+            }
+        });
+
+        document.getElementById('mobile-btn-show-pass')?.addEventListener('click', () => {
+            const passInput = document.getElementById('mobile-user-pass');
+            const icon = document.querySelector('#mobile-btn-show-pass i');
+            
+            if (passInput.type === "password") {
+                passInput.type = "text";
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                passInput.type = "password";
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            if(window.lucide) lucide.createIcons();
+        });
+
+        // -- NAVIGATION CORE --
+        window.loadData = function(data) {
+            rawData = data;
+            const initialState = { items: data.subjects || [], title: 'All Subjects', level: 0, parentLink: null };
+            currentView = initialState;
+            navStack = []; 
+            history.replaceState({ navStack: [], currentView: initialState }, 'Root', null);
+            window.updateUI(false); 
+            window.updateStats(data);
+        }
+
+        window.navigateTo = function(title, items, level, link, clickedItemId) {
+            // 1. SAVE STATE OF CURRENT VIEW (Scroll + Highlight)
+            const scrollPos = document.getElementById('mainContainer').scrollTop;
+            
+            // We modify the 'current' history entry before pushing a new one
+            // This ensures when we hit BACK, this data is waiting for us
+            const currentStateToSave = { 
+                navStack: navStack, // Keep existing stack
+                currentView: currentView, // Keep view data
+                restoreScroll: scrollPos, // ADD SCROLL
+                restoreHighlight: clickedItemId // ADD HIGHLIGHT ID
+            };
+            history.replaceState(currentStateToSave, document.title, null);
+
+            // 2. NAVIGATE TO NEW VIEW
+            navStack.push(currentView);
+            currentView = { items: items, title: title, level: level, parentLink: link };
+            
+            history.pushState({ navStack: navStack, currentView: currentView }, title, null);
+            
+            window.updateUI(true, 'right');
+            document.getElementById('mainContainer').scrollTop = 0;
+        }
+
+        window.navigateBack = function() {
+            if (navStack.length > 0) history.back();
+        }
+
+        window.onpopstate = function(event) {
+            if (event.state) {
+                // Restore logic variables
+                navStack = event.state.navStack;
+                currentView = event.state.currentView;
+                
+                window.closeAllOverlays();
+                window.updateUI(true, 'left');
+
+                // RESTORE SCROLL AND HIGHLIGHT
+                // We assume 'event.state' is the state we just returned TO
+                const savedScroll = event.state.restoreScroll;
+                const highlightId = event.state.restoreHighlight;
+
+                setTimeout(() => {
+                    const container = document.getElementById('mainContainer');
+                    
+                    // 1. Restore Scroll
+                    if (savedScroll !== undefined) {
+                        container.scrollTop = savedScroll;
+                    }
+
+                    // 2. Restore Highlight
+                    if (highlightId) {
+                        const el = document.getElementById('node-' + highlightId);
+                        if(el) {
+                            // Scroll element into view if it's somehow off screen (optional safety)
+                            // el.scrollIntoView({block: 'center', behavior: 'smooth'}); 
+                            
+                            // Apply CSS Animation Class
+                            el.classList.add('highlight-restore');
+                            
+                            // Optional: Remove class after animation ends so it can be triggered again
+                            setTimeout(() => {
+                                el.classList.remove('highlight-restore');
+                            }, 2000);
+                        }
+                    }
+                }, 50); // Small delay to allow DOM to paint
+
+            } else {
+                window.loadData(rawData || DEFAULT_DATA);
+            }
+        };
+
+        // -- DARK MODE LOGIC --
+        window.toggleDarkMode = function() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('darkMode', isDark);
+        }
+
+        // -- UI RENDERING --
+        window.updateUI = function(animate = true, direction = 'right') {
+            const container = document.getElementById('mainContainer');
+            const headerTitle = document.getElementById('headerTitle');
+            const backBtn = document.getElementById('backBtn');
+            const badge = document.getElementById('currentLevelBadge');
+            const btnAddLevel = document.getElementById('btnAddLevel');
+
+            // TOGGLE ADD BUTTON VISIBILITY
+            if (currentView.level === 0) {
+                btnAddLevel.classList.remove('hidden');
+            } else {
+                btnAddLevel.classList.add('hidden');
+            }
+            
+            // Header
+            headerTitle.textContent = currentView.title;
+            const wrapper = document.getElementById('headerTitleWrapper');
+            headerTitle.classList.remove('animate-marquee');
+            setTimeout(() => { if (headerTitle.scrollWidth > wrapper.clientWidth) headerTitle.classList.add('animate-marquee'); }, 50);
+
+            // Nav Btn
+            if (navStack.length > 0) { backBtn.classList.remove('hidden'); backBtn.onclick = window.navigateBack; } 
+            else { backBtn.classList.add('hidden'); }
+
+            // Badge
+            badge.textContent = currentView.level === 0 ? 'Home' : `Lvl ${currentView.level}`;
+            const colors = ['bg-slate-200 text-slate-700 dark:bg-dark-hover dark:text-dark-text', 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300', 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'];
+            badge.className = `px-2 py-0.5 rounded font-bold text-xs ${colors[Math.min(currentView.level, 3)]}`;
+
+            // List
+            const listHtml = document.createElement('div');
+            listHtml.className = `space-y-3 ${animate ? (direction === 'right' ? 'slide-in-right' : 'slide-in-left') : ''}`;
+
+            if (!currentView.items || currentView.items.length === 0) {
+                listHtml.innerHTML = `<div class="flex flex-col items-center justify-center h-64 text-slate-400 text-center"><i data-lucide="folder-open" class="w-12 h-12 mb-3 text-slate-300 dark:text-dark-subtext"></i><p>Empty</p></div>`;
+            } else {
+                currentView.items.forEach(item => {
+                    listHtml.appendChild(window.createItemCard(item, currentView.level, currentView.parentLink, currentView.items));
+                });
+            }
+
+            container.innerHTML = '';
+            container.appendChild(listHtml);
+            lucide.createIcons();
+        }
+
+        // -- ITEM CARD (Robust Logic) --
+        window.createItemCard = function(item, level, parentLink, itemList) {
+            // 1. Ensure Item has an ID (Critical for highlighting)
+            if (!item.id) item.id = 'gen_' + Math.random().toString(36).substr(2, 9);
+            
+            const title = item.name || item.title || "Untitled";
+            const children = item.chapters || item.children || [];
+            const hasChildren = children.length > 0;
+            const currentLink = item.link || parentLink;
+            
+            // Define Styles per Level
+            const styles = [
+                { border: 'bg-slate-800 dark:bg-dark-border', icon: 'bg-slate-100 text-slate-700 dark:bg-dark-hover dark:text-dark-text', text: 'text-slate-800 dark:text-dark-text' },
+                { border: 'bg-blue-500', icon: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400', text: 'text-slate-800 dark:text-dark-text' },
+                { border: 'bg-teal-500', icon: 'bg-teal-50 text-teal-600 dark:bg-teal-900/20 dark:text-teal-400', text: 'text-slate-800 dark:text-dark-text' },
+                { border: 'bg-amber-500', icon: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400', text: 'text-slate-800 dark:text-dark-text' }
+            ][Math.min(level, 3)];
+
+            // --- NEW: DEFINE HIGHLIGHT COLORS ---
+            // Maps level to [Main Color, Background Tint (20%), Fade Tint (5%)]
+            const colorMap = [
+                ['#64748b', 'rgba(100, 116, 139, 0.2)', 'rgba(100, 116, 139, 0.05)'], // Lvl 0: Slate
+                ['#3b82f6', 'rgba(59, 130, 246, 0.2)', 'rgba(59, 130, 246, 0.05)'],   // Lvl 1: Blue
+                ['#14b8a6', 'rgba(20, 184, 166, 0.2)', 'rgba(20, 184, 166, 0.05)'],   // Lvl 2: Teal
+                ['#f59e0b', 'rgba(245, 158, 11, 0.2)', 'rgba(245, 158, 11, 0.05)']    // Lvl 3: Amber
+            ][Math.min(level, 3)];
+
+            const card = document.createElement('div');
+            card.id = 'node-' + item.id; 
+            
+            // APPLY DYNAMIC COLORS
+            card.style.setProperty('--pulse-color', colorMap[0]);
+            card.style.setProperty('--pulse-bg', colorMap[1]);
+            card.style.setProperty('--pulse-bg-fade', colorMap[2]);
+
+            card.className = `level-card noselect relative bg-white dark:bg-dark-card rounded-xl shadow-sm border border-slate-200 dark:border-dark-border overflow-hidden flex flex-col ${hasChildren ? 'cursor-pointer' : ''}`;
+            
+            // -- INTERACTION LOGIC --
+            let longPressTimer = null;
+            let isDragging = false;
+            let startX = 0, startY = 0;
+            let longPressTriggered = false;
+
+            const handleStart = (x, y) => {
+                isDragging = false;
+                longPressTriggered = false;
+                startX = x; startY = y;
+                longPressTimer = setTimeout(() => {
+                    longPressTriggered = true;
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    window.triggerLongPressOptions(item, itemList, level);
+                }, 500);
+            };
+
+            const handleMove = (x, y) => {
+                if (Math.abs(x - startX) > 10 || Math.abs(y - startY) > 10) {
+                    isDragging = true;
+                    clearTimeout(longPressTimer);
+                }
+            };
+
+            const handleEnd = (e) => {
+                clearTimeout(longPressTimer);
+            };
+
+            card.addEventListener('touchstart', (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+            card.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
+            card.addEventListener('touchend', handleEnd);
+            
+            card.addEventListener('mousedown', (e) => { if(e.button === 0) handleStart(e.clientX, e.clientY); });
+            card.addEventListener('mousemove', (e) => { if(e.buttons === 1) handleMove(e.clientX, e.clientY); });
+            card.addEventListener('mouseup', handleEnd);
+            card.addEventListener('mouseleave', handleEnd);
+
+            card.oncontextmenu = (e) => e.preventDefault();
+
+            card.onclick = (e) => {
+                if(longPressTriggered || isDragging) {
+                    e.stopPropagation(); 
+                    e.preventDefault(); 
+                    return;
+                }
+                if (hasChildren) {
+                    // Pass ID to navigateTo so we can highlight on return
+                    window.navigateTo(title, children, level + 1, currentLink, item.id);
+                }
+            };
+
+            // -- RENDER CONTENT --
+            const borderIndicator = document.createElement('div');
+            borderIndicator.className = `absolute left-0 top-0 bottom-0 w-1.5 ${styles.border}`;
+            card.appendChild(borderIndicator);
+
+            const content = document.createElement('div');
+            content.className = `p-4 pl-5 flex items-start gap-3 active:bg-slate-50 dark:active:bg-dark-hover transition-colors`;
+
+            // Icon
+            const iconContainer = document.createElement('div');
+            iconContainer.className = `icon-trigger mt-1 p-2 rounded-lg flex-none ${styles.icon} cursor-pointer active:scale-90 transition-transform z-10`;
+            let iconName = hasChildren ? 'folder' : 'file-text';
+            if (level === 0) iconName = 'library';
+            if (!hasChildren && (item.pdfPage || currentLink)) iconName = 'book-open';
+            
+            iconContainer.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
+            iconContainer.onmousedown = (e) => e.stopPropagation(); 
+            iconContainer.ontouchstart = (e) => e.stopPropagation();
+            iconContainer.onclick = (e) => {
+                e.stopPropagation();
+                if (item.pdfPage || currentLink) window.openLink(e, currentLink, item.pdfPage);
+            };
+
+            // Text
+            const textContainer = document.createElement('div');
+            textContainer.className = 'flex-1 min-w-0 pointer-events-none'; 
+            
+            const titleEl = document.createElement('h3');
+            titleEl.className = `text-sm font-semibold ${styles.text} whitespace-normal break-words leading-snug`;
+            titleEl.textContent = title;
+
+            // Badges
+            if (item.pdfPage) {
+                const pg = document.createElement('span');
+                pg.className = 'inline-block mt-1 bg-slate-100 dark:bg-dark-hover text-slate-500 dark:text-dark-subtext text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-200 dark:border-dark-border ml-1 align-middle';
+                pg.textContent = `Pg ${item.pdfPage}`;
+                titleEl.appendChild(pg);
+            }
+            if (item.notes) {
+                const note = document.createElement('span');
+                note.className = 'inline-block mt-1 text-purple-500 dark:text-purple-400 text-[12px] font-bold ml-1 align-middle';
+                note.textContent = '✦'; 
+                titleEl.appendChild(note);
+            }
+
+            if (item.desc) {
+                const descEl = document.createElement('p');
+                descEl.className = 'text-xs text-slate-500 dark:text-dark-subtext mt-1 whitespace-normal break-words leading-relaxed';
+                descEl.textContent = item.desc;
+                textContainer.appendChild(titleEl);
+                textContainer.appendChild(descEl);
+            } else {
+                textContainer.appendChild(titleEl);
+            }
+
+            content.appendChild(iconContainer);
+            content.appendChild(textContainer);
+
+            if (hasChildren) {
+                const chevron = document.createElement('div');
+                chevron.innerHTML = `<i data-lucide="chevron-right" class="w-5 h-5 text-slate-300 dark:text-dark-subtext"></i>`;
+                chevron.className = 'self-center pl-2';
+                content.appendChild(chevron);
+            }
+
+            card.appendChild(content);
+            return card;
+        }
+
+        // -- CLOUD SAVE --
+        window.saveToCloud = async function() {
+            if(!db) { alert("Cloud not available (Offline or blocked)."); return; }
+            if(!confirm("Overwrite cloud data?")) return;
+            
+            const overlay = document.getElementById('loading-overlay');
+            const txt = document.getElementById('loading-text');
+            overlay.style.display = 'flex';
+            txt.innerText = "Saving...";
+
+            try {
+                const subjects = window.appState ? window.appState.subjects : rawData.subjects;
+                const meta = {
+                    activeSubjectId: 'root',
+                    subjectList: subjects.map(s => ({ id: s.id || 'id_'+Date.now(), name: s.name })),
+                    lastUpdated: new Date().toISOString()
+                };
+                await setDoc(metaRef, meta);
+                for(const sub of subjects) {
+                    if(!sub.id) sub.id = 'sub_'+Date.now();
+                    const subRef = doc(db, "ca_hq_subjects", sub.id);
+                    await setDoc(subRef, { subjectData: JSON.stringify(sub) });
+                }
+                alert("Saved!");
+            } catch(e) {
+                alert("Save failed: " + e.message);
+            } finally {
+                overlay.style.display = 'none';
+            }
+        }
+
+        // -- ACTIONS --
+        window.triggerLongPressOptions = function(item, itemList, level) {
+            activeItem = item; activeItemList = itemList; activeItemLevel = level;
+            
+            // CONSTRAINT: Disable "Add Child" if level is 3 or greater
+            const btn = document.getElementById('btnOptionAddChild');
+            if (level >= 4) {
+                btn.classList.add('opacity-50', 'pointer-events-none');
+            } else {
+                btn.classList.remove('opacity-50', 'pointer-events-none');
+            }
+            
+            document.getElementById('optionsOverlay').classList.remove('hidden');
+        }
+
+        window.openEditModal = function() {
+            document.getElementById('optionsOverlay').classList.add('hidden');
+            document.getElementById('editOverlay').classList.remove('hidden');
+            document.getElementById('editTitleInput').value = activeItem.name || activeItem.title || "";
+            document.getElementById('editPageInput').value = activeItem.pdfPage || "";
+        }
+        window.saveEdit = function() {
+            const t = document.getElementById('editTitleInput').value;
+            const p = document.getElementById('editPageInput').value;
+            if(activeItem.name) activeItem.name = t; else activeItem.title = t;
+            if(p.trim()) activeItem.pdfPage = p; else delete activeItem.pdfPage;
+            window.updateUI(false); window.closeAllOverlays();
+        }
+
+        window.openNotesModal = function() {
+            document.getElementById('optionsOverlay').classList.add('hidden');
+            document.getElementById('notesOverlay').classList.remove('hidden');
+            
+            // STEP 1: Load the correct notes into the input box FIRST
+            document.getElementById('notesInput').value = activeItem.notes || "";
+            
+            // STEP 2: THEN switch to preview (so it sees the notes we just loaded)
+            window.toggleNotesTab('preview');
+        }
+
+        window.toggleNotesTab = function(m) {
+            const w = document.getElementById('tabWrite'), p = document.getElementById('tabPreview');
+            const i = document.getElementById('notesInput'), v = document.getElementById('notesPreview');
+            if(m === 'write') {
+                w.className = w.className.replace('border-transparent text-slate-400', 'border-purple-600 text-purple-700 dark:text-purple-400');
+                p.className = p.className.replace('border-purple-600 text-purple-700 dark:text-purple-400', 'border-transparent text-slate-400');
+                i.classList.remove('hidden'); v.classList.add('hidden');
+            } else {
+                p.className = p.className.replace('border-transparent text-slate-400', 'border-purple-600 text-purple-700 dark:text-purple-400');
+                w.className = w.className.replace('border-purple-600 text-purple-700 dark:text-purple-400', 'border-transparent text-slate-400');
+                i.classList.add('hidden'); v.classList.remove('hidden');
+                v.innerHTML = marked.parse(i.value || "*Empty*");
+            }
+        }
+        window.saveNotes = function() {
+            const val = document.getElementById('notesInput').value;
+            if(val.trim()) activeItem.notes = val; else delete activeItem.notes;
+            window.updateUI(false); window.closeAllOverlays();
+        }
+
+        window.addLevelItem = function() {
+            const n = prompt("New Item Name:");
+            if(!n) return;
+            const obj = { id: 'new_'+Date.now(), title: n, children: [] };
+            if (currentView.level === 0) obj.name = n;
+            currentView.items.push(obj);
+            window.updateUI(false);
+        }
+
+        // Context Menu Add Child
+        window.addChildItem = function() {
+            // Safety Check
+            if (activeItemLevel >= 3) return;
+
+            const n = prompt("Name for new child:");
+            if(!n) return;
+            const obj = { id: 'new_'+Date.now(), title: n, children: [] };
+            
+            if(activeItemLevel === 0) { 
+                if(!activeItem.chapters) activeItem.chapters=[]; 
+                activeItem.chapters.push(obj); 
+            } else { 
+                if(!activeItem.children) activeItem.children=[]; 
+                activeItem.children.push(obj); 
+            }
+            window.updateUI(false); window.closeAllOverlays();
+        }
+
+        window.deleteItem = function() {
+            if(confirm("Delete item?")) {
+                const idx = activeItemList.indexOf(activeItem);
+                if(idx > -1) activeItemList.splice(idx, 1);
+                window.updateUI(false); window.closeAllOverlays();
+            }
+        }
+
+        window.startMoveOperation = function() {
+            moveClipboard = { item: activeItem, sourceList: activeItemList };
+            window.closeAllOverlays();
+            const bar = document.getElementById('moveActionBar');
+            document.getElementById('movingItemName').innerText = activeItem.name || activeItem.title;
+            bar.classList.remove('hidden');
+            setTimeout(() => bar.classList.remove('translate-y-full'), 10);
+        }
+        window.pasteMove = function() {
+            if(!moveClipboard.item) return;
+            const idx = moveClipboard.sourceList.indexOf(moveClipboard.item);
+            if(idx > -1) moveClipboard.sourceList.splice(idx, 1);
+            currentView.items.push(moveClipboard.item);
+            window.cancelMove(); window.updateUI(false);
+        }
+        window.cancelMove = function() {
+            const bar = document.getElementById('moveActionBar');
+            bar.classList.add('translate-y-full');
+            setTimeout(() => bar.classList.add('hidden'), 300);
+        }
+
+        window.switchToPathView = function() {
+            document.getElementById('optionsOverlay').classList.add('hidden');
+            const overlay = document.getElementById('pathOverlay');
+            const backdrop = overlay.querySelector('div:first-child');
+            const listContainer = document.getElementById('pathList');
+            const panel = document.getElementById('pathContentPanel');
+
+            const fullPath = [...navStack, currentView];
+            fullPath.push({
+                title: activeItem.name || activeItem.title || "Item",
+                level: currentView.level + 1,
+                isLeaf: true
+            });
+
+            window.renderPathList(listContainer, fullPath);
+
+            overlay.classList.remove('hidden');
+            requestAnimationFrame(() => {
+                backdrop.classList.add('opacity-100');
+                panel.classList.add('translate-y-0');
+            });
+        }
+
+        window.closeAllOverlays = function() {
+            ['optionsOverlay','editOverlay','notesOverlay','pathOverlay'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('pathContentPanel').classList.remove('translate-y-0');
+        }
+
+        window.openLink = function(e, link, page) {
+            e.stopPropagation();
+            if(!link) return;
+            if (link.toLowerCase().endsWith('.pdf') || link.includes('.pdf')) {
+                 const v = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(link)}`;
+                 window.open(page ? `${v}#page=${page}` : v, '_blank');
+            } else {
+                 window.open(link, '_blank');
+            }
+        }
+
+        window.getLevelStyles = function(level) {
+            const safeLevel = level > 3 ? 3 : level; 
+            switch (safeLevel) {
+                case 0: return { iconBg: 'bg-slate-100 dark:bg-dark-hover', iconColor: 'text-slate-700 dark:text-dark-text', textColor: 'text-slate-800 dark:text-dark-text' };
+                case 1: return { iconBg: 'bg-blue-50 dark:bg-blue-900/20', iconColor: 'text-blue-600 dark:text-blue-400', textColor: 'text-slate-800 dark:text-dark-text' };
+                case 2: return { iconBg: 'bg-teal-50 dark:bg-teal-900/20', iconColor: 'text-teal-600 dark:text-teal-400', textColor: 'text-slate-800 dark:text-dark-text' };
+                default: return { iconBg: 'bg-amber-50 dark:bg-amber-900/20', iconColor: 'text-amber-600 dark:text-amber-400', textColor: 'text-slate-800 dark:text-dark-text' };
+            }
+        }
+
+        window.renderPathList = function(container, pathArray) {
+            container.innerHTML = '';
+            pathArray.forEach((step, index) => {
+                const isLeaf = step.isLeaf;
+                const isCurrentView = index === pathArray.length - 2; 
+                
+                const row = document.createElement('div');
+                row.className = 'flex items-center gap-3 p-2 rounded-lg transition-colors';
+                if (index > 0) row.classList.add('ml-4', 'border-l-2', 'border-slate-100', 'dark:border-dark-border');
+
+                const styles = window.getLevelStyles(step.level);
+                
+                const iconBox = document.createElement('div');
+                iconBox.className = `w-8 h-8 rounded-full flex items-center justify-center flex-none ${styles.iconBg} ${styles.iconColor}`;
+                let iconName = index === 0 ? 'library' : 'folder';
+                if(isLeaf) iconName = 'file-text';
+                iconBox.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4"></i>`;
+
+                const textBox = document.createElement('div');
+                textBox.className = 'flex-1';
+                const title = document.createElement('div');
+                title.className = `text-sm font-semibold ${styles.textColor}`;
+                title.textContent = step.level === 0 ? 'Home' : step.title;
+                
+                textBox.appendChild(title);
+                row.prepend(iconBox);
+                row.appendChild(textBox);
+
+                if (!isLeaf && !isCurrentView) {
+                    row.classList.add('cursor-pointer', 'hover:bg-slate-100', 'dark:hover:bg-dark-hover');
+                    const navIcon = document.createElement('div');
+                    navIcon.innerHTML = `<i data-lucide="corner-up-left" class="w-4 h-4 text-slate-300"></i>`;
+                    row.appendChild(navIcon);
+                    
+                    row.onclick = () => {
+                        const stepsBack = navStack.length - index;
+                        if (stepsBack > 0) {
+                            history.go(-stepsBack);
+                            window.closeAllOverlays();
+                        }
+                    };
+                } else if (isCurrentView) {
+                     const badge = document.createElement('span');
+                     badge.className = "text-[10px] text-slate-400 font-medium px-2";
+                     badge.textContent = "(Current Location)";
+                     row.appendChild(badge);
+                }
+                container.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+        
+        window.handleFileUpload = function(e) {
+            const f = e.target.files[0];
+            if(!f) return;
+            const r = new FileReader();
+            r.onload = (evt) => window.loadData(JSON.parse(evt.target.result));
+            r.readAsText(f);
+        }
+        
+        window.updateStats = function(d) {
+             let c = 0;
+             const cnt = (arr) => arr.forEach(i => { c++; if(i.chapters) cnt(i.chapters); if(i.children) cnt(i.children); });
+             if(d.subjects) cnt(d.subjects);
+             document.getElementById('statsNodes').innerText = c + " Nodes";
+        }
+
+        window.handleSearch = function(q) {
+             if(!q.trim()) return window.clearSearch();
+             document.getElementById('clearSearchBtn').classList.remove('hidden');
+             const flat = [];
+             const rec = (arr, pl, pt) => arr.forEach(n => {
+                 const t = n.name||n.title||"";
+                 const l = n.link||pl;
+                 const ch = n.chapters||n.children||[];
+                 if(t.toLowerCase().includes(q.toLowerCase())) flat.push({...n, desc:`In: ${pt}`, link:l});
+                 if(ch.length) rec(ch, l, t);
+             });
+             rec(rawData.subjects||[], null, "Root");
+             currentView = { items: flat, title: `Search: "${q}"`, level: 99 };
+             window.updateUI(false);
+        }
+        window.clearSearch = function() {
+             document.getElementById('searchInput').value='';
+             document.getElementById('clearSearchBtn').classList.add('hidden');
+             if(navStack.length) history.back(); else window.loadData(rawData);
+        }
+        // -- QUICK JUMP TO PENDING --
+
+        // 1. Recursive Search by ID
+        window.findPathToNodeById = function(nodes, targetId, currentPath = []) {
+            for (let node of nodes) {
+                // Check if this is the specific node ID we are looking for
+                if (node.id === targetId) {
+                    return { foundNode: node, path: currentPath }; // Return the node and the path to get there
+                }
+
+                // If not, check its children
+                const children = node.chapters || node.children;
+                if (children && children.length > 0) {
+                    // Recurse deeper
+                    const result = window.findPathToNodeById(children, targetId, [...currentPath, node]);
+                    if (result) return result;
+                }
+            }
+            return null;
+        };
+
+        // 2. The Action Function
+        window.jumpToPending = function() {
+            // A. Get the Target ID from your data
+            // (Assumes "pendingNodeId" is at the root of your JSON file)
+            const targetId = rawData.pendingNodeId;
+
+            if (!targetId) {
+                alert("No 'Pending' node is currently assigned.");
+                return;
+            }
+
+            // B. Search for that ID in the hierarchy
+            const result = window.findPathToNodeById(rawData.subjects || [], targetId);
+
+            if (!result) {
+                alert("The assigned Pending node could not be found (it might have been deleted).");
+                return;
+            }
+
+            const { foundNode, path } = result;
+
+            // C. Reconstruct History (So "Back" button works)
+            navStack = []; 
+            
+            // Rebuild the stack from the path we found
+            path.forEach((step, index) => {
+                navStack.push({
+                    title: step.name || step.title,
+                    items: step.chapters || step.children || [],
+                    level: index,
+                    scrollPos: 0 
+                });
+            });
+
+            // D. Determine the Parent View
+            // We want to open the FOLDER containing the pending item
+            let targetItems, targetTitle, targetLevel, targetLink;
+            
+            if (path.length === 0) {
+                // It's at the root level
+                targetItems = rawData.subjects;
+                targetTitle = "All Subjects";
+                targetLevel = 0;
+                targetLink = null;
+            } else {
+                // It's inside a folder/chapter
+                const parentNode = path[path.length - 1];
+                targetItems = parentNode.chapters || parentNode.children;
+                targetTitle = parentNode.name || parentNode.title;
+                targetLevel = path.length;
+                targetLink = parentNode.link || null;
+            }
+
+            // E. Navigate & Highlight
+            // Passing 'foundNode.id' as the last argument triggers the scroll & pulse effect
+            window.navigateTo(targetTitle, targetItems, targetLevel, targetLink, foundNode.id);
+        }
+        window.setAsPending = function() {
+            if(!activeItem) return;
+            
+            // Save the ID to the root data
+            rawData.pendingNodeId = activeItem.id;
+            
+            // Optional: Save to cloud immediately so it syncs
+            // window.saveToCloud(); 
+            
+            alert(`"${activeItem.name || activeItem.title}" is now the Pending item.`);
+            window.closeAllOverlays();
+        }
+    </script>
+</body>
+</html>
