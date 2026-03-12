@@ -1471,6 +1471,38 @@
 
 </div>
 
+<div id="success-modal" class="modal-overlay">
+    <div class="modal" style="width: 500px; max-width: 90%; display: flex; flex-direction: column;">
+        
+        <h2 style="color: #059669; display: flex; align-items: center; gap: 10px; margin: 0;">
+            ✅ Saved Successfully!
+        </h2>
+        
+        <div id="success-modal-content" style="
+            flex: 1; 
+            overflow-y: auto; 
+            margin-top: 1.5rem; 
+            padding: 1rem; 
+            background: #f8fafc; 
+            border-radius: 8px; 
+            border: 1px solid #e2e8f0; 
+            font-family: monospace; 
+            font-size: 0.95rem;
+            color: #334155;
+            line-height: 1.6;
+            max-height: 600px; /* Adjust this to make the box taller/shorter */
+        ">
+            </div>
+
+        <div class="modal-actions" style="justify-content: center; margin-top: 1.5rem;">
+            <button class="btn-action btn-save" onclick="document.getElementById('success-modal').classList.remove('open')" style="padding: 8px 30px; font-size: 1rem;">
+                OK
+            </button>
+        </div>
+        
+    </div>
+</div>
+
 <!-- NEW: IMPORT CHOICE MODAL -->
 <div id="import-choice-modal" class="modal-overlay">
     <div class="modal" style="width: 400px; text-align: center;">
@@ -3370,7 +3402,18 @@
             // --- 3. SHOW "SAVING" TOAST & BLUR OVERLAY ---
             showSaveMessage("Saving compact files...", "loading");
 
-            let sizeReport = "";
+            // Initialize the HTML table structure
+            let sizeReportHTML = `
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid #64748b; opacity: 0.8;">
+                            <th style="padding: 8px 4px; text-align: left; font-weight: 600;">Subject</th>
+                            <th style="padding: 8px 4px; text-align: right; font-weight: 600;">Size</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            let fallbackText = ""; // Fallback for the native alert
             const savePromises = [];
 
             // 1. Size Check & Prepare Data
@@ -3388,7 +3431,14 @@
                     displaySize = `${sizeInMB.toFixed(2)} MB`;
                 }
                 
-                sizeReport += `• ${sub.name}: ${displaySize}\n`;
+                // Add a row to the HTML table
+                sizeReportHTML += `
+                    <tr style="border-bottom: 1px solid rgba(148, 163, 184, 0.2);">
+                        <td style="padding: 8px 4px; word-break: break-word;">${sub.name}</td>
+                        <td style="padding: 8px 4px; text-align: right; white-space: nowrap;">${displaySize}</td>
+                    </tr>
+                `;
+                fallbackText += `• ${sub.name}: ${displaySize}\n`;
 
                 if (sizeInMB > 0.98) {
                     throw new Error(`Subject "${sub.name}" is too large (${displaySize}). Limit is 1.00 MB.`);
@@ -3413,25 +3463,31 @@
             
             console.log("☁️ Successfully saved to Cloud!");
             
-            // --- 4. SUCCESS TOAST & SYNC BLUR REMOVAL ---
-            showSaveMessage("Successfully saved to Cloud!", "success");
+            // --- 4. CLEAN UP LOADING UI ---
+            // Manually remove the loading toast and blur overlay since we skip the success toast
+            const toast = document.getElementById('cloud-save-toast');
+            const overlay = document.getElementById('cloud-save-overlay');
+            if (toast) toast.remove();
+            if (overlay) overlay.remove();
             
             saveBtns.forEach(btn => btn.innerHTML = '<span>✅</span> Saved!');
             setTimeout(() => {
                 saveBtns.forEach(btn => btn.innerHTML = '<span>🌐</span> Save to Cloud');
             }, 2000);
 
-            // --- 5. UPDATED SUCCESS MESSAGE LOGIC (SIZE REPORT) ---
+            // Close the table tag
+            sizeReportHTML += `</tbody></table>`;
+
+            // --- 5. SHOW CUSTOM MODAL DIRECTLY ---
             const successModal = document.getElementById('success-modal');
             const successContent = document.getElementById('success-modal-content');
             
             if (successModal && successContent) {
-                successContent.innerText = `${sizeReport}\n(Limit per file: 1.00 MB)`;
+                // Notice we use innerHTML here to render the table, not innerText
+                successContent.innerHTML = `${sizeReportHTML}<div style="margin-top: 15px; text-align: center; opacity: 0.7; font-size: 0.85rem;">(Limit per file: 1.00 MB)</div>`;
                 successModal.classList.add('open');
             } else {
-                setTimeout(() => {
-                    alert(`✅ Saved Successfully!\n\nStorage Report:\n${sizeReport}\n(Limit per file: 1.00 MB)`);
-                }, 300);
+                alert(`✅ Saved Successfully!\n\nStorage Report:\n${fallbackText}\n(Limit per file: 1.00 MB)`);
             }
 
         } catch (error) {
