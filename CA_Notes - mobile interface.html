@@ -264,16 +264,11 @@
         </div>
     </header>
 
-    <main id="mainContainer" class="flex-1 overflow-y-auto p-3 pb-20 bg-slate-50 dark:bg-dark-bg transition-colors">
+    <main id="mainContainer" class="flex-1 overflow-y-auto p-3 pb-6 bg-slate-50 dark:bg-dark-bg transition-colors">
         <div class="flex flex-col items-center justify-center h-full text-slate-400 space-y-4">
             <p>Initializing Viewer...</p>
         </div>
     </main>
-
-    <!-- <footer class="bg-white dark:bg-dark-card border-t border-slate-200 dark:border-dark-border px-4 py-2 text-xs text-slate-500 dark:text-dark-subtext flex justify-between items-center flex-none shadow-[0_-1px_3px_rgba(0,0,0,0.05)] transition-colors">
-        <span id="statsNodes">0 Items</span>
-        <span id="currentLevelBadge" class="bg-slate-100 dark:bg-dark-hover px-2 py-0.5 rounded text-slate-600 dark:text-dark-text font-medium">Home</span>
-    </footer> -->
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -576,12 +571,10 @@
             const container = document.getElementById('mainContainer');
             const headerTitle = document.getElementById('headerTitle');
             const backBtn = document.getElementById('backBtn');
-            const badge = document.getElementById('currentLevelBadge');
             const btnAddLevel = document.getElementById('btnAddLevel');
             const btnDarkModeToggle = document.getElementById('btnDarkModeToggle');
             const btnPendingHeader = document.getElementById('btnPendingHeader');
 
-            
             if (currentView.level === 0) {
                 btnAddLevel.classList.remove('hidden');
                 btnDarkModeToggle.classList.remove('hidden');
@@ -590,8 +583,7 @@
                 btnAddLevel.classList.add('hidden');
                 btnDarkModeToggle.classList.add('hidden');
                 btnPendingHeader.classList.add('hidden');
-
-                // Only display target icon inside an individual subject (Level 2 or deeper)
+                
                 if (currentView.level >= 2) {
                     const activeSub = window.getSubjectContext();
                     if (activeSub && activeSub.pendingNodeId) {
@@ -607,10 +599,6 @@
 
             if (navStack.length > 0) { backBtn.classList.remove('hidden'); backBtn.onclick = window.navigateBack; } 
             else { backBtn.classList.add('hidden'); }
-
-            badge.textContent = currentView.level === 0 ? 'Home' : `Lvl ${currentView.level}`;
-            const colors = ['bg-slate-200 text-slate-700 dark:bg-dark-hover dark:text-dark-text', 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300', 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'];
-            badge.className = `px-2 py-0.5 rounded font-bold text-xs ${colors[Math.min(currentView.level, 3)]}`;
 
             const listHtml = document.createElement('div');
             listHtml.className = `space-y-3 ${animate ? (direction === 'right' ? 'slide-in-right' : 'slide-in-left') : ''}`;
@@ -1057,10 +1045,12 @@
         }
         
         window.updateStats = function(d) {
+             const statsEl = document.getElementById('statsNodes');
+             if (!statsEl) return;
              let c = 0;
              const cnt = (arr) => arr.forEach(i => { c++; if(i.chapters) cnt(i.chapters); if(i.children) cnt(i.children); });
              if(d.subjects) cnt(d.subjects);
-             document.getElementById('statsNodes').innerText = c + " Nodes";
+             statsEl.innerText = c + " Nodes";
         }
 
         window.handleSearch = function(q) {
