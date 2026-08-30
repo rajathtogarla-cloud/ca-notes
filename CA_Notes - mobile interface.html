@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
@@ -13,12 +13,12 @@
                 extend: {
                     colors: {
                         dark: {
-                            bg: '#000000',      /* Pure Black Background */
-                            card: '#111111',    /* Very Dark Grey for Cards */
-                            border: '#333333',  /* Dark Grey Borders */
-                            text: '#ffffff',    /* Pure White Text */
-                            subtext: '#a3a3a3', /* Light Grey Subtext */
-                            hover: '#1a1a1a'    /* Hover state */
+                            bg: '#000000',
+                            card: '#111111',
+                            border: '#333333',
+                            text: '#ffffff',
+                            subtext: '#a3a3a3',
+                            hover: '#1a1a1a'
                         }
                     }
                 }
@@ -31,94 +31,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .noselect {
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        input.allow-select, textarea.allow-select {
-            -webkit-user-select: text;
-            user-select: text;
-        }
-
-        /* Custom Scrollbar */
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .noselect { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        input.allow-select, textarea.allow-select { -webkit-user-select: text; user-select: text; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .dark ::-webkit-scrollbar-thumb { background: #333333; }
         
-        /* Loading Overlay */
-        #loading-overlay {
-            position: fixed; inset: 0; z-index: 100;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
-            transition: opacity 0.3s;
-        }
+        #loading-overlay { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; transition: opacity 0.3s; }
         
-        /* Marquee Animation - FIXED FADE */
-        .marquee-wrapper {
-            overflow: hidden; white-space: nowrap; position: relative;
-            /* Changed to start black (visible) immediately */
-            mask-image: linear-gradient(to right, black 0%, black 90%, transparent);
-            -webkit-mask-image: linear-gradient(to right, black 0%, black 90%, transparent);
-        }
-        .animate-marquee {
-            display: inline-block; padding-left: 100%;
-            animation: marquee 12s linear infinite;
-        }
-        @keyframes marquee {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(-100%, 0); }
-        }
+        .marquee-wrapper { overflow: hidden; white-space: nowrap; position: relative; mask-image: linear-gradient(to right, black 0%, black 90%, transparent); -webkit-mask-image: linear-gradient(to right, black 0%, black 90%, transparent); }
+        .animate-marquee { display: inline-block; padding-left: 100%; animation: marquee 12s linear infinite; }
+        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
         #fileInput { display: none; }
         .level-card { transition: transform 0.1s ease, background-color 0.2s; }
         .level-card:active { transform: scale(0.98); }
 
-        /* Markdown Styles */
         .markdown-body { font-size: 0.875rem; line-height: 1.6; }
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 600; margin-top: 1em; margin-bottom: 0.5em; }
         .markdown-body ul { list-style-type: disc; padding-left: 1.5em; }
         .markdown-body blockquote { border-left: 4px solid #cbd5e1; padding-left: 1em; font-style: italic; }
         .markdown-body code { background-color: rgba(0,0,0,0.05); padding: 0.1em 0.3em; border-radius: 0.25rem; font-family: monospace; color: #ef4444; }
-        /* Add this to make links Blue and Underlined in Light Mode */
         .markdown-body a { color: #2563eb; text-decoration: underline; }
-        
-        /* Dark Mode Specifics for Markdown */
         .dark .markdown-body { color: #e2e8f0; }
         .dark .markdown-body h1, .dark .markdown-body h2 { color: #ffffff; }
         .dark .markdown-body blockquote { border-left-color: #333333; color: #a3a3a3; }
         .dark .markdown-body code { background-color: rgba(255,255,255,0.15); }
         .dark .markdown-body a { color: #60a5fa; }
 
-        /* Dynamic Highlight Animation */
         @keyframes highlightPulse {
-            0% { 
-                background-color: var(--pulse-bg); 
-                border-color: var(--pulse-color); 
-                transform: scale(1.02); 
-                box-shadow: 0 0 15px var(--pulse-bg);
-            }
-            50% { 
-                background-color: var(--pulse-bg-fade); 
-                border-color: var(--pulse-color); 
-                transform: scale(1); 
-            }
-            100% { 
-                background-color: transparent; 
-                border-color: inherit; 
-                transform: scale(1); 
-                box-shadow: none;
-            }
+            0% { background-color: var(--pulse-bg); border-color: var(--pulse-color); transform: scale(1.02); box-shadow: 0 0 15px var(--pulse-bg); }
+            50% { background-color: var(--pulse-bg-fade); border-color: var(--pulse-color); transform: scale(1); }
+            100% { background-color: transparent; border-color: inherit; transform: scale(1); box-shadow: none; }
         }
-        .highlight-restore {
-            animation: highlightPulse 1.5s ease-out forwards;
-        }
+        .highlight-restore { animation: highlightPulse 1.5s ease-out forwards; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-dark-bg dark:text-dark-text h-screen flex flex-col overflow-hidden transition-colors duration-200">
@@ -134,21 +82,17 @@
                 <h2 class="text-2xl font-bold text-slate-800 dark:text-dark-text mb-1">Welcome Back</h2>
                 <p class="text-sm text-slate-500 dark:text-dark-subtext">Sign in to sync your notes</p>
             </div>
-            
             <div id="login-error" class="hidden mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-sm text-red-600 dark:text-red-400 text-center"></div>
-
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 dark:text-dark-subtext uppercase mb-1">Email</label>
                     <input type="email" id="mobile-user-email" class="w-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="name@example.com">
                 </div>
-                
                 <div class="relative">
                     <label class="block text-xs font-bold text-slate-500 dark:text-dark-subtext uppercase mb-1">Password</label>
                     <input type="password" id="mobile-user-pass" class="w-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Enter password">
                     <button type="button" id="mobile-btn-show-pass" class="absolute right-3 top-8 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400"><i data-lucide="eye" class="w-5 h-5"></i></button>
                 </div>
-
                 <button id="mobile-btn-submit-login" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-colors mt-2 shadow-lg shadow-indigo-200 dark:shadow-none flex items-center justify-center gap-2">
                     <span>Sign In</span>
                 </button>
@@ -160,7 +104,6 @@
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeAllOverlays()"></div>
         <div class="relative bg-white dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100 opacity-100 border border-slate-200 dark:border-dark-border">
             <h3 class="text-center text-lg font-bold text-slate-800 dark:text-dark-text mb-6">Item Options</h3>
-            
             <div class="grid grid-cols-3 gap-y-6 gap-x-2">
                 <button onclick="window.openEditModal()" class="flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 group-active:bg-blue-100 dark:group-active:bg-blue-900/40 transition-colors"><i data-lucide="pencil" class="w-5 h-5"></i></div>
@@ -186,9 +129,9 @@
                     <div class="w-12 h-12 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center text-red-600 dark:text-red-400 group-active:bg-red-100 dark:group-active:bg-red-900/40 transition-colors"><i data-lucide="trash-2" class="w-5 h-5"></i></div>
                     <span class="text-xs font-medium text-slate-600 dark:text-dark-subtext">Delete</span>
                 </button>
-                <button onclick="window.setAsPending()" class="flex flex-col items-center gap-2 group">
+                <button id="btnSetPending" onclick="window.setAsPending()" class="flex flex-col items-center gap-2 group">
                     <div class="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400 group-active:bg-amber-100 dark:group-active:bg-amber-900/40 transition-colors">
-                        <i data-lucide="bookmark" class="w-5 h-5"></i>
+                        <span class="text-xl">🎯</span>
                     </div>
                     <span class="text-xs font-medium text-slate-600 dark:text-dark-subtext">Set Pending</span>
                 </button>
@@ -205,6 +148,10 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-500 dark:text-dark-subtext uppercase mb-1">Title</label>
                     <textarea id="editTitleInput" rows="2" class="allow-select w-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+                <div id="editCategoryContainer">
+                    <label class="block text-xs font-bold text-slate-500 dark:text-dark-subtext uppercase mb-1">Category (e.g. CA Final, CA Inter)</label>
+                    <input type="text" id="editCategoryInput" class="allow-select w-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. CA Final">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 dark:text-dark-subtext uppercase mb-1">PDF Page Number</label>
@@ -246,6 +193,26 @@
         </div>
     </div>
 
+    <div id="fileActionsOverlay" class="fixed inset-0 z-[60] hidden flex items-center justify-center" aria-hidden="true">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="window.closeFileActionsModal()"></div>
+        <div class="relative bg-white dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-11/12 max-w-sm border border-slate-200 dark:border-dark-border">
+            <h3 class="text-center text-lg font-bold text-slate-800 dark:text-dark-text mb-6">File Actions</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="window.triggerSaveToCloud()" class="flex flex-col items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl hover:bg-green-100 transition-colors">
+                    <i data-lucide="cloud-upload" class="w-8 h-8 text-green-600 dark:text-green-400"></i>
+                    <span class="text-xs font-semibold text-slate-700 dark:text-dark-text">Save to Cloud</span>
+                </button>
+                <button onclick="window.triggerImportFile()" class="flex flex-col items-center gap-2 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl hover:bg-indigo-100 transition-colors">
+                    <i data-lucide="upload" class="w-8 h-8 text-indigo-600 dark:text-indigo-400"></i>
+                    <span class="text-xs font-semibold text-slate-700 dark:text-dark-text">Import file</span>
+                </button>
+            </div>
+            <button onclick="window.closeFileActionsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-dark-text">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </div>
+
     <div id="moveActionBar" class="fixed bottom-0 left-0 right-0 bg-white dark:bg-dark-card border-t border-slate-200 dark:border-dark-border p-4 shadow-lg z-[70] hidden flex items-center justify-between transform transition-transform translate-y-full">
         <div class="flex flex-col">
             <span class="text-xs font-bold text-slate-400 dark:text-dark-subtext uppercase">Moving</span>
@@ -270,26 +237,22 @@
                 <i data-lucide="plus-circle" class="w-5 h-5"></i>
             </button>
 
-            <button onclick="window.jumpToPending()" class="flex-none text-amber-600 hover:bg-amber-50 dark:text-amber-500 dark:hover:bg-amber-900/20 p-2 rounded-full transition-colors relative" title="Go to Pending">
-                <i data-lucide="clock" class="w-5 h-5"></i>
+            <button id="btnPendingHeader" onclick="window.jumpToPending()" class="flex-none text-amber-600 hover:bg-amber-50 dark:text-amber-500 dark:hover:bg-amber-900/20 p-2 rounded-full transition-colors relative hidden" title="Go to Pending">
+                <span class="text-base">🎯</span>
             </button>
             
-            <button onclick="window.toggleDarkMode()" class="flex-none text-slate-500 dark:text-dark-subtext hover:bg-slate-100 dark:hover:bg-dark-hover p-2 rounded-full transition-colors" title="Toggle Dark Mode">
+            <button id="btnDarkModeToggle" onclick="window.toggleDarkMode()" class="flex-none text-slate-500 dark:text-dark-subtext hover:bg-slate-100 dark:hover:bg-dark-hover p-2 rounded-full transition-colors" title="Toggle Dark Mode">
                 <span class="text-xl">🌗</span>
             </button>
 
-            <button onclick="window.saveToCloud()" class="flex-none text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 p-2 rounded-full transition-colors" title="Save to Cloud">
-                <i data-lucide="cloud-upload" class="w-5 h-5"></i>
-            </button>
-            
-            <button onclick="document.getElementById('fileInput').click()" class="flex-none text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 p-2 rounded-full transition-colors" title="Upload File">
-                <i data-lucide="upload" class="w-5 h-5"></i>
+            <button onclick="window.openFileActionsModal()" class="flex-none text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 p-2 rounded-full transition-colors" title="File Actions">
+                <i data-lucide="folder" class="w-5 h-5"></i>
             </button>
             
             <input type="file" id="fileInput" accept=".json" onchange="window.handleFileUpload(event)" style="display: none;">
             
-            <button id="mobile-btn-logout" class="flex-none text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-full transition-colors" title="Sign Out">
-                <i data-lucide="log-out" class="w-5 h-5"></i>
+            <button id="mobile-btn-logout" class="flex-none text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-full transition-colors text-lg font-bold leading-none" title="Sign Out">
+                ✘
             </button>
         </div>
         <div class="px-4 pb-3">
@@ -299,7 +262,6 @@
                 <button id="clearSearchBtn" onclick="window.clearSearch()" class="hidden absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
         </div>
-
     </header>
 
     <main id="mainContainer" class="flex-1 overflow-y-auto p-3 pb-20 bg-slate-50 dark:bg-dark-bg transition-colors">
@@ -314,12 +276,10 @@
     </footer>
 
     <script type="module">
-        // 1. IMPORT FIREBASE (Cleaned up - no duplicates!)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // 2. CONFIGURE MARKED (Links open in new tab)
         if (typeof marked !== 'undefined') {
             marked.use({
                 renderer: {
@@ -335,7 +295,6 @@
             });
         }
 
-        // 3. FIREBASE INIT
         let db = null;
         let auth = null;
         let metaRef = null;
@@ -357,13 +316,12 @@
             metaRef = doc(db, "personal_notes", "ca_hq_meta");
             oldLegacyRef = doc(db, "personal_notes", "ca_final_pad");
         } catch (e) {
-            console.warn("Firebase Init Failed (Likely offline).", e);
+            console.warn("Firebase Init Failed.", e);
         }
 
-        // 4. DATA & STATE
         const DEFAULT_DATA = {
           "subjects": [
-            { "id": "EX_Sub", "name": "Example Subject", "chapters": [
+            { "id": "EX_Sub", "name": "Example Subject", "category": "CA Final", "chapters": [
                 { "id": "ch1", "title": "Start Here", "desc": "Long press items for options.", "children": [] }
             ]}
           ]
@@ -371,13 +329,12 @@
 
         let rawData = null;
         let navStack = []; 
-        let currentView = { items: [], title: 'All Subjects', level: 0, parentLink: null };
+        let currentView = { items: [], title: 'Categories', level: 0, parentLink: null };
         let activeItem = null;
         let activeItemList = null; 
         let activeItemLevel = 0;
         let moveClipboard = { item: null, sourceList: null };
 
-        // 5. APP INIT & AUTHENTICATION
         const overlay = document.getElementById('loading-overlay');
         const loadText = document.getElementById('loading-text');
         const loginOverlay = document.getElementById('mobile-login-overlay');
@@ -385,7 +342,6 @@
         const isDark = localStorage.getItem('darkMode') === 'true';
         if(isDark) document.documentElement.classList.add('dark');
 
-        // Failsafe if auth crashed completely
         if (!auth) {
             if(loadText) {
                 loadText.innerText = "Offline Mode (Firebase Blocked)";
@@ -393,7 +349,6 @@
                 loadText.innerHTML += `<br><br><button onclick="window.loadData(DEFAULT_DATA); document.getElementById('loading-overlay').style.display='none';" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg text-sm mt-4">Load Offline Mode</button>`;
             }
         } else {
-            // Listen for Authentication State IMMEDIATELY (No DOMContentLoaded wrapper)
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     if (loginOverlay) {
@@ -410,7 +365,7 @@
                             const fetchWithTimeout = (promise, ms) => {
                                 let timeoutId;
                                 const timeoutPromise = new Promise((_, reject) => {
-                                    timeoutId = setTimeout(() => reject(new Error("Connection Timeout (Took longer than 15s)")), ms);
+                                    timeoutId = setTimeout(() => reject(new Error("Connection Timeout")), ms);
                                 });
                                 return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
                             };
@@ -425,10 +380,17 @@
                                 const promises = subjectList.map(subItem => getDoc(doc(db, "ca_hq_subjects", subItem.id)));
                                 const snapshots = await fetchWithTimeout(Promise.all(promises), 15000);
                                 
-                                snapshots.forEach(snap => {
+                                snapshots.forEach((snap, idx) => {
                                     if(snap.exists()) {
                                         const r = snap.data();
-                                        finalSubjects.push(r.subjectData ? JSON.parse(r.subjectData) : r);
+                                        const parsed = r.subjectData ? JSON.parse(r.subjectData) : r;
+                                        if (subjectList[idx] && subjectList[idx].category && !parsed.category) {
+                                            parsed.category = subjectList[idx].category;
+                                        }
+                                        if (subjectList[idx] && subjectList[idx].pendingNodeId) {
+                                            parsed.pendingNodeId = subjectList[idx].pendingNodeId;
+                                        }
+                                        finalSubjects.push(parsed);
                                     }
                                 });
                             } else {
@@ -444,27 +406,15 @@
                                         if (overlay) overlay.style.display = 'none';
                                     } catch(e) {
                                         console.error("UI Render Error:", e);
-                                        if (loadText) {
-                                            loadText.innerText = "Render Error: " + e.message;
-                                            loadText.classList.add("text-red-500", "text-center", "px-4");
-                                            loadText.innerHTML += `<br><br><button onclick="document.getElementById('loading-overlay').style.display='none'" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg text-sm">Force Close Overlay</button>`;
-                                        }
                                     }
                                 }, 100);
                                 return;
                             }
                         } catch (e) {
                             console.error("Cloud load error", e);
-                            if (loadText) {
-                                loadText.innerText = "Sync Failed: " + e.message;
-                                loadText.classList.add("text-red-500", "text-center", "px-4");
-                                loadText.innerHTML += `<br><br><button onclick="window.loadData(DEFAULT_DATA); document.getElementById('loading-overlay').style.display='none';" class="px-4 py-2 bg-slate-200 text-slate-800 rounded-lg text-sm mt-4">Load Offline Mode</button>`;
-                            }
-                            return; 
                         }
                     }
 
-                    // Fallback
                     if (loadText) loadText.innerText = "Loading Default Data...";
                     setTimeout(() => { 
                         if (window.loadData) window.loadData(DEFAULT_DATA);
@@ -472,7 +422,6 @@
                     }, 500);
 
                 } else {
-                    // NO USER - SHOW LOGIN
                     if (overlay) overlay.style.display = 'none';
                     if (loginOverlay) {
                         loginOverlay.classList.remove('hidden');
@@ -483,7 +432,6 @@
             });
         }
 
-        // 6. LOGIN/LOGOUT LISTENERS
         document.getElementById('mobile-btn-submit-login')?.addEventListener('click', async () => {
             const email = document.getElementById('mobile-user-email').value;
             const pass = document.getElementById('mobile-user-pass').value;
@@ -503,36 +451,23 @@
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
             } catch (error) {
-                console.error(error);
                 btn.innerHTML = `<span>Sign In</span>`;
                 btn.disabled = false;
-                
-                let msg = "Incorrect email or password.";
-                if(error.code === "auth/invalid-email") msg = "Invalid email format.";
-                if(error.code === "auth/too-many-requests") msg = "Too many attempts. Try again later.";
-                
-                errorBox.textContent = msg;
+                errorBox.textContent = "Incorrect email or password.";
                 errorBox.classList.remove('hidden');
             }
         });
 
         document.getElementById('mobile-btn-logout')?.addEventListener('click', async () => {
             if(confirm("Are you sure you want to log out?")) {
-                try {
-                    await signOut(auth);
-                    console.log("Signed out.");
-                    window.location.reload(); 
-                } catch (error) {
-                    console.error("Logout Error:", error);
-                    alert("Failed to log out: " + error.message);
-                }
+                await signOut(auth);
+                window.location.reload(); 
             }
         });
 
         document.getElementById('mobile-btn-show-pass')?.addEventListener('click', () => {
             const passInput = document.getElementById('mobile-user-pass');
             const icon = document.querySelector('#mobile-btn-show-pass i');
-            
             if (passInput.type === "password") {
                 passInput.type = "text";
                 icon.setAttribute('data-lucide', 'eye-off');
@@ -543,10 +478,29 @@
             if(window.lucide) lucide.createIcons();
         });
 
-        // -- NAVIGATION CORE --
+        window.buildCategoryFolders = function(subjects) {
+            const categoriesMap = {};
+            
+            subjects.forEach(sub => {
+                const catName = sub.category || sub.group || sub.course || "Uncategorized";
+                if (!categoriesMap[catName]) {
+                    categoriesMap[catName] = [];
+                }
+                categoriesMap[catName].push(sub);
+            });
+
+            return Object.keys(categoriesMap).map(catName => ({
+                id: 'cat_' + catName.replace(/\s+/g, '_'),
+                name: catName,
+                isCategoryFolder: true,
+                children: categoriesMap[catName]
+            }));
+        }
+
         window.loadData = function(data) {
             rawData = data;
-            const initialState = { items: data.subjects || [], title: 'All Subjects', level: 0, parentLink: null };
+            const categoryFolders = window.buildCategoryFolders(rawData.subjects || []);
+            const initialState = { items: categoryFolders, title: 'Categories', level: 0, parentLink: null };
             currentView = initialState;
             navStack = []; 
             history.replaceState({ navStack: [], currentView: initialState }, 'Root', null);
@@ -555,20 +509,16 @@
         }
 
         window.navigateTo = function(title, items, level, link, clickedItemId) {
-            // 1. SAVE STATE OF CURRENT VIEW (Scroll + Highlight)
             const scrollPos = document.getElementById('mainContainer').scrollTop;
             
-            // We modify the 'current' history entry before pushing a new one
-            // This ensures when we hit BACK, this data is waiting for us
             const currentStateToSave = { 
-                navStack: navStack, // Keep existing stack
-                currentView: currentView, // Keep view data
-                restoreScroll: scrollPos, // ADD SCROLL
-                restoreHighlight: clickedItemId // ADD HIGHLIGHT ID
+                navStack: navStack,
+                currentView: currentView,
+                restoreScroll: scrollPos,
+                restoreHighlight: clickedItemId
             };
             history.replaceState(currentStateToSave, document.title, null);
 
-            // 2. NAVIGATE TO NEW VIEW
             navStack.push(currentView);
             currentView = { items: items, title: title, level: level, parentLink: link };
             
@@ -584,88 +534,84 @@
 
         window.onpopstate = function(event) {
             if (event.state) {
-                // Restore logic variables
                 navStack = event.state.navStack;
                 currentView = event.state.currentView;
                 
                 window.closeAllOverlays();
                 window.updateUI(true, 'left');
 
-                // RESTORE SCROLL AND HIGHLIGHT
-                // We assume 'event.state' is the state we just returned TO
                 const savedScroll = event.state.restoreScroll;
                 const highlightId = event.state.restoreHighlight;
 
                 setTimeout(() => {
                     const container = document.getElementById('mainContainer');
-                    
-                    // 1. Restore Scroll
-                    if (savedScroll !== undefined) {
-                        container.scrollTop = savedScroll;
-                    }
-
-                    // 2. Restore Highlight
+                    if (savedScroll !== undefined) container.scrollTop = savedScroll;
                     if (highlightId) {
                         const el = document.getElementById('node-' + highlightId);
                         if(el) {
-                            // Scroll element into view if it's somehow off screen (optional safety)
-                            // el.scrollIntoView({block: 'center', behavior: 'smooth'}); 
-                            
-                            // Apply CSS Animation Class
                             el.classList.add('highlight-restore');
-                            
-                            // Optional: Remove class after animation ends so it can be triggered again
-                            setTimeout(() => {
-                                el.classList.remove('highlight-restore');
-                            }, 2000);
+                            setTimeout(() => el.classList.remove('highlight-restore'), 2000);
                         }
                     }
-                }, 50); // Small delay to allow DOM to paint
+                }, 50);
 
             } else {
                 window.loadData(rawData || DEFAULT_DATA);
             }
         };
 
-        // -- DARK MODE LOGIC --
         window.toggleDarkMode = function() {
             const html = document.documentElement;
             html.classList.toggle('dark');
-            const isDark = html.classList.contains('dark');
-            localStorage.setItem('darkMode', isDark);
+            localStorage.setItem('darkMode', html.classList.contains('dark'));
         }
 
-        // -- UI RENDERING --
+        window.openFileActionsModal = function() { document.getElementById('fileActionsOverlay').classList.remove('hidden'); }
+        window.closeFileActionsModal = function() { document.getElementById('fileActionsOverlay').classList.add('hidden'); }
+
+        window.triggerSaveToCloud = function() { window.closeFileActionsModal(); window.saveToCloud(); }
+        window.triggerImportFile = function() { window.closeFileActionsModal(); document.getElementById('fileInput').click(); }
+
         window.updateUI = function(animate = true, direction = 'right') {
             const container = document.getElementById('mainContainer');
             const headerTitle = document.getElementById('headerTitle');
             const backBtn = document.getElementById('backBtn');
             const badge = document.getElementById('currentLevelBadge');
             const btnAddLevel = document.getElementById('btnAddLevel');
+            const btnDarkModeToggle = document.getElementById('btnDarkModeToggle');
+            const btnPendingHeader = document.getElementById('btnPendingHeader');
 
-            // TOGGLE ADD BUTTON VISIBILITY
+            
             if (currentView.level === 0) {
                 btnAddLevel.classList.remove('hidden');
+                btnDarkModeToggle.classList.remove('hidden');
+                btnPendingHeader.classList.add('hidden');
             } else {
                 btnAddLevel.classList.add('hidden');
+                btnDarkModeToggle.classList.add('hidden');
+                btnPendingHeader.classList.add('hidden');
+
+                // Only display target icon inside an individual subject (Level 2 or deeper)
+                if (currentView.level >= 2) {
+                    const activeSub = window.getSubjectContext();
+                    if (activeSub && activeSub.pendingNodeId) {
+                        btnPendingHeader.classList.remove('hidden');
+                    }
+                }
             }
             
-            // Header
             headerTitle.textContent = currentView.title;
             const wrapper = document.getElementById('headerTitleWrapper');
             headerTitle.classList.remove('animate-marquee');
             setTimeout(() => { if (headerTitle.scrollWidth > wrapper.clientWidth) headerTitle.classList.add('animate-marquee'); }, 50);
 
-            // Nav Btn
             if (navStack.length > 0) { backBtn.classList.remove('hidden'); backBtn.onclick = window.navigateBack; } 
             else { backBtn.classList.add('hidden'); }
 
-            // Badge
             badge.textContent = currentView.level === 0 ? 'Home' : `Lvl ${currentView.level}`;
             const colors = ['bg-slate-200 text-slate-700 dark:bg-dark-hover dark:text-dark-text', 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300', 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300', 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'];
             badge.className = `px-2 py-0.5 rounded font-bold text-xs ${colors[Math.min(currentView.level, 3)]}`;
 
-            // List
             const listHtml = document.createElement('div');
             listHtml.className = `space-y-3 ${animate ? (direction === 'right' ? 'slide-in-right' : 'slide-in-left') : ''}`;
 
@@ -682,50 +628,44 @@
             lucide.createIcons();
         }
 
-        // -- ITEM CARD (Robust Logic) --
         window.createItemCard = function(item, level, parentLink, itemList) {
-            // 1. Ensure Item has an ID (Critical for highlighting)
             if (!item.id) item.id = 'gen_' + Math.random().toString(36).substr(2, 9);
             
             const title = item.name || item.title || "Untitled";
             const children = item.chapters || item.children || [];
             const hasChildren = children.length > 0;
             const currentLink = item.link || parentLink;
-            
-            // Define Styles per Level
+
             const styles = [
-                { border: 'bg-slate-800 dark:bg-dark-border', icon: 'bg-slate-100 text-slate-700 dark:bg-dark-hover dark:text-dark-text', text: 'text-slate-800 dark:text-dark-text' },
+                { border: 'bg-indigo-600', icon: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400', text: 'text-slate-800 dark:text-dark-text' },
                 { border: 'bg-blue-500', icon: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400', text: 'text-slate-800 dark:text-dark-text' },
                 { border: 'bg-teal-500', icon: 'bg-teal-50 text-teal-600 dark:bg-teal-900/20 dark:text-teal-400', text: 'text-slate-800 dark:text-dark-text' },
                 { border: 'bg-amber-500', icon: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400', text: 'text-slate-800 dark:text-dark-text' }
             ][Math.min(level, 3)];
 
-            // --- NEW: DEFINE HIGHLIGHT COLORS ---
-            // Maps level to [Main Color, Background Tint (20%), Fade Tint (5%)]
             const colorMap = [
-                ['#64748b', 'rgba(100, 116, 139, 0.2)', 'rgba(100, 116, 139, 0.05)'], // Lvl 0: Slate
-                ['#3b82f6', 'rgba(59, 130, 246, 0.2)', 'rgba(59, 130, 246, 0.05)'],   // Lvl 1: Blue
-                ['#14b8a6', 'rgba(20, 184, 166, 0.2)', 'rgba(20, 184, 166, 0.05)'],   // Lvl 2: Teal
-                ['#f59e0b', 'rgba(245, 158, 11, 0.2)', 'rgba(245, 158, 11, 0.05)']    // Lvl 3: Amber
+                ['#6366f1', 'rgba(99, 102, 241, 0.2)', 'rgba(99, 102, 241, 0.05)'],
+                ['#3b82f6', 'rgba(59, 130, 246, 0.2)', 'rgba(59, 130, 246, 0.05)'],
+                ['#14b8a6', 'rgba(20, 184, 166, 0.2)', 'rgba(20, 184, 166, 0.05)'],
+                ['#f59e0b', 'rgba(245, 158, 11, 0.2)', 'rgba(245, 158, 11, 0.05)']
             ][Math.min(level, 3)];
 
             const card = document.createElement('div');
             card.id = 'node-' + item.id; 
             
-            // APPLY DYNAMIC COLORS
             card.style.setProperty('--pulse-color', colorMap[0]);
             card.style.setProperty('--pulse-bg', colorMap[1]);
             card.style.setProperty('--pulse-bg-fade', colorMap[2]);
 
-            card.className = `level-card noselect relative bg-white dark:bg-dark-card rounded-xl shadow-sm border border-slate-200 dark:border-dark-border overflow-hidden flex flex-col ${hasChildren ? 'cursor-pointer' : ''}`;
+            card.className = `level-card noselect relative bg-white dark:bg-dark-card rounded-xl shadow-sm border border-slate-200 dark:border-dark-border overflow-hidden flex flex-col ${hasChildren || item.isCategoryFolder ? 'cursor-pointer' : ''}`;
             
-            // -- INTERACTION LOGIC --
             let longPressTimer = null;
             let isDragging = false;
             let startX = 0, startY = 0;
             let longPressTriggered = false;
 
             const handleStart = (x, y) => {
+                if(item.isCategoryFolder) return;
                 isDragging = false;
                 longPressTriggered = false;
                 startX = x; startY = y;
@@ -743,9 +683,7 @@
                 }
             };
 
-            const handleEnd = (e) => {
-                clearTimeout(longPressTimer);
-            };
+            const handleEnd = () => clearTimeout(longPressTimer);
 
             card.addEventListener('touchstart', (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
             card.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
@@ -764,13 +702,11 @@
                     e.preventDefault(); 
                     return;
                 }
-                if (hasChildren) {
-                    // Pass ID to navigateTo so we can highlight on return
+                if (hasChildren || item.isCategoryFolder) {
                     window.navigateTo(title, children, level + 1, currentLink, item.id);
                 }
             };
 
-            // -- RENDER CONTENT --
             const borderIndicator = document.createElement('div');
             borderIndicator.className = `absolute left-0 top-0 bottom-0 w-1.5 ${styles.border}`;
             card.appendChild(borderIndicator);
@@ -778,12 +714,13 @@
             const content = document.createElement('div');
             content.className = `p-4 pl-5 flex items-start gap-3 active:bg-slate-50 dark:active:bg-dark-hover transition-colors`;
 
-            // Icon
             const iconContainer = document.createElement('div');
             iconContainer.className = `icon-trigger mt-1 p-2 rounded-lg flex-none ${styles.icon} cursor-pointer active:scale-90 transition-transform z-10`;
+            
             let iconName = hasChildren ? 'folder' : 'file-text';
-            if (level === 0) iconName = 'library';
-            if (!hasChildren && (item.pdfPage || currentLink)) iconName = 'book-open';
+            if (item.isCategoryFolder) iconName = 'folder-closed';
+            else if (level === 1) iconName = 'library';
+            if (!hasChildren && !item.isCategoryFolder && (item.pdfPage || currentLink)) iconName = 'book-open';
             
             iconContainer.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
             iconContainer.onmousedown = (e) => e.stopPropagation(); 
@@ -793,7 +730,6 @@
                 if (item.pdfPage || currentLink) window.openLink(e, currentLink, item.pdfPage);
             };
 
-            // Text
             const textContainer = document.createElement('div');
             textContainer.className = 'flex-1 min-w-0 pointer-events-none'; 
             
@@ -801,7 +737,6 @@
             titleEl.className = `text-sm font-semibold ${styles.text} whitespace-normal break-words leading-snug`;
             titleEl.textContent = title;
 
-            // Badges
             if (item.pdfPage) {
                 const pg = document.createElement('span');
                 pg.className = 'inline-block mt-1 bg-slate-100 dark:bg-dark-hover text-slate-500 dark:text-dark-subtext text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-200 dark:border-dark-border ml-1 align-middle';
@@ -815,20 +750,28 @@
                 titleEl.appendChild(note);
             }
 
-            if (item.desc) {
+            const activeSubForCard = window.getSubjectContext();
+            if (activeSubForCard && activeSubForCard.pendingNodeId === item.id) {
+                const pendingBadge = document.createElement('span');
+                pendingBadge.className = 'inline-block mt-1 text-[13px] ml-1.5 align-middle';
+                pendingBadge.title = 'Pending Bookmark';
+                pendingBadge.textContent = '🎯';
+                titleEl.appendChild(pendingBadge);
+            }
+
+            textContainer.appendChild(titleEl);
+
+            if (item.desc || item.isCategoryFolder) {
                 const descEl = document.createElement('p');
                 descEl.className = 'text-xs text-slate-500 dark:text-dark-subtext mt-1 whitespace-normal break-words leading-relaxed';
-                descEl.textContent = item.desc;
-                textContainer.appendChild(titleEl);
+                descEl.textContent = item.isCategoryFolder ? `${children.length} Subject(s)` : item.desc;
                 textContainer.appendChild(descEl);
-            } else {
-                textContainer.appendChild(titleEl);
             }
 
             content.appendChild(iconContainer);
             content.appendChild(textContainer);
 
-            if (hasChildren) {
+            if (hasChildren || item.isCategoryFolder) {
                 const chevron = document.createElement('div');
                 chevron.innerHTML = `<i data-lucide="chevron-right" class="w-5 h-5 text-slate-300 dark:text-dark-subtext"></i>`;
                 chevron.className = 'self-center pl-2';
@@ -839,7 +782,6 @@
             return card;
         }
 
-        // -- CLOUD SAVE --
         window.saveToCloud = async function() {
             if(!db) { alert("Cloud not available (Offline or blocked)."); return; }
             if(!confirm("Overwrite cloud data?")) return;
@@ -850,10 +792,15 @@
             txt.innerText = "Saving...";
 
             try {
-                const subjects = window.appState ? window.appState.subjects : rawData.subjects;
+                const subjects = rawData.subjects || [];
                 const meta = {
                     activeSubjectId: 'root',
-                    subjectList: subjects.map(s => ({ id: s.id || 'id_'+Date.now(), name: s.name })),
+                    subjectList: subjects.map(s => ({ 
+                        id: s.id || 'id_'+Date.now(), 
+                        name: s.name || s.title,
+                        category: s.category || s.group || s.course || null,
+                        pendingNodeId: s.pendingNodeId || null
+                    })),
                     lastUpdated: new Date().toISOString()
                 };
                 await setDoc(metaRef, meta);
@@ -870,18 +817,17 @@
             }
         }
 
-        // -- ACTIONS --
         window.triggerLongPressOptions = function(item, itemList, level) {
             activeItem = item; activeItemList = itemList; activeItemLevel = level;
             
-            // CONSTRAINT: Disable "Add Child" if level is 3 or greater
             const btn = document.getElementById('btnOptionAddChild');
-            if (level >= 4) {
-                btn.classList.add('opacity-50', 'pointer-events-none');
-            } else {
-                btn.classList.remove('opacity-50', 'pointer-events-none');
-            }
-            
+            if (level >= 4) btn.classList.add('opacity-50', 'pointer-events-none');
+            else btn.classList.remove('opacity-50', 'pointer-events-none');
+
+            const btnPending = document.getElementById('btnSetPending');
+            if (level < 1) btnPending.classList.add('hidden');
+            else btnPending.classList.remove('hidden');
+
             document.getElementById('optionsOverlay').classList.remove('hidden');
         }
 
@@ -889,24 +835,40 @@
             document.getElementById('optionsOverlay').classList.add('hidden');
             document.getElementById('editOverlay').classList.remove('hidden');
             document.getElementById('editTitleInput').value = activeItem.name || activeItem.title || "";
+            
+            const catContainer = document.getElementById('editCategoryContainer');
+            if (activeItemLevel === 1) {
+                catContainer.classList.remove('hidden');
+                document.getElementById('editCategoryInput').value = activeItem.category || activeItem.group || activeItem.course || "";
+            } else {
+                catContainer.classList.add('hidden');
+            }
+            
             document.getElementById('editPageInput').value = activeItem.pdfPage || "";
         }
+
         window.saveEdit = function() {
             const t = document.getElementById('editTitleInput').value;
+            const c = document.getElementById('editCategoryInput').value;
             const p = document.getElementById('editPageInput').value;
             if(activeItem.name) activeItem.name = t; else activeItem.title = t;
+            if(activeItemLevel === 1) {
+                if(c.trim()) activeItem.category = c.trim(); else delete activeItem.category;
+            }
             if(p.trim()) activeItem.pdfPage = p; else delete activeItem.pdfPage;
-            window.updateUI(false); window.closeAllOverlays();
+            
+            if(activeItemLevel === 1) {
+                window.loadData(rawData);
+            } else {
+                window.updateUI(false);
+            }
+            window.closeAllOverlays();
         }
 
         window.openNotesModal = function() {
             document.getElementById('optionsOverlay').classList.add('hidden');
             document.getElementById('notesOverlay').classList.remove('hidden');
-            
-            // STEP 1: Load the correct notes into the input box FIRST
             document.getElementById('notesInput').value = activeItem.notes || "";
-            
-            // STEP 2: THEN switch to preview (so it sees the notes we just loaded)
             window.toggleNotesTab('preview');
         }
 
@@ -931,24 +893,20 @@
         }
 
         window.addLevelItem = function() {
-            const n = prompt("New Item Name:");
+            const n = prompt("New Category Name:");
             if(!n) return;
-            const obj = { id: 'new_'+Date.now(), title: n, children: [] };
-            if (currentView.level === 0) obj.name = n;
-            currentView.items.push(obj);
-            window.updateUI(false);
+            const obj = { id: 'sub_'+Date.now(), name: "Sample Subject", category: n, chapters: [] };
+            rawData.subjects.push(obj);
+            window.loadData(rawData);
         }
 
-        // Context Menu Add Child
         window.addChildItem = function() {
-            // Safety Check
-            if (activeItemLevel >= 3) return;
-
+            if (activeItemLevel >= 4) return;
             const n = prompt("Name for new child:");
             if(!n) return;
             const obj = { id: 'new_'+Date.now(), title: n, children: [] };
             
-            if(activeItemLevel === 0) { 
+            if(activeItemLevel === 1) { 
                 if(!activeItem.chapters) activeItem.chapters=[]; 
                 activeItem.chapters.push(obj); 
             } else { 
@@ -962,7 +920,9 @@
             if(confirm("Delete item?")) {
                 const idx = activeItemList.indexOf(activeItem);
                 if(idx > -1) activeItemList.splice(idx, 1);
-                window.updateUI(false); window.closeAllOverlays();
+                if(activeItemLevel === 1) window.loadData(rawData);
+                else window.updateUI(false);
+                window.closeAllOverlays();
             }
         }
 
@@ -1011,7 +971,7 @@
         }
 
         window.closeAllOverlays = function() {
-            ['optionsOverlay','editOverlay','notesOverlay','pathOverlay'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            ['optionsOverlay','editOverlay','notesOverlay','pathOverlay','fileActionsOverlay'].forEach(id => document.getElementById(id).classList.add('hidden'));
             document.getElementById('pathContentPanel').classList.remove('translate-y-0');
         }
 
@@ -1029,7 +989,7 @@
         window.getLevelStyles = function(level) {
             const safeLevel = level > 3 ? 3 : level; 
             switch (safeLevel) {
-                case 0: return { iconBg: 'bg-slate-100 dark:bg-dark-hover', iconColor: 'text-slate-700 dark:text-dark-text', textColor: 'text-slate-800 dark:text-dark-text' };
+                case 0: return { iconBg: 'bg-indigo-50 dark:bg-indigo-900/20', iconColor: 'text-indigo-600 dark:text-indigo-400', textColor: 'text-slate-800 dark:text-dark-text' };
                 case 1: return { iconBg: 'bg-blue-50 dark:bg-blue-900/20', iconColor: 'text-blue-600 dark:text-blue-400', textColor: 'text-slate-800 dark:text-dark-text' };
                 case 2: return { iconBg: 'bg-teal-50 dark:bg-teal-900/20', iconColor: 'text-teal-600 dark:text-teal-400', textColor: 'text-slate-800 dark:text-dark-text' };
                 default: return { iconBg: 'bg-amber-50 dark:bg-amber-900/20', iconColor: 'text-amber-600 dark:text-amber-400', textColor: 'text-slate-800 dark:text-dark-text' };
@@ -1050,7 +1010,7 @@
                 
                 const iconBox = document.createElement('div');
                 iconBox.className = `w-8 h-8 rounded-full flex items-center justify-center flex-none ${styles.iconBg} ${styles.iconColor}`;
-                let iconName = index === 0 ? 'library' : 'folder';
+                let iconName = index === 0 ? 'folder-closed' : (index === 1 ? 'library' : 'folder');
                 if(isLeaf) iconName = 'file-text';
                 iconBox.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4"></i>`;
 
@@ -1058,7 +1018,7 @@
                 textBox.className = 'flex-1';
                 const title = document.createElement('div');
                 title.className = `text-sm font-semibold ${styles.textColor}`;
-                title.textContent = step.level === 0 ? 'Home' : step.title;
+                title.textContent = step.level === 0 ? 'Categories' : step.title;
                 
                 textBox.appendChild(title);
                 row.prepend(iconBox);
@@ -1123,9 +1083,7 @@
              document.getElementById('clearSearchBtn').classList.add('hidden');
              if(navStack.length) history.back(); else window.loadData(rawData);
         }
-        // -- QUICK JUMP TO PENDING --
 
-        // 1. Recursive Search by ID
         window.findPathToNodeById = function(nodes, targetId, currentPath = []) {
             for (let node of nodes) {
                 if (node.id === targetId) {
@@ -1140,140 +1098,98 @@
             return null;
         };
 
-        // 2. The Action Function
-        window.jumpToPending = function() {
-            let targetId = null;
-
-            // A. Find the Pending ID (Checks all subjects to match Desktop logic)
-            if (rawData.subjects) {
-                for (let sub of rawData.subjects) {
-                    if (sub.pendingNodeId) {
-                        targetId = sub.pendingNodeId;
-                        break;
-                    }
-                }
+        window.getSubjectContext = function() {
+            const fullPath = [...navStack, currentView];
+            if (fullPath.length >= 3) {
+                const subjectTitle = fullPath[2].title;
+                return (rawData.subjects || []).find(s => (s.name || s.title) === subjectTitle) || null;
+            } else if (fullPath.length === 2) {
+                const catName = fullPath[1].title;
+                const subjectsInCat = (rawData.subjects || []).filter(s => (s.category || s.group || s.course || "Uncategorized") === catName);
+                const subWithPending = subjectsInCat.find(s => s.pendingNodeId);
+                return subWithPending || null;
             }
-            // Fallback for older saves
-            if (!targetId && rawData.pendingNodeId) targetId = rawData.pendingNodeId;
+            return null;
+        };
 
-            if (!targetId) {
-                alert("No 'Pending' node is currently assigned.");
+        window.jumpToPending = function() {
+            const activeSub = window.getSubjectContext();
+            if (!activeSub) {
+                alert("Please select a subject first to jump to its pending item.");
                 return;
             }
 
-            // B. Search for that ID in the hierarchy
-            const result = window.findPathToNodeById(rawData.subjects || [], targetId);
+            const targetId = activeSub.pendingNodeId;
+            if (!targetId) {
+                alert(`No pending item set for "${activeSub.name || activeSub.title}".`);
+                return;
+            }
+
+            const result = window.findPathToNodeById([activeSub], targetId);
 
             if (!result) {
-                alert("The assigned Pending node could not be found (it might have been deleted).");
+                alert("The pending item could not be found.");
                 return;
             }
 
             const { foundNode, path } = result;
 
-            // C. Save the current state so we can return here if we hit browser back
-            const scrollPos = document.getElementById('mainContainer').scrollTop;
-            const currentStateToSave = { 
-                navStack: navStack,
-                currentView: currentView,
-                restoreScroll: scrollPos,
-                restoreHighlight: null
-            };
-            history.replaceState(currentStateToSave, document.title, null);
+            const catFolders = window.buildCategoryFolders(rawData.subjects || []);
+            const catName = activeSub.category || activeSub.group || activeSub.course || "Uncategorized";
+            const subjectFolder = catFolders.find(c => c.name === catName);
 
-            // D. Reconstruct navStack representing the path to the target folder
-            navStack = []; 
-            navStack.push({
-                title: 'All Subjects',
-                items: rawData.subjects || [],
-                level: 0,
-                parentLink: null
-            });
+            navStack = [];
+            navStack.push({ items: catFolders, title: 'Categories', level: 0, parentLink: null });
             
-            for (let i = 0; i < path.length; i++) {
+            if (subjectFolder) {
+                navStack.push({ items: subjectFolder.children, title: subjectFolder.name, level: 1, parentLink: null });
+            }
+
+            for (let i = 0; i < path.length - 1; i++) {
                 const step = path[i];
-                if (i === path.length - 1) break; // Don't push the immediate parent to stack, it's the currentView
-                
                 navStack.push({
                     title: step.name || step.title,
                     items: step.chapters || step.children || [],
-                    level: i + 1,
+                    level: navStack.length,
                     parentLink: step.link || null
                 });
             }
 
-            // The folder containing the pending item becomes our active view
-            const parentNode = path.length > 0 ? path[path.length - 1] : null;
-            if (parentNode) {
-                currentView = {
-                    title: parentNode.name || parentNode.title,
-                    items: parentNode.chapters || parentNode.children || [],
-                    level: path.length,
-                    parentLink: parentNode.link || null
-                };
-            } else {
-                currentView = {
-                    title: 'All Subjects',
-                    items: rawData.subjects || [],
-                    level: 0,
-                    parentLink: null
-                };
-                navStack = []; 
-            }
+            const parentNode = path.length > 0 ? path[path.length - 1] : foundNode;
+            currentView = {
+                title: parentNode.name || parentNode.title,
+                items: parentNode.chapters || parentNode.children || [],
+                level: navStack.length,
+                parentLink: parentNode.link || null
+            };
 
-            // E. Push deep link to history and Render
             history.pushState({ navStack: navStack, currentView: currentView }, currentView.title, null);
             window.updateUI(true, 'right');
             document.getElementById('mainContainer').scrollTop = 0;
 
-            // F. 🎯 THE FIX: EXACT SCROLL & HIGHLIGHT 🎯
-            // We use a slight delay to allow the slide-in animation to finish rendering the DOM elements
             setTimeout(() => {
                 const el = document.getElementById('node-' + foundNode.id);
                 if (el) {
-                    // Scroll exactly to the node so it centers on the mobile screen
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    // Trigger the pulsing highlight animation defined in your CSS
                     el.classList.add('highlight-restore');
-                    
-                    // Add a temporary red glow to heavily emphasize it is the "Pending" target
-                    const oldShadow = el.style.boxShadow;
-                    const oldBorder = el.style.borderColor;
-                    el.style.boxShadow = '0 0 0 4px rgba(239, 68, 68, 0.4)';
-                    el.style.borderColor = '#ef4444';
-                    
-                    setTimeout(() => {
-                        el.classList.remove('highlight-restore');
-                        el.style.boxShadow = oldShadow;
-                        el.style.borderColor = oldBorder;
-                    }, 2500);
+                    setTimeout(() => el.classList.remove('highlight-restore'), 2500);
                 }
             }, 350); 
         };
 
-        // 3. Set Pending Logic (Proper Cloud Sync Integration)
         window.setAsPending = function() {
             if(!activeItem) return;
             
-            // Find which subject this item belongs to
             const result = window.findPathToNodeById(rawData.subjects || [], activeItem.id);
             
-            if (result && result.path.length > 0) {
-                const subjectNode = result.path[0]; 
-                
-                // Clear old pending IDs from all subjects
-                rawData.subjects.forEach(s => delete s.pendingNodeId);
-                
-                // Set it on the correct subject
+            if (result) {
+                const subjectNode = (result.path && result.path.length > 0) ? result.path[0] : result.foundNode; 
                 subjectNode.pendingNodeId = activeItem.id;
                 
-                // Immediately force a cloud save so Desktop sees the update instantly
                 window.saveToCloud(); 
-                
-                alert(`"${activeItem.name || activeItem.title}" is now the Pending item.`);
+                alert(`"${activeItem.name || activeItem.title}" set as pending for ${subjectNode.name || subjectNode.title}.`);
             } else {
-                alert("Error setting pending item.");
+                alert("Could not set pending item.");
             }
             
             window.closeAllOverlays();
