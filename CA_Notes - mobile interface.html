@@ -268,7 +268,7 @@
                 ✘
             </button>
         </div>
-        <div class="px-4 pb-3">
+        <div id="searchBarContainer" class="px-4 pb-3">
             <div class="relative">
                 <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4"></i>
                 <input type="text" id="searchInput" placeholder="Search..." class="allow-select w-full bg-slate-100 dark:bg-dark-bg dark:text-dark-text border-none rounded-xl py-2.5 pl-10 pr-10 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all placeholder-slate-400" oninput="window.handleSearch(this.value)">
@@ -521,26 +521,6 @@
             window.updateStats(data);
         }
 
-        window.navigateTo = function(title, items, level, link, clickedItemId) {
-            const scrollPos = document.getElementById('mainContainer').scrollTop;
-            
-            const currentStateToSave = { 
-                navStack: navStack,
-                currentView: currentView,
-                restoreScroll: scrollPos,
-                restoreHighlight: clickedItemId
-            };
-            history.replaceState(currentStateToSave, document.title, null);
-
-            navStack.push(currentView);
-            currentView = { items: items, title: title, level: level, parentLink: link };
-            
-            history.pushState({ navStack: navStack, currentView: currentView }, title, null);
-            
-            window.updateUI(true, 'right');
-            document.getElementById('mainContainer').scrollTop = 0;
-        }
-
         window.navigateBack = function() {
             if (navStack.length > 0) history.back();
         }
@@ -585,6 +565,34 @@
         window.triggerSaveToCloud = function() { window.closeFileActionsModal(); window.saveToCloud(); }
         window.triggerImportFile = function() { window.closeFileActionsModal(); document.getElementById('fileInput').click(); }
 
+        window.navigateTo = function(title, items, level, link, clickedItemId) {
+            // === INSERT HERE (Cleans search text upon tapping any folder/card) ===
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && searchInput.value) {
+                searchInput.value = '';
+                document.getElementById('clearSearchBtn')?.classList.add('hidden');
+            }
+            // ====================================================================
+
+            const scrollPos = document.getElementById('mainContainer').scrollTop;
+            
+            const currentStateToSave = { 
+                navStack: navStack,
+                currentView: currentView,
+                restoreScroll: scrollPos,
+                restoreHighlight: clickedItemId
+            };
+            history.replaceState(currentStateToSave, document.title, null);
+
+            navStack.push(currentView);
+            currentView = { items: items, title: title, level: level, parentLink: link };
+            
+            history.pushState({ navStack: navStack, currentView: currentView }, title, null);
+            
+            window.updateUI(true, 'right');
+            document.getElementById('mainContainer').scrollTop = 0;
+        }
+
         window.updateUI = function(animate = true, direction = 'right') {
             const container = document.getElementById('mainContainer');
             const headerTitle = document.getElementById('headerTitle');
@@ -592,12 +600,17 @@
             const btnAddLevel = document.getElementById('btnAddLevel');
             const btnDarkModeToggle = document.getElementById('btnDarkModeToggle');
             const btnPendingHeader = document.getElementById('btnPendingHeader');
+            const searchBarContainer = document.getElementById('searchBarContainer');
 
-            if (currentView.level === 0) {
+            // Show search bar ONLY on the Home/Categories level (0) or active Search query view (99)
+            if (currentView.level === 0 || currentView.level === 99) {
+                if (searchBarContainer) searchBarContainer.classList.remove('hidden');
                 btnAddLevel.classList.remove('hidden');
                 btnDarkModeToggle.classList.remove('hidden');
                 btnPendingHeader.classList.add('hidden');
             } else {
+                // Hidden for all subjects, chapters, and nested levels
+                if (searchBarContainer) searchBarContainer.classList.add('hidden');
                 btnAddLevel.classList.add('hidden');
                 btnDarkModeToggle.classList.add('hidden');
                 btnPendingHeader.classList.add('hidden');
@@ -913,27 +926,68 @@
             currentNotesList.forEach((note, idx) => {
                 const btn = document.createElement('button');
                 const isActive = idx === activeNoteIdx;
-                btn.className = `px-3.5 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                btn.className = `px-3.5 py-1.5 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-all whitespace-nowrap select-none ${
                     isActive 
                         ? 'bg-purple-600 text-white shadow-sm' 
                         : 'bg-slate-100 dark:bg-dark-hover text-slate-600 dark:text-dark-subtext hover:bg-slate-200 dark:hover:bg-dark-border'
                 }`;
                 
                 btn.innerHTML = `<span>Note ${idx + 1}</span>`;
-                if (currentNotesList.length > 1) {
-                    const del = document.createElement('span');
-                    del.innerHTML = '&times;';
-                    del.className = 'ml-1 hover:text-red-300 font-bold text-sm leading-none';
-                    del.title = 'Delete Tab';
-                    del.onclick = (e) => {
-                        e.stopPropagation();
+                btn.title = "Tap to view, long press to delete";
+
+                let longPressTimer = null;
+                let isDragging = false;
+                let startX = 0, startY = 0;
+                let longPressTriggered = false;
+
+                const startPress = (x, y) => {
+                    isDragging = false;
+                    longPressTriggered = false;
+                    startX = x;
+                    startY = y;
+                    longPressTimer = setTimeout(() => {
+                        longPressTriggered = true;
+                        if (navigator.vibrate) navigator.vibrate(50);
                         if (confirm(`Delete Note ${idx + 1}?`)) {
                             window.deleteCurrentNoteTab(idx);
                         }
-                    };
-                    btn.appendChild(del);
-                }
-                btn.onclick = () => {
+                    }, 500);
+                };
+
+                const movePress = (x, y) => {
+                    if (Math.abs(x - startX) > 10 || Math.abs(y - startY) > 10) {
+                        isDragging = true;
+                        clearTimeout(longPressTimer);
+                    }
+                };
+
+                const cancelPress = () => clearTimeout(longPressTimer);
+
+                // Touch support
+                btn.addEventListener('touchstart', (e) => startPress(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+                btn.addEventListener('touchmove', (e) => movePress(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+                btn.addEventListener('touchend', cancelPress);
+                btn.addEventListener('touchcancel', cancelPress);
+
+                // Desktop / Mouse hold support
+                btn.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) startPress(e.clientX, e.clientY);
+                });
+                btn.addEventListener('mousemove', (e) => {
+                    if (e.buttons === 1) movePress(e.clientX, e.clientY);
+                });
+                btn.addEventListener('mouseup', cancelPress);
+                btn.addEventListener('mouseleave', cancelPress);
+
+                btn.oncontextmenu = (e) => e.preventDefault();
+
+                btn.onclick = (e) => {
+                    // Prevent switching active tab if action was a long-press delete or scroll drag
+                    if (longPressTriggered || isDragging) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return;
+                    }
                     if (activeNoteIdx !== idx) {
                         const input = document.getElementById('notesInput');
                         if (!input.classList.contains('hidden')) {
@@ -944,6 +998,7 @@
                         window.loadActiveNoteContent();
                     }
                 };
+
                 container.appendChild(btn);
             });
         };
