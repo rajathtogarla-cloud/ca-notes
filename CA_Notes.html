@@ -3587,7 +3587,6 @@
         const textarea = document.getElementById('note-content');
         const preview = document.getElementById('note-preview');
 
-        // Clean out any legacy fallback strings saved to storage
         let cleanContent = (currentContent || '').trim();
         if (cleanContent === '*No content*' || cleanContent === 'No content') {
             cleanContent = '';
@@ -3605,6 +3604,11 @@
         }
 
         setNoteMode('VIEW');
+
+        // Re-wire cross-note click handlers and tooltips
+        if (typeof setupCrossNoteLinks === 'function') {
+            setupCrossNoteLinks();
+        }
     }
 
     function openNotesModal(e, id) {
@@ -3639,8 +3643,10 @@
         let updatedContent = '';
         if (isNoteEditMode && textarea) {
             updatedContent = textarea.value;
-        } else if (preview && (preview.isContentEditable || preview.classList.contains('is-editing-active'))) {
-            updatedContent = textarea ? textarea.value : (preview.innerText || '');
+        } else if (preview) {
+            // Always serialize HTML to Markdown so formatting spans/colors are preserved
+            updatedContent = typeof htmlToMarkdown === 'function' ? htmlToMarkdown(preview).trim() : preview.innerText;
+            if (textarea) textarea.value = updatedContent;
         } else if (textarea) {
             updatedContent = textarea.value;
         }
@@ -6885,24 +6891,29 @@
 <script>
     // --- INTERCEPT LINKS TO OPEN IN MOZILLA CUSTOM VIEWER ---
     document.addEventListener('click', function(e) {
-        // 1. Check if the clicked element (or its parent) is a link <a>
         const link = e.target.closest('a');
-        
-        // ADD THIS: && !link.href.startsWith('blob:')
-        if (link && link.href && !link.href.startsWith('javascript:') && !link.href.startsWith('#') && !link.href.startsWith('blob:')) {
-            
-            // 3. Prevent standard browser navigation
-            e.preventDefault();
-            e.stopPropagation();
+        if (!link) return;
 
-            // 4. Route the URL to your existing "openSmartPdf" function
-            // This uses the same Mozilla viewer overlay used for your page redirects
-            if (typeof window.openSmartPdf === 'function') {
-                window.openSmartPdf(link.href);
-            } else {
-                // Fallback (only if the viewer isn't loaded yet)
-                window.open(link.href, '_blank');
-            }
+        const rawHref = link.getAttribute('href') || '';
+
+        // Ignore anchor links, internal note links, blobs, and script links
+        if (
+            !rawHref ||
+            rawHref.startsWith('#') ||
+            rawHref.startsWith('javascript:') ||
+            rawHref.startsWith('blob:') ||
+            link.classList.contains('cross-note-link')
+        ) {
+            return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (typeof window.openSmartPdf === 'function') {
+            window.openSmartPdf(link.href);
+        } else {
+            window.open(link.href, '_blank');
         }
     });
 </script>
@@ -10592,10 +10603,26 @@ function htmlToMarkdown(node) {
         case 'strike':
         case 'del': return childrenText ? `~~${childrenText}~~` : '';
         case 'mark': return childrenText ? `<mark style="background:#fef08a; padding:1px 4px; border-radius:3px;">${childrenText}</mark>` : '';
-        case 'span':
-            if (node.id && node.id.startsWith('anc-')) return `<span id="${node.id}">${childrenText}</span>`;
-            if (node.style && node.style.color) return `<span style="color:${node.style.color}; font-weight:600;">${childrenText}</span>`;
+        case 'font': {
+            const fontColor = node.getAttribute('color');
+            if (fontColor) {
+                return `<span style="color:${fontColor}; font-weight:600;">${childrenText}</span>`;
+            }
             return childrenText;
+        }
+        case 'span': {
+            let styleAttr = '';
+            if (node.style && node.style.color) {
+                styleAttr += `color:${node.style.color}; font-weight:600;`;
+            }
+            if (node.id && node.id.startsWith('anc-')) {
+                return `<span id="${node.id}"${styleAttr ? ` style="${styleAttr}"` : ''}>${childrenText}</span>`;
+            }
+            if (styleAttr) {
+                return `<span style="${styleAttr}">${childrenText}</span>`;
+            }
+            return childrenText;
+        }
         case 'a': {
             const href = node.getAttribute('href') || '';
             const isBack = node.classList.contains('is-backlink') || node.getAttribute('data-backlink') === 'true' || href.includes('backlink=1');
