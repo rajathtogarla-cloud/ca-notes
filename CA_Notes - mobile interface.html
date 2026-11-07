@@ -49,16 +49,109 @@
         .level-card { transition: transform 0.15s ease, background-color 0.2s, box-shadow 0.2s; will-change: transform; }
         .level-card:active { transform: scale(0.98); }
 
-        .markdown-body { font-size: 0.925rem; line-height: 1.6; outline: none; }
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 600; margin-top: 0.8em; margin-bottom: 0.4em; }
-        .markdown-body ul { list-style-type: disc; padding-left: 1.5em; }
-        .markdown-body blockquote { border-left: 4px solid #cbd5e1; padding-left: 1em; font-style: italic; }
-        .markdown-body code { background-color: rgba(0,0,0,0.05); padding: 0.1em 0.3em; border-radius: 0.25rem; font-family: monospace; color: #ef4444; }
+        /* --- CLEAN & SPACIOUS NOTES TYPOGRAPHY --- */
+        .markdown-body {
+            font-size: 0.975rem;
+            line-height: 1.85;
+            letter-spacing: 0.015em;
+            outline: none;
+            padding-bottom: 3rem; /* extra scroll clearance at the bottom */
+        }
 
-        .dark .markdown-body { color: #e2e8f0; }
-        .dark .markdown-body h1, .dark .markdown-body h2 { color: #ffffff; }
-        .dark .markdown-body blockquote { border-left-color: #333333; color: #a3a3a3; }
-        .dark .markdown-body code { background-color: rgba(255,255,255,0.15); }
+        /* Paragraphs & Spacing */
+        .markdown-body p {
+            margin-top: 0;
+            margin-bottom: 1.15rem;
+        }
+
+        /* Headings with clear top separation */
+        .markdown-body h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-top: 1.6rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+        .markdown-body h2 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 1.35rem;
+            margin-bottom: 0.6rem;
+        }
+        .markdown-body h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-top: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Uncongested Lists */
+        .markdown-body ul, 
+        .markdown-body ol {
+            margin-top: 0.4rem;
+            margin-bottom: 1.15rem;
+            padding-left: 1.6rem;
+        }
+        .markdown-body ul {
+            list-style-type: disc;
+        }
+        .markdown-body ol {
+            list-style-type: decimal;
+        }
+        .markdown-body li {
+            margin-top: 0.45rem;
+            margin-bottom: 0.45rem;
+            line-height: 1.75;
+        }
+        .markdown-body li > ul,
+        .markdown-body li > ol {
+            margin-top: 0.3rem;
+            margin-bottom: 0.3rem;
+            padding-left: 1.25rem;
+        }
+
+        /* Callouts & Quotes */
+        .markdown-body blockquote {
+            border-left: 3px solid #818cf8;
+            background: rgba(99, 102, 241, 0.04);
+            border-radius: 0 0.5rem 0.5rem 0;
+            padding: 0.65rem 1rem;
+            margin: 1.1rem 0;
+            font-style: italic;
+        }
+
+        /* Inline Code */
+        .markdown-body code {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 0.15em 0.4em;
+            border-radius: 0.35rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 0.88em;
+            color: #e11d48;
+        }
+
+        /* Dark mode adjustments */
+        .dark .markdown-body {
+            color: #e2e8f0;
+        }
+        .dark .markdown-body h1 {
+            color: #ffffff;
+            border-bottom-color: #333333;
+        }
+        .dark .markdown-body h2, 
+        .dark .markdown-body h3 {
+            color: #f1f5f9;
+        }
+        .dark .markdown-body blockquote {
+            border-left-color: #6366f1;
+            background: rgba(99, 102, 241, 0.08);
+            color: #cbd5e1;
+        }
+        .dark .markdown-body code {
+            background-color: rgba(255, 255, 255, 0.12);
+            color: #fca5a5;
+        }
 
         /* --- CROSS-NOTE LINK STYLING & HIGHLIGHTS --- */
         .cross-note-link {
