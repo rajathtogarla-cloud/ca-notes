@@ -55,16 +55,10 @@
             line-height: 1.85;
             letter-spacing: 0.015em;
             outline: none;
-            padding-bottom: 3rem; /* extra scroll clearance at the bottom */
+            padding-bottom: 3rem;
         }
 
-        /* Paragraphs & Spacing */
-        .markdown-body p {
-            margin-top: 0;
-            margin-bottom: 1.15rem;
-        }
-
-        /* Headings with clear top separation */
+        .markdown-body p { margin-top: 0; margin-bottom: 1.15rem; }
         .markdown-body h1 {
             font-size: 1.35rem;
             font-weight: 700;
@@ -86,32 +80,24 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Uncongested Lists */
-        .markdown-body ul, 
-        .markdown-body ol {
+        .markdown-body ul, .markdown-body ol {
             margin-top: 0.4rem;
             margin-bottom: 1.15rem;
             padding-left: 1.6rem;
         }
-        .markdown-body ul {
-            list-style-type: disc;
-        }
-        .markdown-body ol {
-            list-style-type: decimal;
-        }
+        .markdown-body ul { list-style-type: disc; }
+        .markdown-body ol { list-style-type: decimal; }
         .markdown-body li {
             margin-top: 0.45rem;
             margin-bottom: 0.45rem;
             line-height: 1.75;
         }
-        .markdown-body li > ul,
-        .markdown-body li > ol {
+        .markdown-body li > ul, .markdown-body li > ol {
             margin-top: 0.3rem;
             margin-bottom: 0.3rem;
             padding-left: 1.25rem;
         }
 
-        /* Callouts & Quotes */
         .markdown-body blockquote {
             border-left: 3px solid #818cf8;
             background: rgba(99, 102, 241, 0.04);
@@ -121,7 +107,6 @@
             font-style: italic;
         }
 
-        /* Inline Code */
         .markdown-body code {
             background-color: rgba(0, 0, 0, 0.05);
             padding: 0.15em 0.4em;
@@ -131,18 +116,9 @@
             color: #e11d48;
         }
 
-        /* Dark mode adjustments */
-        .dark .markdown-body {
-            color: #e2e8f0;
-        }
-        .dark .markdown-body h1 {
-            color: #ffffff;
-            border-bottom-color: #333333;
-        }
-        .dark .markdown-body h2, 
-        .dark .markdown-body h3 {
-            color: #f1f5f9;
-        }
+        .dark .markdown-body { color: #e2e8f0; }
+        .dark .markdown-body h1 { color: #ffffff; border-bottom-color: #333333; }
+        .dark .markdown-body h2, .dark .markdown-body h3 { color: #f1f5f9; }
         .dark .markdown-body blockquote {
             border-left-color: #6366f1;
             background: rgba(99, 102, 241, 0.08);
@@ -153,7 +129,6 @@
             color: #fca5a5;
         }
 
-        /* --- CROSS-NOTE LINK STYLING & HIGHLIGHTS --- */
         .cross-note-link {
             text-decoration: underline !important;
             text-underline-offset: 3px;
@@ -161,9 +136,7 @@
             cursor: pointer;
             font-weight: 500;
         }
-        .dark .cross-note-link {
-            color: #60a5fa !important;
-        }
+        .dark .cross-note-link { color: #60a5fa !important; }
 
         .cross-note-link.is-backlink {
             text-decoration: underline double !important;
@@ -171,9 +144,7 @@
             color: #7c3aed !important;
             font-weight: 600;
         }
-        .dark .cross-note-link.is-backlink {
-            color: #a78bfa !important;
-        }
+        .dark .cross-note-link.is-backlink { color: #a78bfa !important; }
 
         @keyframes sentenceGlowPulse {
             0% { background-color: #fef08a; color: #000; box-shadow: 0 0 14px #fde047; }
@@ -206,18 +177,9 @@
             -webkit-overflow-scrolling: touch;
             flex-shrink: 0;
         }
-        .dark .notes-ribbon-bar {
-            background: #111111;
-            border-bottom-color: #333333;
-        }
-        .notes-ribbon-bar::-webkit-scrollbar {
-            height: 3px;
-        }
-        .ribbon-group {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
+        .dark .notes-ribbon-bar { background: #111111; border-bottom-color: #333333; }
+        .notes-ribbon-bar::-webkit-scrollbar { height: 3px; }
+        .ribbon-group { display: inline-flex; align-items: center; gap: 4px; }
         .ribbon-sep {
             display: inline-block;
             width: 1px;
@@ -225,9 +187,7 @@
             background: #cbd5e1;
             margin: 0 4px;
         }
-        .dark .ribbon-sep {
-            background: #333333;
-        }
+        .dark .ribbon-sep { background: #333333; }
         .ribbon-btn {
             height: 28px;
             padding: 0 8px;
@@ -254,6 +214,21 @@
             color: #4f46e5;
             border-color: #a5b4fc;
         }
+        
+        /* Active ribbon button state */
+        .ribbon-btn-active {
+            background: #e0e7ff !important;
+            color: #4338ca !important;
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 1px #6366f1;
+        }
+        .dark .ribbon-btn-active {
+            background: #312e81 !important;
+            color: #e0e7ff !important;
+            border-color: #818cf8 !important;
+            box-shadow: 0 0 0 1px #818cf8;
+        }
+
         .color-dot {
             width: 20px;
             height: 20px;
@@ -262,13 +237,13 @@
             box-shadow: 0 0 0 1px #cbd5e1;
             cursor: pointer;
             flex-shrink: 0;
+            transition: transform 0.15s ease;
         }
-        .dark .color-dot {
-            border-color: #1a1a1a;
-            box-shadow: 0 0 0 1px #475569;
-        }
-        .color-dot:active {
-            transform: scale(1.15);
+        .dark .color-dot { border-color: #1a1a1a; box-shadow: 0 0 0 1px #475569; }
+        .color-dot:active { transform: scale(1.15); }
+        .color-dot-active {
+            transform: scale(1.22);
+            box-shadow: 0 0 0 2.5px #6366f1 !important;
         }
 
         .swipe-note-active {
@@ -409,32 +384,43 @@
             <button onclick="window.cancelStagedLink()" class="flex-none px-2 py-0.5 rounded bg-purple-200/60 dark:bg-purple-800/50 hover:bg-purple-300 text-purple-900 dark:text-purple-100 font-bold text-[11px] transition-colors">Cancel</button>
         </div>
 
-        <!-- FORMATTING RIBBON -->
+        <!-- FORMATTING RIBBON WITH ACTIVE STATE IDS -->
         <div id="notesRibbonBar" class="notes-ribbon-bar">
+            <!-- INSERT UNDO / REDO GROUP HERE -->
             <div class="ribbon-group">
-                <button class="ribbon-btn" onclick="window.applyHeading(1)">H1</button>
-                <button class="ribbon-btn" onclick="window.applyHeading(2)">H2</button>
-                <button class="ribbon-btn" onclick="window.applyHeading(3)">H3</button>
+                <button id="btn-undo" class="ribbon-btn" onclick="window.noteUndo()" title="Undo">
+                    <i data-lucide="undo-2" class="w-4 h-4"></i>
+                </button>
+                <button id="btn-redo" class="ribbon-btn" onclick="window.noteRedo()" title="Redo">
+                    <i data-lucide="redo-2" class="w-4 h-4"></i>
+                </button>
             </div>
 
             <div class="ribbon-sep"></div>
 
             <div class="ribbon-group">
-                <button class="ribbon-btn" onclick="window.applyFormat('bold')"><b>B</b></button>
-                <button class="ribbon-btn" onclick="window.applyFormat('italic')"><i>I</i></button>
-                <button class="ribbon-btn" onclick="window.applyFormat('underline')"><u>U</u></button>
-                <button class="ribbon-btn" onclick="window.applyFormat('strike')"><s>S</s></button>
+                <button id="btn-h1" class="ribbon-btn" onclick="window.applyHeading(1)">H1</button>
+                <button id="btn-h2" class="ribbon-btn" onclick="window.applyHeading(2)">H2</button>
+                <button id="btn-h3" class="ribbon-btn" onclick="window.applyHeading(3)">H3</button>
             </div>
 
             <div class="ribbon-sep"></div>
 
             <div class="ribbon-group">
-                <button class="ribbon-btn" onclick="window.applyBullet()">• Bullet</button>
+                <button id="btn-bold" class="ribbon-btn" onclick="window.applyFormat('bold')"><b>B</b></button>
+                <button id="btn-italic" class="ribbon-btn" onclick="window.applyFormat('italic')"><i>I</i></button>
+                <button id="btn-underline" class="ribbon-btn" onclick="window.applyFormat('underline')"><u>U</u></button>
+                <button id="btn-strike" class="ribbon-btn" onclick="window.applyFormat('strike')"><s>S</s></button>
             </div>
 
             <div class="ribbon-sep"></div>
 
-            <!-- TWO-STEP STAGED LINK BUTTON GROUP -->
+            <div class="ribbon-group">
+                <button id="btn-bullet" class="ribbon-btn" onclick="window.applyBullet()">• Bullet</button>
+            </div>
+
+            <div class="ribbon-sep"></div>
+
             <div id="ribbonLinkGroup" class="ribbon-group">
                 <button id="btnStartLink" class="ribbon-btn text-purple-600 dark:text-purple-400 font-semibold" onclick="window.startStagedLink()">🔗 Start Link</button>
             </div>
@@ -442,12 +428,12 @@
             <div class="ribbon-sep"></div>
 
             <div class="ribbon-group">
-                <button class="color-dot" style="background:#ef4444;" onclick="window.applyColor('#ef4444')"></button>
-                <button class="color-dot" style="background:#10b981;" onclick="window.applyColor('#10b981')"></button>
-                <button class="color-dot" style="background:#2563eb;" onclick="window.applyColor('#2563eb')"></button>
-                <button class="color-dot" style="background:#ea580c;" onclick="window.applyColor('#ea580c')"></button>
-                <button class="color-dot" style="background:#8b5cf6;" onclick="window.applyColor('#8b5cf6')"></button>
-                <button class="ribbon-btn" style="background:#fef08a; color:#854d0e; border-color:#fde047;" onclick="window.applyHighlight()">🖍️</button>
+                <button class="color-dot" data-color="#ef4444" style="background:#ef4444;" onclick="window.applyColor('#ef4444')"></button>
+                <button class="color-dot" data-color="#10b981" style="background:#10b981;" onclick="window.applyColor('#10b981')"></button>
+                <button class="color-dot" data-color="#2563eb" style="background:#2563eb;" onclick="window.applyColor('#2563eb')"></button>
+                <button class="color-dot" data-color="#ea580c" style="background:#ea580c;" onclick="window.applyColor('#ea580c')"></button>
+                <button class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;" onclick="window.applyColor('#8b5cf6')"></button>
+                <button id="btn-highlight" class="ribbon-btn" style="background:#fef08a; color:#854d0e; border-color:#fde047;" onclick="window.applyHighlight()">🖍️</button>
             </div>
         </div>
 
@@ -552,7 +538,6 @@
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Marked parser with custom cross-note link handler
         if (typeof marked !== 'undefined') {
             marked.use({
                 renderer: {
@@ -623,11 +608,10 @@
         let activeItemLevel = 0;
         let moveClipboard = { item: null, sourceList: null };
 
-        // Card Notes State
         let currentNotesList = [''];
         let activeNoteIdx = 0;
         let lastTapTime = 0;
-        let stagedLink = null; // Staged linking state: { sourceTabIdx, sourceText, sourceAnchorId }
+        let stagedLink = null;
 
         const overlay = document.getElementById('loading-overlay');
         const loadText = document.getElementById('loading-text');
@@ -805,10 +789,29 @@
             if (navStack.length > 0) history.back();
         }
 
+        // Reconnect stale snapshot items to live data references on back/forward
+        window.reconnectItemsToMaster = function(items) {
+            if (!items || !Array.isArray(items) || !rawData) return items;
+            return items.map(snapItem => {
+                if (snapItem.isCategoryFolder) {
+                    const freshFolders = window.buildCategoryFolders(rawData.subjects || []);
+                    const matchedFolder = freshFolders.find(f => f.id === snapItem.id || f.name === snapItem.name);
+                    return matchedFolder || snapItem;
+                }
+                const found = window.findPathToNodeById(rawData.subjects || [], snapItem.id);
+                return (found && found.foundNode) ? found.foundNode : snapItem;
+            });
+        };
+
         window.onpopstate = function(event) {
             if (event.state) {
-                navStack = event.state.navStack;
+                navStack = event.state.navStack || [];
                 currentView = event.state.currentView;
+
+                // Re-hydrate current view with latest modified live node tree
+                if (currentView && currentView.items) {
+                    currentView.items = window.reconnectItemsToMaster(currentView.items);
+                }
                 
                 window.closeAllOverlays();
                 window.updateUI(true, 'left');
@@ -1213,7 +1216,6 @@
             window.closeAllOverlays();
         }
 
-        // --- BACKGROUND MARKDOWN SANITIZER & PARSER ---
         window.cleanMarkdownSource = function(text) {
             if (!text) return '';
             return text
@@ -1311,6 +1313,7 @@
             window.renderNotesTabs();
             window.loadActiveNoteContent();
             if (window.lucide) lucide.createIcons();
+            window.updateRibbonState();
         };
 
         window.renderNotesTabs = function() {
@@ -1411,6 +1414,11 @@
             preview.contentEditable = "false";
             preview.classList.remove('ring-2', 'ring-purple-500', 'bg-white', 'dark:bg-dark-card');
             if (doneBtn) doneBtn.classList.add('hidden');
+            window.updateRibbonState();
+
+            // Reset history per active tab & render lucide icons
+            window.resetNoteHistory();
+            if (window.lucide) lucide.createIcons();
         };
 
         window.startEditingNote = function() {
@@ -1426,6 +1434,7 @@
             preview.classList.add('ring-2', 'ring-purple-500/70', 'bg-white', 'dark:bg-dark-card');
             if (doneBtn) doneBtn.classList.remove('hidden');
             preview.focus();
+            window.updateRibbonState();
         };
 
         window.finishEditingNote = function() {
@@ -1450,6 +1459,7 @@
                 preview.innerHTML = '<p class="text-slate-400 italic py-4">No content. Double-tap to write...</p>';
                 preview.setAttribute('data-empty', 'true');
             }
+            window.updateRibbonState();
         };
 
         window.addNewNoteTab = function() {
@@ -1487,31 +1497,234 @@
             } else {
                 delete activeItem.notes;
             }
+
+            // Sync with currentView immediately
+            if (currentView && currentView.items) {
+                const targetIdx = currentView.items.findIndex(it => it.id === activeItem.id);
+                if (targetIdx !== -1) {
+                    currentView.items[targetIdx] = activeItem;
+                }
+            }
+
             window.updateUI(false);
             window.closeAllOverlays();
         };
 
+        // --- ACTIVE RIBBON STATE DETECTION ---
+        window.rgbToHex = function(rgb) {
+            if (!rgb) return '';
+            if (rgb.startsWith('#')) return rgb.toLowerCase();
+            const m = rgb.match(/\d+/g);
+            if (!m || m.length < 3) return '';
+            const r = parseInt(m[0], 10).toString(16).padStart(2, '0');
+            const g = parseInt(m[1], 10).toString(16).padStart(2, '0');
+            const b = parseInt(m[2], 10).toString(16).padStart(2, '0');
+            return `#${r}${g}${b}`.toLowerCase();
+        };
+
+        window.updateRibbonState = function() {
+            const preview = document.getElementById('notesPreview');
+            const sel = window.getSelection();
+
+            const btnBold = document.getElementById('btn-bold');
+            const btnItalic = document.getElementById('btn-italic');
+            const btnUnderline = document.getElementById('btn-underline');
+            const btnStrike = document.getElementById('btn-strike');
+            const btnH1 = document.getElementById('btn-h1');
+            const btnH2 = document.getElementById('btn-h2');
+            const btnH3 = document.getElementById('btn-h3');
+            const btnHighlight = document.getElementById('btn-highlight');
+            const colorDots = document.querySelectorAll('.color-dot');
+
+            const clearAllActive = () => {
+                [btnBold, btnItalic, btnUnderline, btnStrike, btnH1, btnH2, btnH3, btnHighlight].forEach(btn => {
+                    if (btn) btn.classList.remove('ribbon-btn-active');
+                });
+                colorDots.forEach(dot => dot.classList.remove('color-dot-active'));
+            };
+
+            if (!sel || !sel.rangeCount || !preview) {
+                clearAllActive();
+                return;
+            }
+
+            let node = sel.anchorNode;
+            if (!node) { clearAllActive(); return; }
+            if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
+            if (!preview.contains(node)) { clearAllActive(); return; }
+
+            clearAllActive();
+
+            // Native browser state check
+            if (document.queryCommandState('bold')) btnBold?.classList.add('ribbon-btn-active');
+            if (document.queryCommandState('italic')) btnItalic?.classList.add('ribbon-btn-active');
+            if (document.queryCommandState('underline')) btnUnderline?.classList.add('ribbon-btn-active');
+            if (document.queryCommandState('strikeThrough')) btnStrike?.classList.add('ribbon-btn-active');
+
+            // DOM traversal for elements, colors, and marks
+            let curr = node;
+            let foundColor = false;
+            let foundHighlight = false;
+
+            while (curr && curr !== preview) {
+                const tag = curr.tagName ? curr.tagName.toLowerCase() : '';
+                
+                if (tag === 'b' || tag === 'strong') btnBold?.classList.add('ribbon-btn-active');
+                if (tag === 'i' || tag === 'em') btnItalic?.classList.add('ribbon-btn-active');
+                if (tag === 'u') btnUnderline?.classList.add('ribbon-btn-active');
+                if (tag === 's' || tag === 'strike' || tag === 'del') btnStrike?.classList.add('ribbon-btn-active');
+                if (tag === 'h1') btnH1?.classList.add('ribbon-btn-active');
+                if (tag === 'h2') btnH2?.classList.add('ribbon-btn-active');
+                if (tag === 'h3') btnH3?.classList.add('ribbon-btn-active');
+
+                if (tag === 'mark' || curr.style?.backgroundColor === 'rgb(254, 240, 138)' || curr.style?.backgroundColor === '#fef08a') {
+                    if (!foundHighlight) {
+                        btnHighlight?.classList.add('ribbon-btn-active');
+                        foundHighlight = true;
+                    }
+                }
+
+                if (!foundColor && curr.style && curr.style.color) {
+                    const hexColor = window.rgbToHex(curr.style.color);
+                    colorDots.forEach(dot => {
+                        const targetColor = (dot.getAttribute('data-color') || '').toLowerCase();
+                        if (targetColor === hexColor) {
+                            dot.classList.add('color-dot-active');
+                            foundColor = true;
+                        }
+                    });
+                }
+
+                curr = curr.parentNode;
+            }
+        };
+
+        // Attach listeners for ribbon state tracking
+        document.addEventListener('selectionchange', () => {
+            const preview = document.getElementById('notesPreview');
+            if (preview && !document.getElementById('notesOverlay').classList.contains('hidden')) {
+                window.updateRibbonState();
+            }
+        });
+
         // --- DIRECT WYSIWYG FORMATTING ACTIONS ---
+        // --- NOTES UNDO / REDO HISTORY ENGINE ---
+        let noteHistoryStack = [];
+        let noteHistoryIndex = -1;
+        let noteHistoryTimer = null;
+
+        window.resetNoteHistory = function() {
+            const preview = document.getElementById('notesPreview');
+            const currentHtml = preview ? preview.innerHTML : '';
+            noteHistoryStack = [currentHtml];
+            noteHistoryIndex = 0;
+            window.updateUndoRedoButtons();
+        };
+
+        window.recordNoteSnapshot = function() {
+            const preview = document.getElementById('notesPreview');
+            if (!preview) return;
+            const currentHtml = preview.innerHTML;
+
+            if (noteHistoryIndex >= 0 && noteHistoryStack[noteHistoryIndex] === currentHtml) {
+                return;
+            }
+
+            if (noteHistoryIndex < noteHistoryStack.length - 1) {
+                noteHistoryStack = noteHistoryStack.slice(0, noteHistoryIndex + 1);
+            }
+
+            noteHistoryStack.push(currentHtml);
+            if (noteHistoryStack.length > 50) noteHistoryStack.shift();
+            noteHistoryIndex = noteHistoryStack.length - 1;
+            window.updateUndoRedoButtons();
+        };
+
+        window.updateUndoRedoButtons = function() {
+            const undoBtn = document.getElementById('btn-undo');
+            const redoBtn = document.getElementById('btn-redo');
+
+            const canUndo = noteHistoryIndex > 0;
+            const canRedo = noteHistoryIndex < noteHistoryStack.length - 1;
+
+            if (undoBtn) {
+                undoBtn.disabled = !canUndo;
+                undoBtn.classList.toggle('opacity-40', !canUndo);
+                undoBtn.classList.toggle('pointer-events-none', !canUndo);
+            }
+            if (redoBtn) {
+                redoBtn.disabled = !canRedo;
+                redoBtn.classList.toggle('opacity-40', !canRedo);
+                redoBtn.classList.toggle('pointer-events-none', !canRedo);
+            }
+        };
+
+        window.noteUndo = function() {
+            window.startEditingNote();
+            try {
+                if (document.execCommand('undo')) {
+                    window.updateRibbonState();
+                    return;
+                }
+            } catch (e) {}
+
+            if (noteHistoryIndex > 0) {
+                noteHistoryIndex--;
+                const preview = document.getElementById('notesPreview');
+                preview.innerHTML = noteHistoryStack[noteHistoryIndex];
+                window.updateUndoRedoButtons();
+                window.updateRibbonState();
+            }
+        };
+
+        window.noteRedo = function() {
+            window.startEditingNote();
+            try {
+                if (document.execCommand('redo')) {
+                    window.updateRibbonState();
+                    return;
+                }
+            } catch (e) {}
+
+            if (noteHistoryIndex < noteHistoryStack.length - 1) {
+                noteHistoryIndex++;
+                const preview = document.getElementById('notesPreview');
+                preview.innerHTML = noteHistoryStack[noteHistoryIndex];
+                window.updateUndoRedoButtons();
+                window.updateRibbonState();
+            }
+        };
+
         window.applyHeading = function(level) {
             window.startEditingNote();
+            window.recordNoteSnapshot();
             document.execCommand('formatBlock', false, `<h${level}>`);
+            window.recordNoteSnapshot();
+            setTimeout(window.updateRibbonState, 20);
         };
 
         window.applyFormat = function(type) {
             window.startEditingNote();
+            window.recordNoteSnapshot();
             if (type === 'bold') document.execCommand('bold');
             if (type === 'italic') document.execCommand('italic');
             if (type === 'underline') document.execCommand('underline');
             if (type === 'strike') document.execCommand('strikeThrough');
+            window.recordNoteSnapshot();
+            setTimeout(window.updateRibbonState, 20);
         };
 
         window.applyBullet = function() {
             window.startEditingNote();
+            window.recordNoteSnapshot();
             document.execCommand('insertUnorderedList');
+            window.recordNoteSnapshot();
+            setTimeout(window.updateRibbonState, 20);
         };
 
         window.applyColor = function(colorHex) {
             window.startEditingNote();
+            window.recordNoteSnapshot();
             const sel = window.getSelection();
             if (!sel.rangeCount || sel.isCollapsed) return;
             const range = sel.getRangeAt(0);
@@ -1519,10 +1732,13 @@
             span.style.color = colorHex;
             span.appendChild(range.extractContents());
             range.insertNode(span);
+            window.recordNoteSnapshot();
+            setTimeout(window.updateRibbonState, 20);
         };
 
         window.applyHighlight = function() {
             window.startEditingNote();
+            window.recordNoteSnapshot();
             const sel = window.getSelection();
             if (!sel.rangeCount || sel.isCollapsed) return;
             const range = sel.getRangeAt(0);
@@ -1531,9 +1747,10 @@
             mark.style.color = '#000000';
             mark.appendChild(range.extractContents());
             range.insertNode(mark);
+            window.recordNoteSnapshot();
+            setTimeout(window.updateRibbonState, 20);
         };
 
-        // --- TWO-STEP STAGED LINKING LOGIC ---
         window.escapeHtml = function(str) {
             return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         };
@@ -1568,7 +1785,6 @@
                 return;
             }
 
-            // Sync current editing state if editing
             const preview = document.getElementById('notesPreview');
             if (preview && preview.isContentEditable) {
                 currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
@@ -1631,7 +1847,6 @@
                 return;
             }
 
-            // Sync editing state
             const preview = document.getElementById('notesPreview');
             if (preview && preview.isContentEditable) {
                 currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
@@ -1709,7 +1924,6 @@
             }, 120);
         };
 
-        // Wire Double-Tap & Double-Click on Visual Canvas
         const previewEl = document.getElementById('notesPreview');
         if (previewEl) {
             previewEl.addEventListener('dblclick', (e) => {
@@ -1725,6 +1939,16 @@
                     window.startEditingNote();
                 }
                 lastTapTime = now;
+            });
+
+            previewEl.addEventListener('keyup', () => window.updateRibbonState());
+            previewEl.addEventListener('mouseup', () => window.updateRibbonState());
+
+            previewEl.addEventListener('input', () => {
+                clearTimeout(noteHistoryTimer);
+                noteHistoryTimer = setTimeout(() => {
+                    window.recordNoteSnapshot();
+                }, 400);
             });
         }
 
