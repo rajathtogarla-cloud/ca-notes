@@ -46,20 +46,52 @@
         @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
 
         #fileInput { display: none; }
-        .level-card { transition: transform 0.1s ease, background-color 0.2s; }
+        .level-card { transition: transform 0.15s ease, background-color 0.2s, box-shadow 0.2s; will-change: transform; }
         .level-card:active { transform: scale(0.98); }
 
-        .markdown-body { font-size: 0.925rem; line-height: 1.6; }
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 600; margin-top: 1em; margin-bottom: 0.5em; }
+        .markdown-body { font-size: 0.925rem; line-height: 1.6; outline: none; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 600; margin-top: 0.8em; margin-bottom: 0.4em; }
         .markdown-body ul { list-style-type: disc; padding-left: 1.5em; }
         .markdown-body blockquote { border-left: 4px solid #cbd5e1; padding-left: 1em; font-style: italic; }
         .markdown-body code { background-color: rgba(0,0,0,0.05); padding: 0.1em 0.3em; border-radius: 0.25rem; font-family: monospace; color: #ef4444; }
-        .markdown-body a { color: #2563eb; text-decoration: underline; }
+
         .dark .markdown-body { color: #e2e8f0; }
         .dark .markdown-body h1, .dark .markdown-body h2 { color: #ffffff; }
         .dark .markdown-body blockquote { border-left-color: #333333; color: #a3a3a3; }
         .dark .markdown-body code { background-color: rgba(255,255,255,0.15); }
-        .dark .markdown-body a { color: #60a5fa; }
+
+        /* --- CROSS-NOTE LINK STYLING & HIGHLIGHTS --- */
+        .cross-note-link {
+            text-decoration: underline !important;
+            text-underline-offset: 3px;
+            color: #2563eb !important;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .dark .cross-note-link {
+            color: #60a5fa !important;
+        }
+
+        .cross-note-link.is-backlink {
+            text-decoration: underline double !important;
+            text-underline-offset: 3px;
+            color: #7c3aed !important;
+            font-weight: 600;
+        }
+        .dark .cross-note-link.is-backlink {
+            color: #a78bfa !important;
+        }
+
+        @keyframes sentenceGlowPulse {
+            0% { background-color: #fef08a; color: #000; box-shadow: 0 0 14px #fde047; }
+            40% { background-color: #fef08a; color: #000; box-shadow: 0 0 10px #fde047; }
+            100% { background-color: transparent; }
+        }
+        .sentence-highlight {
+            animation: sentenceGlowPulse 2.2s ease-out forwards;
+            border-radius: 4px;
+            padding: 1px 3px;
+        }
 
         @keyframes highlightPulse {
             0% { background-color: var(--pulse-bg); border-color: var(--pulse-color); transform: scale(1.02); box-shadow: 0 0 15px var(--pulse-bg); }
@@ -67,6 +99,94 @@
             100% { background-color: transparent; border-color: inherit; transform: scale(1); box-shadow: none; }
         }
         .highlight-restore { animation: highlightPulse 1.5s ease-out forwards; }
+
+        /* --- MOBILE NOTES FORMATTING RIBBON --- */
+        .notes-ribbon-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            flex-shrink: 0;
+        }
+        .dark .notes-ribbon-bar {
+            background: #111111;
+            border-bottom-color: #333333;
+        }
+        .notes-ribbon-bar::-webkit-scrollbar {
+            height: 3px;
+        }
+        .ribbon-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .ribbon-sep {
+            display: inline-block;
+            width: 1px;
+            height: 18px;
+            background: #cbd5e1;
+            margin: 0 4px;
+        }
+        .dark .ribbon-sep {
+            background: #333333;
+        }
+        .ribbon-btn {
+            height: 28px;
+            padding: 0 8px;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #334155;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        .dark .ribbon-btn {
+            background: #1a1a1a;
+            border-color: #333333;
+            color: #cbd5e1;
+        }
+        .ribbon-btn:active {
+            background: #eef2ff;
+            color: #4f46e5;
+            border-color: #a5b4fc;
+        }
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 1px #cbd5e1;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .dark .color-dot {
+            border-color: #1a1a1a;
+            box-shadow: 0 0 0 1px #475569;
+        }
+        .color-dot:active {
+            transform: scale(1.15);
+        }
+
+        .swipe-note-active {
+            background-color: #faf5ff !important;
+            border-color: #c084fc !important;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15) !important;
+        }
+        .dark .swipe-note-active {
+            background-color: #2e1065 !important;
+            border-color: #a855f7 !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 dark:bg-dark-bg dark:text-dark-text h-screen flex flex-col overflow-hidden transition-colors duration-200">
@@ -100,6 +220,7 @@
         </div>
     </div>
 
+    <!-- OPTIONS OVERLAY -->
     <div id="optionsOverlay" class="fixed inset-0 z-50 hidden flex items-center justify-center" aria-hidden="true">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeAllOverlays()"></div>
         <div class="relative bg-white dark:bg-dark-card rounded-2xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100 opacity-100 border border-slate-200 dark:border-dark-border">
@@ -140,6 +261,7 @@
         </div>
     </div>
 
+    <!-- EDIT OVERLAY -->
     <div id="editOverlay" class="fixed inset-0 z-[60] hidden flex items-end sm:items-center justify-center" aria-hidden="true">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeAllOverlays()"></div>
         <div class="relative bg-white dark:bg-dark-card w-full sm:w-96 rounded-t-2xl sm:rounded-2xl shadow-xl p-6 transform transition-transform duration-300 translate-y-0 border border-slate-200 dark:border-dark-border">
@@ -164,7 +286,6 @@
 
     <!-- FULL-SCREEN NOTES INTERFACE -->
     <div id="notesOverlay" class="fixed inset-0 z-[60] hidden flex flex-col bg-white dark:bg-dark-card w-full h-full" aria-hidden="true">
-        <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-dark-border flex-none bg-slate-50/70 dark:bg-dark-bg/70">
             <div class="flex items-center gap-2 min-w-0">
                 <span class="text-purple-600 dark:text-purple-400 text-lg flex-none">✦</span>
@@ -186,10 +307,60 @@
             </button>
         </div>
 
-        <!-- Editor & Preview Body -->
+        <!-- TWO-STEP STAGED LINK BANNER -->
+        <div id="stagedLinkBanner" class="hidden px-4 py-2.5 bg-purple-50 dark:bg-purple-950/40 border-b border-purple-200 dark:border-purple-800 text-xs text-purple-800 dark:text-purple-200 flex items-center justify-between gap-3 transition-all flex-none">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="text-base flex-none">🔗</span>
+                <span id="stagedLinkBannerText" class="truncate font-medium">Linking on Hold</span>
+            </div>
+            <button onclick="window.cancelStagedLink()" class="flex-none px-2 py-0.5 rounded bg-purple-200/60 dark:bg-purple-800/50 hover:bg-purple-300 text-purple-900 dark:text-purple-100 font-bold text-[11px] transition-colors">Cancel</button>
+        </div>
+
+        <!-- FORMATTING RIBBON -->
+        <div id="notesRibbonBar" class="notes-ribbon-bar">
+            <div class="ribbon-group">
+                <button class="ribbon-btn" onclick="window.applyHeading(1)">H1</button>
+                <button class="ribbon-btn" onclick="window.applyHeading(2)">H2</button>
+                <button class="ribbon-btn" onclick="window.applyHeading(3)">H3</button>
+            </div>
+
+            <div class="ribbon-sep"></div>
+
+            <div class="ribbon-group">
+                <button class="ribbon-btn" onclick="window.applyFormat('bold')"><b>B</b></button>
+                <button class="ribbon-btn" onclick="window.applyFormat('italic')"><i>I</i></button>
+                <button class="ribbon-btn" onclick="window.applyFormat('underline')"><u>U</u></button>
+                <button class="ribbon-btn" onclick="window.applyFormat('strike')"><s>S</s></button>
+            </div>
+
+            <div class="ribbon-sep"></div>
+
+            <div class="ribbon-group">
+                <button class="ribbon-btn" onclick="window.applyBullet()">• Bullet</button>
+            </div>
+
+            <div class="ribbon-sep"></div>
+
+            <!-- TWO-STEP STAGED LINK BUTTON GROUP -->
+            <div id="ribbonLinkGroup" class="ribbon-group">
+                <button id="btnStartLink" class="ribbon-btn text-purple-600 dark:text-purple-400 font-semibold" onclick="window.startStagedLink()">🔗 Start Link</button>
+            </div>
+
+            <div class="ribbon-sep"></div>
+
+            <div class="ribbon-group">
+                <button class="color-dot" style="background:#ef4444;" onclick="window.applyColor('#ef4444')"></button>
+                <button class="color-dot" style="background:#10b981;" onclick="window.applyColor('#10b981')"></button>
+                <button class="color-dot" style="background:#2563eb;" onclick="window.applyColor('#2563eb')"></button>
+                <button class="color-dot" style="background:#ea580c;" onclick="window.applyColor('#ea580c')"></button>
+                <button class="color-dot" style="background:#8b5cf6;" onclick="window.applyColor('#8b5cf6')"></button>
+                <button class="ribbon-btn" style="background:#fef08a; color:#854d0e; border-color:#fde047;" onclick="window.applyHighlight()">🖍️</button>
+            </div>
+        </div>
+
+        <!-- Visual Canvas -->
         <div class="flex-1 min-h-0 relative p-4 flex flex-col">
             <div id="notesPreview" class="w-full h-full bg-slate-50/50 dark:bg-dark-bg/50 border border-slate-200 dark:border-dark-border rounded-xl p-4 overflow-y-auto markdown-body cursor-pointer select-text" title="Double click or double tap to edit text"></div>
-            <textarea id="notesInput" class="hidden allow-select w-full h-full bg-white dark:bg-dark-bg text-slate-800 dark:text-dark-text border-2 border-purple-500 rounded-xl p-4 text-sm focus:ring-2 focus:ring-purple-400 outline-none resize-none font-mono leading-relaxed" placeholder="Type your note here..."></textarea>
         </div>
     </div>
 
@@ -215,7 +386,7 @@
                     <i data-lucide="cloud-upload" class="w-8 h-8 text-green-600 dark:text-green-400"></i>
                     <span class="text-xs font-semibold text-slate-700 dark:text-dark-text">Save to Cloud</span>
                 </button>
-                <button onclick="window.triggerImportFile()" class="flex flex-col items-center gap-2 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl hover:bg-indigo-100 transition-colors">
+                <button onclick="window.triggerImportFile()" class="flex flex-col items-center gap-2 p-4 bg-indigo-50 dark:indigo-900/20 rounded-xl hover:bg-indigo-100 transition-colors">
                     <i data-lucide="upload" class="w-8 h-8 text-indigo-600 dark:text-indigo-400"></i>
                     <span class="text-xs font-semibold text-slate-700 dark:text-dark-text">Import file</span>
                 </button>
@@ -288,16 +459,32 @@
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+        // Marked parser with custom cross-note link handler
         if (typeof marked !== 'undefined') {
             marked.use({
                 renderer: {
                     link(href, title, text) {
+                        let actualHref = href;
+                        let linkText = text;
                         if (typeof href === 'object' && href !== null) {
-                            const token = href;
-                            const linkText = this.parser.parseInline(token.tokens); 
-                            return `<a href="${token.href}" target="_blank" rel="noopener noreferrer" title="${token.title || ''}">${linkText}</a>`;
+                            actualHref = href.href;
+                            linkText = this.parser.parseInline(href.tokens);
                         }
-                        return `<a href="${href}" target="_blank" rel="noopener noreferrer" title="${title || ''}">${text}</a>`;
+
+                        if (actualHref && actualHref.startsWith('#note:')) {
+                            const match = actualHref.match(/^#note:(\d+):([^?]+)(\?backlink=1)?/);
+                            if (match) {
+                                const targetTab = parseInt(match[1], 10);
+                                const targetAnchor = match[2];
+                                const isBacklink = !!match[3];
+                                const tabDisplay = targetTab + 1;
+                                const linkTitle = isBacklink ? `↳ Back-link: Leads to Notes ${tabDisplay}` : `🔗 Link: Leads to Notes ${tabDisplay}`;
+                                const cls = `cross-note-link ${isBacklink ? 'is-backlink' : ''}`;
+                                return `<a href="${actualHref}" class="${cls}" data-target-tab="${targetTab}" data-target-anchor="${targetAnchor}" title="${linkTitle}" onclick="window.handleCrossNoteLinkClick(event, ${targetTab}, '${targetAnchor}')">${linkText}</a>`;
+                            }
+                        }
+
+                        return `<a href="${actualHref}" target="_blank" rel="noopener noreferrer" title="${title || ''}">${linkText}</a>`;
                     }
                 }
             });
@@ -343,10 +530,11 @@
         let activeItemLevel = 0;
         let moveClipboard = { item: null, sourceList: null };
 
-        // Multiple Notes State
+        // Card Notes State
         let currentNotesList = [''];
         let activeNoteIdx = 0;
         let lastTapTime = 0;
+        let stagedLink = null; // Staged linking state: { sourceTabIdx, sourceText, sourceAnchorId }
 
         const overlay = document.getElementById('loading-overlay');
         const loadText = document.getElementById('loading-text');
@@ -493,7 +681,6 @@
 
         window.buildCategoryFolders = function(subjects) {
             const categoriesMap = {};
-            
             subjects.forEach(sub => {
                 const catName = sub.category || sub.group || sub.course || "Uncategorized";
                 if (!categoriesMap[catName]) {
@@ -566,13 +753,11 @@
         window.triggerImportFile = function() { window.closeFileActionsModal(); document.getElementById('fileInput').click(); }
 
         window.navigateTo = function(title, items, level, link, clickedItemId) {
-            // === INSERT HERE (Cleans search text upon tapping any folder/card) ===
             const searchInput = document.getElementById('searchInput');
             if (searchInput && searchInput.value) {
                 searchInput.value = '';
                 document.getElementById('clearSearchBtn')?.classList.add('hidden');
             }
-            // ====================================================================
 
             const scrollPos = document.getElementById('mainContainer').scrollTop;
             
@@ -602,14 +787,12 @@
             const btnPendingHeader = document.getElementById('btnPendingHeader');
             const searchBarContainer = document.getElementById('searchBarContainer');
 
-            // Show search bar ONLY on the Home/Categories level (0) or active Search query view (99)
             if (currentView.level === 0 || currentView.level === 99) {
                 if (searchBarContainer) searchBarContainer.classList.remove('hidden');
                 btnAddLevel.classList.remove('hidden');
                 btnDarkModeToggle.classList.remove('hidden');
                 btnPendingHeader.classList.add('hidden');
             } else {
-                // Hidden for all subjects, chapters, and nested levels
                 if (searchBarContainer) searchBarContainer.classList.add('hidden');
                 btnAddLevel.classList.add('hidden');
                 btnDarkModeToggle.classList.add('hidden');
@@ -681,32 +864,81 @@
             let longPressTimer = null;
             let isDragging = false;
             let startX = 0, startY = 0;
+            let currentX = 0, currentY = 0;
             let longPressTriggered = false;
+            let isSwipingRight = false;
+            let swipeNoteTriggered = false;
 
             const handleStart = (x, y) => {
-                if(item.isCategoryFolder) return;
                 isDragging = false;
                 longPressTriggered = false;
+                isSwipingRight = false;
+                swipeNoteTriggered = false;
                 startX = x; startY = y;
-                longPressTimer = setTimeout(() => {
-                    longPressTriggered = true;
-                    if (navigator.vibrate) navigator.vibrate(50);
-                    window.triggerLongPressOptions(item, itemList, level);
-                }, 500);
+                currentX = x; currentY = y;
+
+                if (!item.isCategoryFolder) {
+                    longPressTimer = setTimeout(() => {
+                        longPressTriggered = true;
+                        if (navigator.vibrate) navigator.vibrate(50);
+                        window.triggerLongPressOptions(item, itemList, level);
+                    }, 500);
+                }
             };
 
             const handleMove = (x, y) => {
-                if (Math.abs(x - startX) > 10 || Math.abs(y - startY) > 10) {
+                currentX = x; currentY = y;
+                const diffX = currentX - startX;
+                const diffY = currentY - startY;
+
+                if (!item.isCategoryFolder && diffX > 15 && Math.abs(diffX) > Math.abs(diffY)) {
+                    isSwipingRight = true;
+                    isDragging = true;
+                    clearTimeout(longPressTimer);
+
+                    const translateX = Math.min(diffX * 0.55, 75);
+                    card.style.transition = 'none';
+                    card.style.transform = `translateX(${translateX}px)`;
+
+                    if (diffX >= 60) {
+                        card.classList.add('swipe-note-active');
+                    } else {
+                        card.classList.remove('swipe-note-active');
+                    }
+                } else if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
                     isDragging = true;
                     clearTimeout(longPressTimer);
                 }
             };
 
-            const handleEnd = () => clearTimeout(longPressTimer);
+            const handleEnd = () => {
+                clearTimeout(longPressTimer);
+                const diffX = currentX - startX;
+
+                if (isSwipingRight) {
+                    card.style.transition = 'transform 0.25s ease, background-color 0.2s';
+                    card.style.transform = '';
+                    card.classList.remove('swipe-note-active');
+
+                    if (diffX >= 60 && !longPressTriggered && !item.isCategoryFolder) {
+                        swipeNoteTriggered = true;
+                        if (navigator.vibrate) navigator.vibrate(35);
+                        activeItem = item;
+                        activeItemList = itemList;
+                        activeItemLevel = level;
+                        window.openNotesModal();
+                        setTimeout(() => { swipeNoteTriggered = false; isDragging = false; }, 350);
+                        return;
+                    }
+                }
+                card.style.transition = 'transform 0.2s ease';
+                card.style.transform = '';
+            };
 
             card.addEventListener('touchstart', (e) => handleStart(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
             card.addEventListener('touchmove', (e) => handleMove(e.touches[0].clientX, e.touches[0].clientY), {passive: true});
             card.addEventListener('touchend', handleEnd);
+            card.addEventListener('touchcancel', handleEnd);
             
             card.addEventListener('mousedown', (e) => { if(e.button === 0) handleStart(e.clientX, e.clientY); });
             card.addEventListener('mousemove', (e) => { if(e.buttons === 1) handleMove(e.clientX, e.clientY); });
@@ -716,7 +948,7 @@
             card.oncontextmenu = (e) => e.preventDefault();
 
             card.onclick = (e) => {
-                if(longPressTriggered || isDragging) {
+                if(longPressTriggered || isDragging || swipeNoteTriggered) {
                     e.stopPropagation(); 
                     e.preventDefault(); 
                     return;
@@ -888,7 +1120,76 @@
             window.closeAllOverlays();
         }
 
-        // --- MULTIPLE NOTES MANAGEMENT ---
+        // --- BACKGROUND MARKDOWN SANITIZER & PARSER ---
+        window.cleanMarkdownSource = function(text) {
+            if (!text) return '';
+            return text
+                .replace(/\*{4,}([^\*\n]+)\*{4,}/g, '**$1**')
+                .replace(/\*{4,}([^\*\n]+)/g, '**$1**')
+                .replace(/\*{3,}/g, '**');
+        };
+
+        window.htmlToMarkdown = function(element) {
+            let md = '';
+            function walk(node) {
+                if (node.nodeType === Node.TEXT_NODE) return node.nodeValue;
+                if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+                let inner = '';
+                node.childNodes.forEach(child => { inner += walk(child); });
+
+                const tag = node.tagName.toLowerCase();
+                switch (tag) {
+                    case 'h1': return `\n# ${inner.trim()}\n\n`;
+                    case 'h2': return `\n## ${inner.trim()}\n\n`;
+                    case 'h3': return `\n### ${inner.trim()}\n\n`;
+                    case 'p': return `${inner.trim()}\n\n`;
+                    case 'div': return `${inner}\n`;
+                    case 'br': return `\n`;
+                    case 'strong':
+                    case 'b': {
+                        const trimmed = inner.trim();
+                        return trimmed ? ` **${trimmed}** ` : '';
+                    }
+                    case 'em':
+                    case 'i': {
+                        const trimmed = inner.trim();
+                        return trimmed ? ` *${trimmed}* ` : '';
+                    }
+                    case 'u': return `<u>${inner}</u>`;
+                    case 's':
+                    case 'strike':
+                    case 'del': return `~~${inner}~~`;
+                    case 'mark': {
+                        const style = node.getAttribute('style') || 'background:#fef08a; color:#000;';
+                        return `<mark style="${style}">${inner}</mark>`;
+                    }
+                    case 'span': {
+                        if (node.id && node.id.startsWith('anc-')) {
+                            return `<span id="${node.id}">${inner.trim()}</span>`;
+                        }
+                        const style = node.getAttribute('style');
+                        if (style) return `<span style="${style}">${inner}</span>`;
+                        return inner;
+                    }
+                    case 'a': {
+                        const href = node.getAttribute('href') || '#';
+                        return `[${inner}](${href})`;
+                    }
+                    case 'ul': return `\n${inner}\n`;
+                    case 'ol': return `\n${inner}\n`;
+                    case 'li': return `- ${inner.trim()}\n`;
+                    case 'blockquote': return `\n> ${inner.trim()}\n\n`;
+                    case 'code': return `\`${inner}\``;
+                    case 'pre': return `\n\`\`\`\n${inner.trim()}\n\`\`\`\n\n`;
+                    default: return inner;
+                }
+            }
+
+            element.childNodes.forEach(child => { md += walk(child); });
+            return md.replace(/\n{3,}/g, '\n\n').trim();
+        };
+
         window.getNotesArray = function(item) {
             if (!item || !item.notes) return [''];
             if (Array.isArray(item.notes)) {
@@ -909,10 +1210,11 @@
             if (titleEl && activeItem) {
                 titleEl.textContent = activeItem.name || activeItem.title || "Notes";
             }
+
+            stagedLink = null;
+            window.updateStagedLinkUI();
             
             currentNotesList = window.getNotesArray(activeItem);
-            activeNoteIdx = 0;
-            
             window.renderNotesTabs();
             window.loadActiveNoteContent();
             if (window.lucide) lucide.createIcons();
@@ -963,13 +1265,11 @@
 
                 const cancelPress = () => clearTimeout(longPressTimer);
 
-                // Touch support
                 btn.addEventListener('touchstart', (e) => startPress(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
                 btn.addEventListener('touchmove', (e) => movePress(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
                 btn.addEventListener('touchend', cancelPress);
                 btn.addEventListener('touchcancel', cancelPress);
 
-                // Desktop / Mouse hold support
                 btn.addEventListener('mousedown', (e) => {
                     if (e.button === 0) startPress(e.clientX, e.clientY);
                 });
@@ -982,17 +1282,13 @@
                 btn.oncontextmenu = (e) => e.preventDefault();
 
                 btn.onclick = (e) => {
-                    // Prevent switching active tab if action was a long-press delete or scroll drag
                     if (longPressTriggered || isDragging) {
                         e.stopPropagation();
                         e.preventDefault();
                         return;
                     }
                     if (activeNoteIdx !== idx) {
-                        const input = document.getElementById('notesInput');
-                        if (!input.classList.contains('hidden')) {
-                            window.finishEditingNote();
-                        }
+                        window.finishEditingNote();
                         activeNoteIdx = idx;
                         window.renderNotesTabs();
                         window.loadActiveNoteContent();
@@ -1004,57 +1300,67 @@
         };
 
         window.loadActiveNoteContent = function() {
-            const val = currentNotesList[activeNoteIdx] || '';
-            const input = document.getElementById('notesInput');
+            const rawVal = currentNotesList[activeNoteIdx] || '';
+            const cleaned = window.cleanMarkdownSource(rawVal);
+            currentNotesList[activeNoteIdx] = cleaned;
+
             const preview = document.getElementById('notesPreview');
             const doneBtn = document.getElementById('btnNoteDoneEditing');
-            
-            input.value = val;
-            if (val.trim()) {
-                preview.innerHTML = marked.parse(val);
+
+            if (cleaned.trim()) {
+                preview.innerHTML = marked.parse(cleaned);
+                preview.removeAttribute('data-empty');
             } else {
-                preview.innerHTML = '<p class="text-slate-400 italic py-4">No content. Double-click or double-tap to edit.</p>';
+                preview.innerHTML = '<p class="text-slate-400 italic py-4">No content. Double-tap to write...</p>';
+                preview.setAttribute('data-empty', 'true');
             }
-            input.classList.add('hidden');
-            preview.classList.remove('hidden');
+
+            preview.contentEditable = "false";
+            preview.classList.remove('ring-2', 'ring-purple-500', 'bg-white', 'dark:bg-dark-card');
             if (doneBtn) doneBtn.classList.add('hidden');
         };
 
         window.startEditingNote = function() {
-            const input = document.getElementById('notesInput');
             const preview = document.getElementById('notesPreview');
             const doneBtn = document.getElementById('btnNoteDoneEditing');
-            
-            preview.classList.add('hidden');
-            input.classList.remove('hidden');
+
+            if (preview.getAttribute('data-empty') === 'true') {
+                preview.innerHTML = '<div><br></div>';
+                preview.removeAttribute('data-empty');
+            }
+
+            preview.contentEditable = "true";
+            preview.classList.add('ring-2', 'ring-purple-500/70', 'bg-white', 'dark:bg-dark-card');
             if (doneBtn) doneBtn.classList.remove('hidden');
-            input.focus();
+            preview.focus();
         };
 
         window.finishEditingNote = function() {
-            const input = document.getElementById('notesInput');
             const preview = document.getElementById('notesPreview');
             const doneBtn = document.getElementById('btnNoteDoneEditing');
-            
-            const val = input.value;
-            currentNotesList[activeNoteIdx] = val;
-            
-            if (val.trim()) {
-                preview.innerHTML = marked.parse(val);
-            } else {
-                preview.innerHTML = '<p class="text-slate-400 italic py-4">No content. Double-click or double-tap to edit.</p>';
+
+            if (preview.isContentEditable) {
+                currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
             }
-            
-            input.classList.add('hidden');
-            preview.classList.remove('hidden');
+
+            preview.contentEditable = "false";
+            preview.classList.remove('ring-2', 'ring-purple-500/70', 'bg-white', 'dark:bg-dark-card');
             if (doneBtn) doneBtn.classList.add('hidden');
+
+            const clean = window.cleanMarkdownSource(currentNotesList[activeNoteIdx] || '');
+            currentNotesList[activeNoteIdx] = clean;
+            
+            if (clean.trim()) {
+                preview.innerHTML = marked.parse(clean);
+                preview.removeAttribute('data-empty');
+            } else {
+                preview.innerHTML = '<p class="text-slate-400 italic py-4">No content. Double-tap to write...</p>';
+                preview.setAttribute('data-empty', 'true');
+            }
         };
 
         window.addNewNoteTab = function() {
-            const input = document.getElementById('notesInput');
-            if (!input.classList.contains('hidden')) {
-                window.finishEditingNote();
-            }
+            window.finishEditingNote();
             currentNotesList.push('');
             activeNoteIdx = currentNotesList.length - 1;
             window.renderNotesTabs();
@@ -1063,6 +1369,7 @@
         };
 
         window.deleteCurrentNoteTab = function(idx) {
+            if (stagedLink) window.cancelStagedLink();
             if (currentNotesList.length <= 1) {
                 currentNotesList = [''];
                 activeNoteIdx = 0;
@@ -1077,11 +1384,9 @@
         };
 
         window.saveNotes = function() {
-            const input = document.getElementById('notesInput');
-            if (!input.classList.contains('hidden')) {
-                window.finishEditingNote();
-            }
-            const cleaned = currentNotesList.map(n => n || '');
+            window.finishEditingNote();
+            window.cancelStagedLink();
+            const cleaned = currentNotesList.map(n => window.cleanMarkdownSource(n || ''));
             const hasAny = cleaned.some(n => n.trim().length > 0);
             
             if (hasAny) {
@@ -1093,7 +1398,225 @@
             window.closeAllOverlays();
         };
 
-        // Wire Double Click & Mobile Double Tap on Preview
+        // --- DIRECT WYSIWYG FORMATTING ACTIONS ---
+        window.applyHeading = function(level) {
+            window.startEditingNote();
+            document.execCommand('formatBlock', false, `<h${level}>`);
+        };
+
+        window.applyFormat = function(type) {
+            window.startEditingNote();
+            if (type === 'bold') document.execCommand('bold');
+            if (type === 'italic') document.execCommand('italic');
+            if (type === 'underline') document.execCommand('underline');
+            if (type === 'strike') document.execCommand('strikeThrough');
+        };
+
+        window.applyBullet = function() {
+            window.startEditingNote();
+            document.execCommand('insertUnorderedList');
+        };
+
+        window.applyColor = function(colorHex) {
+            window.startEditingNote();
+            const sel = window.getSelection();
+            if (!sel.rangeCount || sel.isCollapsed) return;
+            const range = sel.getRangeAt(0);
+            const span = document.createElement('span');
+            span.style.color = colorHex;
+            span.appendChild(range.extractContents());
+            range.insertNode(span);
+        };
+
+        window.applyHighlight = function() {
+            window.startEditingNote();
+            const sel = window.getSelection();
+            if (!sel.rangeCount || sel.isCollapsed) return;
+            const range = sel.getRangeAt(0);
+            const mark = document.createElement('mark');
+            mark.style.backgroundColor = '#fef08a';
+            mark.style.color = '#000000';
+            mark.appendChild(range.extractContents());
+            range.insertNode(mark);
+        };
+
+        // --- TWO-STEP STAGED LINKING LOGIC ---
+        window.escapeHtml = function(str) {
+            return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        };
+
+        window.replaceFirstOccurrence = function(str, findText, replaceWith, startIndex = 0) {
+            if (!str || !findText) return { result: str || '', nextIndex: 0 };
+            const escaped = findText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const sub = str.slice(startIndex);
+            const match = sub.match(new RegExp(escaped));
+            if (match && match.index !== undefined) {
+                const actualIdx = startIndex + match.index;
+                return {
+                    result: str.substring(0, actualIdx) + replaceWith + str.substring(actualIdx + match[0].length),
+                    nextIndex: actualIdx + replaceWith.length
+                };
+            }
+            return {
+                result: str + '\n\n' + replaceWith,
+                nextIndex: (str + '\n\n' + replaceWith).length
+            };
+        };
+
+        window.startStagedLink = function() {
+            const sel = window.getSelection();
+            let selectedText = "";
+            if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+                selectedText = sel.toString().trim();
+            }
+
+            if (!selectedText) {
+                alert("Please highlight the text in your note first to start linking.");
+                return;
+            }
+
+            // Sync current editing state if editing
+            const preview = document.getElementById('notesPreview');
+            if (preview && preview.isContentEditable) {
+                currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
+            }
+
+            const sourceAnchorId = 'anc-' + Math.random().toString(36).substr(2, 7);
+            stagedLink = {
+                sourceTabIdx: activeNoteIdx,
+                sourceText: selectedText,
+                sourceAnchorId: sourceAnchorId
+            };
+
+            window.updateStagedLinkUI();
+        };
+
+        window.updateStagedLinkUI = function() {
+            const banner = document.getElementById('stagedLinkBanner');
+            const bannerText = document.getElementById('stagedLinkBannerText');
+            const ribbonGroup = document.getElementById('ribbonLinkGroup');
+
+            if (!banner || !ribbonGroup) return;
+
+            if (stagedLink) {
+                banner.classList.remove('hidden');
+                banner.classList.add('flex');
+                const srcNum = stagedLink.sourceTabIdx + 1;
+                bannerText.innerHTML = `Linking on Hold: <b>"${window.escapeHtml(stagedLink.sourceText)}"</b> in Notes ${srcNum}. Switch to any note tab, highlight target text, and tap Connect Link.`;
+
+                ribbonGroup.innerHTML = `
+                    <button id="btnConnectLink" class="ribbon-btn bg-purple-600 text-white hover:bg-purple-700 font-semibold shadow-sm" onclick="window.connectStagedLink()">🎯 Connect with Notes ${srcNum}</button>
+                    <button id="btnCancelLink" class="ribbon-btn text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20" onclick="window.cancelStagedLink()">✖ Cancel</button>
+                `;
+            } else {
+                banner.classList.add('hidden');
+                banner.classList.remove('flex');
+                ribbonGroup.innerHTML = `
+                    <button id="btnStartLink" class="ribbon-btn text-purple-600 dark:text-purple-400 font-semibold" onclick="window.startStagedLink()">🔗 Start Link</button>
+                `;
+            }
+
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.cancelStagedLink = function() {
+            stagedLink = null;
+            window.updateStagedLinkUI();
+        };
+
+        window.connectStagedLink = function() {
+            if (!stagedLink) return;
+
+            const sel = window.getSelection();
+            let targetText = "";
+            if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+                targetText = sel.toString().trim();
+            }
+
+            if (!targetText) {
+                alert("Please highlight the target text in the destination note to connect.");
+                return;
+            }
+
+            // Sync editing state
+            const preview = document.getElementById('notesPreview');
+            if (preview && preview.isContentEditable) {
+                currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
+            }
+
+            const targetTabIdx = activeNoteIdx;
+            const targetAnchorId = 'anc-' + Math.random().toString(36).substr(2, 7);
+            const sourceTabIdx = stagedLink.sourceTabIdx;
+            const sourceAnchorId = stagedLink.sourceAnchorId;
+            const sourceText = stagedLink.sourceText;
+
+            const forwardLinkHtml = `<span id="${sourceAnchorId}">[${sourceText}](#note:${targetTabIdx}:${targetAnchorId})</span>`;
+            const backLinkHtml = `<span id="${targetAnchorId}">[${targetText}](#note:${sourceTabIdx}:${sourceAnchorId}?backlink=1)</span>`;
+
+            if (sourceTabIdx === targetTabIdx) {
+                let content = currentNotesList[sourceTabIdx] || '';
+                const firstRes = window.replaceFirstOccurrence(content, sourceText, forwardLinkHtml, 0);
+                content = firstRes.result;
+                const startIdx = (sourceText === targetText) ? firstRes.nextIndex : 0;
+                const secondRes = window.replaceFirstOccurrence(content, targetText, backLinkHtml, startIdx);
+                currentNotesList[sourceTabIdx] = secondRes.result;
+            } else {
+                let srcContent = currentNotesList[sourceTabIdx] || '';
+                currentNotesList[sourceTabIdx] = window.replaceFirstOccurrence(srcContent, sourceText, forwardLinkHtml, 0).result;
+
+                let tgtContent = currentNotesList[targetTabIdx] || '';
+                currentNotesList[targetTabIdx] = window.replaceFirstOccurrence(tgtContent, targetText, backLinkHtml, 0).result;
+            }
+
+            stagedLink = null;
+            window.updateStagedLinkUI();
+            window.loadActiveNoteContent();
+
+            setTimeout(() => {
+                const targetEl = document.getElementById(targetAnchorId);
+                if (targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetEl.classList.remove('sentence-highlight');
+                    void targetEl.offsetWidth;
+                    targetEl.classList.add('sentence-highlight');
+                    setTimeout(() => targetEl.classList.remove('sentence-highlight'), 2400);
+                }
+            }, 150);
+        };
+
+        window.handleCrossNoteLinkClick = function(e, targetTabIdx, targetAnchorId) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            const preview = document.getElementById('notesPreview');
+            if (preview && preview.isContentEditable) {
+                window.finishEditingNote();
+            }
+
+            if (targetTabIdx !== activeNoteIdx) {
+                activeNoteIdx = targetTabIdx;
+                window.renderNotesTabs();
+                window.loadActiveNoteContent();
+            }
+
+            setTimeout(() => {
+                let el = document.getElementById(targetAnchorId);
+                if (!el) {
+                    el = document.querySelector(`[id="${targetAnchorId}"]`);
+                }
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.classList.remove('sentence-highlight');
+                    void el.offsetWidth;
+                    el.classList.add('sentence-highlight');
+                    setTimeout(() => el.classList.remove('sentence-highlight'), 2400);
+                }
+            }, 120);
+        };
+
+        // Wire Double-Tap & Double-Click on Visual Canvas
         const previewEl = document.getElementById('notesPreview');
         if (previewEl) {
             previewEl.addEventListener('dblclick', (e) => {
@@ -1191,8 +1714,12 @@
         }
 
         window.closeAllOverlays = function() {
-            ['optionsOverlay','editOverlay','notesOverlay','pathOverlay','fileActionsOverlay'].forEach(id => document.getElementById(id).classList.add('hidden'));
-            document.getElementById('pathContentPanel').classList.remove('translate-y-0');
+            ['optionsOverlay','editOverlay','notesOverlay','pathOverlay','fileActionsOverlay'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            window.cancelStagedLink();
+            document.getElementById('pathContentPanel')?.classList.remove('translate-y-0');
         }
 
         window.openLink = function(e, link, page) {
