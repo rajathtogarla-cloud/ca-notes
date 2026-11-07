@@ -2254,6 +2254,13 @@
 
         <!-- TOP FORMATTING RIBBON -->
         <div class="notes-ribbon-bar" id="notes-ribbon-bar">
+            <!-- 0. Undo / Redo (Front of Ribbon) -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn" id="rbtn-undo" title="Undo (Ctrl+Z)" onclick="applyRibbonUndo()">↩</button>
+                <button class="ribbon-btn" id="rbtn-redo" title="Redo (Ctrl+Y)" onclick="applyRibbonRedo()">↪</button>
+            </div>
+
+            <div class="ribbon-sep"></div>
             <!-- Headings -->
             <div class="ribbon-group">
                 <button class="ribbon-btn" id="rbtn-h1" title="Heading 1" onclick="applyRibbonHeading(1)">H1</button>
@@ -2327,6 +2334,7 @@
                         linkText = this.parser ? this.parser.parseInline(href.tokens) : (href.text || '');
                     }
 
+                    // 1. Cross-Note Links (Internal note jump)
                     if (actualHref && actualHref.startsWith('#note:')) {
                         const match = actualHref.match(/^#note:(\d+):([^?]+)(\?backlink=1)?/);
                         if (match) {
@@ -2339,6 +2347,17 @@
                         }
                     }
 
+                    // 2. Auto-Detect Images (.png, .jpg, .jpeg, .gif, .webp, .svg, .avif, .bmp)
+                    const isImageUrl = /\.(png|jpe?g|gif|webp|svg|avif|bmp)($|[?#])/i.test(actualHref);
+                    if (isImageUrl) {
+                        return `
+                            <a href="${actualHref}" target="_blank" rel="noopener noreferrer" title="${title || linkText || 'Click to view full image'}" style="display:inline-block; margin:6px 0; text-decoration:none;">
+                                <img src="${actualHref}" alt="${linkText || 'Image'}" style="max-width:100%; max-height:420px; border-radius:8px; display:block; object-fit:contain; box-shadow:0 3px 10px rgba(0,0,0,0.12); border:1px solid #e2e8f0;" loading="lazy" />
+                            </a>
+                        `;
+                    }
+
+                    // 3. Standard Web Links
                     return `<a href="${actualHref}" target="_blank" rel="noopener noreferrer" title="${title || ''}">${linkText}</a>`;
                 }
             }
@@ -3632,6 +3651,10 @@
                 preview.setAttribute('data-empty', 'true');
             }
         }
+
+        // ---> INSERT THE TWO LINES HERE <---
+        window.noteUndoStack = [cleanContent];
+        window.noteRedoStack = [];
 
         setNoteMode('VIEW');
 
@@ -10675,6 +10698,15 @@ function htmlToMarkdown(node) {
             }
             return childrenText;
         }
+        case 'img': {
+            const src = node.getAttribute('src') || '';
+            const alt = node.getAttribute('alt') || '';
+            // If wrapped in an <a> tag, the <a> case below handles saving the URL
+            if (node.parentElement && node.parentElement.tagName.toLowerCase() === 'a') {
+                return '';
+            }
+            return `\n![${alt}](${src})\n`;
+        }
         case 'a': {
             const href = node.getAttribute('href') || '';
             const isBack = node.classList.contains('is-backlink') || node.getAttribute('data-backlink') === 'true' || href.includes('backlink=1');
@@ -10682,6 +10714,13 @@ function htmlToMarkdown(node) {
             if (isBack && !finalHref.includes('backlink=1')) {
                 finalHref += (finalHref.includes('?') ? '&' : '?') + 'backlink=1';
             }
+
+            // If this link wraps an image or points to an image URL, preserve the clean URL
+            const isImgLink = node.querySelector('img') || /\.(png|jpe?g|gif|webp|svg|avif|bmp)($|[?#])/i.test(finalHref);
+            if (isImgLink) {
+                return `\n${finalHref}\n`;
+            }
+
             return `[${childrenText}](${finalHref})`;
         }
         case 'ul':
@@ -10725,10 +10764,117 @@ function syncViewToData(immediate = false) {
             saveData(false);
             renderNotesTabs(notesArr);
         }
+
+        // Record history snapshot for the ribbon buttons
+        if (typeof captureNoteHistoryState === 'function') {
+            captureNoteHistoryState();
+        }
     };
 
     if (immediate) executeSync();
     else _viewSyncTimer = setTimeout(executeSync, 300);
+}
+
+/* --- DEDICATED NOTE UNDO / REDO HISTORY ENGINE --- */
+window.noteUndoStack = [];
+window.noteRedoStack = [];
+window.isNoteHistoryNavigating = false;
+
+function captureNoteHistoryState() {
+    if (window.isNoteHistoryNavigating || !currentNoteNodeId) return;
+
+    const isEdit = typeof isNoteEditMode !== 'undefined' && isNoteEditMode;
+    const textarea = document.getElementById('note-content');
+    const preview = document.getElementById('note-preview');
+
+    let currentVal = '';
+    if (isEdit && textarea) {
+        currentVal = textarea.value;
+    } else if (preview) {
+        currentVal = typeof htmlToMarkdown === 'function' ? htmlToMarkdown(preview).trim() : preview.innerText;
+    }
+
+    if (window.noteUndoStack.length > 0 && window.noteUndoStack[window.noteUndoStack.length - 1] === currentVal) {
+        return;
+    }
+
+    window.noteUndoStack.push(currentVal);
+    if (window.noteUndoStack.length > 50) window.noteUndoStack.shift();
+    window.noteRedoStack = []; // Reset forward redo path on new change
+    updateRibbonActiveStates();
+}
+
+function applyRibbonUndo() {
+    if (!currentNoteNodeId || window.noteUndoStack.length <= 1) return;
+
+    const isEdit = typeof isNoteEditMode !== 'undefined' && isNoteEditMode;
+    const textarea = document.getElementById('note-content');
+    const preview = document.getElementById('note-preview');
+
+    window.isNoteHistoryNavigating = true;
+
+    // Move current state to redo stack
+    const currentState = window.noteUndoStack.pop();
+    window.noteRedoStack.push(currentState);
+
+    // Get previous state
+    const targetState = window.noteUndoStack[window.noteUndoStack.length - 1] || '';
+
+    // Apply to DOM
+    if (textarea) textarea.value = targetState;
+    if (preview) {
+        preview.removeAttribute('data-empty');
+        preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(targetState) : targetState;
+    }
+
+    // Persist to data model
+    const sub = getActiveSubject();
+    const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+    if (nodeData && nodeData.node) {
+        let notesArr = getNodeNotesArray(nodeData.node);
+        notesArr[activeNoteIndex] = targetState;
+        nodeData.node.notes = notesArr;
+        saveData(false);
+        if (typeof renderNotesTabs === 'function') renderNotesTabs(notesArr);
+    }
+
+    window.isNoteHistoryNavigating = false;
+    updateRibbonActiveStates();
+}
+
+function applyRibbonRedo() {
+    if (!currentNoteNodeId || window.noteRedoStack.length === 0) return;
+
+    const isEdit = typeof isNoteEditMode !== 'undefined' && isNoteEditMode;
+    const textarea = document.getElementById('note-content');
+    const preview = document.getElementById('note-preview');
+
+    window.isNoteHistoryNavigating = true;
+
+    // Pop state from redo and put back on undo
+    const nextState = window.noteRedoStack.pop();
+    window.noteUndoStack.push(nextState);
+
+    // Apply to DOM
+    if (textarea) textarea.value = nextState;
+    if (preview) {
+        preview.removeAttribute('data-empty');
+        preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(nextState) : nextState;
+    }
+
+    // Persist to data model
+    const sub = getActiveSubject();
+    const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+    if (nodeData && nodeData.node) {
+        let notesArr = getNodeNotesArray(nodeData.node);
+        notesArr[activeNoteIndex] = nextState;
+        nodeData.node.notes = notesArr;
+        saveData(false);
+        if (typeof renderNotesTabs === 'function') renderNotesTabs(notesArr);
+    }
+
+    window.isNoteHistoryNavigating = false;
+    updateRibbonActiveStates();
 }
 
 /* --- 3. RIBBON COMMAND ACTIONS --- */
@@ -11135,6 +11281,21 @@ function setupCrossNoteLinks() {
 
 /* --- RIBBON CURSOR / ACTIVE FORMAT TRACKING --- */
 function updateRibbonActiveStates() {
+    // Check our dedicated note history stacks instead of native queryCommandEnabled
+    const btnUndo = document.getElementById('rbtn-undo');
+    const btnRedo = document.getElementById('rbtn-redo');
+
+    if (btnUndo) {
+        const canUndo = (window.noteUndoStack && window.noteUndoStack.length > 1);
+        btnUndo.style.opacity = canUndo ? '1' : '0.4';
+        btnUndo.style.pointerEvents = canUndo ? 'auto' : 'none';
+    }
+    if (btnRedo) {
+        const canRedo = (window.noteRedoStack && window.noteRedoStack.length > 0);
+        btnRedo.style.opacity = canRedo ? '1' : '0.4';
+        btnRedo.style.pointerEvents = canRedo ? 'auto' : 'none';
+    }
+
     const preview = document.getElementById('note-preview');
     if (!preview) return;
 
