@@ -6920,31 +6920,52 @@
 <!----------------------------------------------------------------------------------------------------------------------------->
 
 <script>
-    // --- INTERCEPT LINKS TO OPEN IN MOZILLA CUSTOM VIEWER ---
+    // --- LINK INTERCEPTOR: DUAL-BEHAVIOR ROUTING ---
     document.addEventListener('click', function(e) {
         const link = e.target.closest('a');
         if (!link) return;
 
         const rawHref = link.getAttribute('href') || '';
 
-        // Ignore anchor links, internal note links, blobs, and script links
-        if (
-            !rawHref ||
-            rawHref.startsWith('#') ||
-            rawHref.startsWith('javascript:') ||
-            rawHref.startsWith('blob:') ||
-            link.classList.contains('cross-note-link')
-        ) {
+        // 1. Ignore script calls and blob URLs
+        if (!rawHref || rawHref.startsWith('javascript:') || rawHref.startsWith('blob:')) {
             return;
         }
 
-        e.preventDefault();
-        e.stopPropagation();
+        // 2. Ignore Cross-Note Links (#note:...) so handleCrossNoteLinkClick handles them
+        if (rawHref.startsWith('#note:') || link.classList.contains('cross-note-link')) {
+            return;
+        }
 
-        if (typeof window.openSmartPdf === 'function') {
+        // 3. Ignore standard internal page fragment hashes (#section)
+        if (rawHref.startsWith('#')) {
+            return;
+        }
+
+        // 4. CHECK IF THE LINK IS INSIDE THE NOTES & DOCUMENTATION MODAL
+        const isInsideNotesModal = !!link.closest('#notes-modal');
+
+        if (isInsideNotesModal) {
+            // EVERYTHING inside notes (PDF, website, doc, image) opens in a separate external tab
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(link.href, '_blank', 'noopener,noreferrer');
+            return;
+        }
+
+        // 5. OUTSIDE NOTES INTERFACE (Tree, visualization, chapters)
+        // If it points to a PDF, route into the built-in PDF viewer
+        const isPdf = /\.pdf($|[?#])/i.test(rawHref) || link.hasAttribute('data-open-pdf');
+
+        if (isPdf && typeof window.openSmartPdf === 'function') {
+            e.preventDefault();
+            e.stopPropagation();
             window.openSmartPdf(link.href);
         } else {
-            window.open(link.href, '_blank');
+            // Regular external sites outside notes open normally
+            e.preventDefault();
+            e.stopPropagation();
+            window.open(link.href, '_blank', 'noopener,noreferrer');
         }
     });
 </script>
