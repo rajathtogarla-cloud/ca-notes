@@ -2315,6 +2315,36 @@
 <div id="note-link-hover-tooltip"></div>
 
 <script id="app-logic">
+
+    if (typeof marked !== 'undefined') {
+        marked.use({
+            renderer: {
+                link(href, title, text) {
+                    let actualHref = href;
+                    let linkText = text;
+                    if (typeof href === 'object' && href !== null) {
+                        actualHref = href.href;
+                        linkText = this.parser ? this.parser.parseInline(href.tokens) : (href.text || '');
+                    }
+
+                    if (actualHref && actualHref.startsWith('#note:')) {
+                        const match = actualHref.match(/^#note:(\d+):([^?]+)(\?backlink=1)?/);
+                        if (match) {
+                            const targetTab = parseInt(match[1], 10);
+                            const targetAnchor = match[2];
+                            const isBacklink = !!match[3];
+                            const linkTitle = isBacklink ? `↳ Back-link: Leads to Notes ${targetTab}` : `🔗 Link: Leads to Notes ${targetTab}`;
+                            const cls = `cross-note-link ${isBacklink ? 'is-backlink' : ''}`;
+                            return `<a href="${actualHref}" class="${cls}" data-target-tab="${targetTab}" data-target-anchor="${targetAnchor}" title="${linkTitle}" onclick="window.handleCrossNoteLinkClick(event, ${targetTab}, '${targetAnchor}')">${linkText}</a>`;
+                        }
+                    }
+
+                    return `<a href="${actualHref}" target="_blank" rel="noopener noreferrer" title="${title || ''}">${linkText}</a>`;
+                }
+            }
+        });
+    }
+
     // --- State Management ---
     const STORAGE_KEY = 'HIERARCHY_BUILDER_V3';
     const generateId = () => 'id_' + Math.random().toString(36).substr(2, 9);
@@ -5235,7 +5265,7 @@
         border-radius: 4px;
         padding: 2px 4px;
         box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.45);
-        transition: background-color 1s ease;
+        transition: background-color 0.4s ease;
     }
 </style>
 
@@ -5260,6 +5290,7 @@
         <button id="btn-submit-login" class="btn-login">Sign In</button>
     </div>
 </div>
+
 
 <script type="module">
     // 1. Import Firebase libraries
@@ -10895,6 +10926,35 @@ function cancelStagedLink() {
     updateRibbonLinkingUI();
 }
 
+window.handleCrossNoteLinkClick = function(e, targetTabNum, targetAnchorId) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    const tooltip = document.getElementById('note-link-hover-tooltip');
+    if (tooltip) tooltip.style.display = 'none';
+
+    const targetIdx = targetTabNum - 1;
+    if (!isNaN(targetIdx) && targetIdx >= 0) {
+        switchNoteTab(targetIdx);
+        if (targetAnchorId) {
+            setTimeout(() => {
+                let targetEl = document.getElementById(targetAnchorId);
+                if (!targetEl) {
+                    targetEl = document.querySelector(`[id="${targetAnchorId}"]`);
+                }
+                if (targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetEl.classList.remove('sentence-highlight');
+                    void targetEl.offsetWidth;
+                    targetEl.classList.add('sentence-highlight');
+                    setTimeout(() => targetEl.classList.remove('sentence-highlight'), 400);
+                }
+            }, 120);
+        }
+    }
+};
+
 function ribbonConnectLink() {
     if (!window.stagedLink || !currentNoteNodeId) return;
 
@@ -10951,14 +11011,8 @@ function ribbonConnectLink() {
         preview.innerHTML = marked.parse(tNotes[targetTabIndex] || '');
     }
 
-    setupCrossNoteLinks();
-
-    // Inline badge notification
-    const badge = document.getElementById('note-mode-badge');
-    if (badge) {
-        const origText = badge.innerText;
-        badge.innerText = `LINKED (Notes ${source.tabNum} ⇆ ${targetTabNum})`;
-        setTimeout(() => { badge.innerText = origText; }, 2500);
+    if (typeof setupCrossNoteLinks === 'function') {
+        setupCrossNoteLinks();
     }
 }
 
@@ -10967,57 +11021,37 @@ function setupCrossNoteLinks() {
     const tooltip = document.getElementById('note-link-hover-tooltip');
     if (!preview) return;
 
-    const noteLinks = preview.querySelectorAll('a');
+    const noteLinks = preview.querySelectorAll('a[href^="#note:"]');
     noteLinks.forEach(link => {
         const href = link.getAttribute('href') || '';
-        if (href.startsWith('#note:')) {
-            link.classList.add('cross-note-link');
-            link.removeAttribute('target');
+        const isBackLink = href.includes('backlink=1') || link.classList.contains('is-backlink');
+        
+        link.classList.add('cross-note-link');
+        if (isBackLink) link.classList.add('is-backlink');
 
-            const isBackLink = href.includes('backlink=1') || link.getAttribute('data-backlink') === 'true';
-            if (isBackLink) {
-                link.classList.add('is-backlink');
-            }
+        const parts = href.split(':');
+        const targetTabNum = parseInt(parts[1], 10);
+        const targetAnchorId = (parts[2] || '').split('?')[0];
 
-            const parts = href.split(':');
-            const targetTabNum = parseInt(parts[1], 10);
+        link.onmouseenter = () => {
+            if (!tooltip) return;
+            const rect = link.getBoundingClientRect();
+            const typeText = isBackLink ? '↳ Back-link' : '🔗 Link';
+            tooltip.innerHTML = `<b>${typeText}</b>: Leads to <u>Notes ${targetTabNum}</u>`;
+            tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+            tooltip.style.top = rect.top + 'px';
+            tooltip.style.display = 'block';
+        };
 
-            link.onmouseenter = () => {
-                if (!tooltip) return;
-                const rect = link.getBoundingClientRect();
-                const typeText = isBackLink ? '↳ Back-link' : '🔗 Link';
-                tooltip.innerHTML = `<b>${typeText}</b>: Leads to <u>Notes ${targetTabNum}</u>`;
-                tooltip.style.left = (rect.left + rect.width / 2) + 'px';
-                tooltip.style.top = rect.top + 'px';
-                tooltip.style.display = 'block';
-            };
-            link.onmouseleave = () => {
-                if (tooltip) tooltip.style.display = 'none';
-            };
+        link.onmouseleave = () => {
+            if (tooltip) tooltip.style.display = 'none';
+        };
 
-            link.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (tooltip) tooltip.style.display = 'none';
-
-                let rawAnchor = parts[2] || '';
-                const targetAnchorId = rawAnchor.split('?')[0];
-
-                if (!isNaN(targetTabNum) && targetTabNum > 0) {
-                    switchNoteTab(targetTabNum - 1);
-                    if (targetAnchorId) {
-                        setTimeout(() => {
-                            const targetEl = document.getElementById(targetAnchorId);
-                            if (targetEl) {
-                                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                targetEl.classList.add('sentence-highlight');
-                                setTimeout(() => targetEl.classList.remove('sentence-highlight'), 2000);
-                            }
-                        }, 150);
-                    }
-                }
-            };
-        }
+        link.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.handleCrossNoteLinkClick(e, targetTabNum, targetAnchorId);
+        };
     });
 }
 
