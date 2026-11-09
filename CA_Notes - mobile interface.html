@@ -555,7 +555,8 @@
                                 const targetTab = parseInt(match[1], 10);
                                 const targetAnchor = match[2];
                                 const isBacklink = !!match[3];
-                                const tabDisplay = targetTab + 1;
+                                // If targetTab is 0 (legacy), display as 1; otherwise display targetTab
+                                const tabDisplay = targetTab === 0 ? 1 : targetTab;
                                 const linkTitle = isBacklink ? `↳ Back-link: Leads to Notes ${tabDisplay}` : `🔗 Link: Leads to Notes ${tabDisplay}`;
                                 const cls = `cross-note-link ${isBacklink ? 'is-backlink' : ''}`;
                                 return `<a href="${actualHref}" class="${cls}" data-target-tab="${targetTab}" data-target-anchor="${targetAnchor}" title="${linkTitle}" onclick="window.handleCrossNoteLinkClick(event, ${targetTab}, '${targetAnchor}')">${linkText}</a>`;
@@ -1852,14 +1853,19 @@
                 currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
             }
 
+            // Replace this block in connectStagedLink:
             const targetTabIdx = activeNoteIdx;
             const targetAnchorId = 'anc-' + Math.random().toString(36).substr(2, 7);
             const sourceTabIdx = stagedLink.sourceTabIdx;
             const sourceAnchorId = stagedLink.sourceAnchorId;
             const sourceText = stagedLink.sourceText;
 
-            const forwardLinkHtml = `<span id="${sourceAnchorId}">[${sourceText}](#note:${targetTabIdx}:${targetAnchorId})</span>`;
-            const backLinkHtml = `<span id="${targetAnchorId}">[${targetText}](#note:${sourceTabIdx}:${sourceAnchorId}?backlink=1)</span>`;
+            // --- CHANGED: Use 1-based tab numbers ---
+            const targetTabNum = targetTabIdx + 1;
+            const sourceTabNum = sourceTabIdx + 1;
+
+            const forwardLinkHtml = `<span id="${sourceAnchorId}">[${sourceText}](#note:${targetTabNum}:${targetAnchorId})</span>`;
+            const backLinkHtml = `<span id="${targetAnchorId}">[${targetText}](#note:${sourceTabNum}:${sourceAnchorId}?backlink=1)</span>`;
 
             if (sourceTabIdx === targetTabIdx) {
                 let content = currentNotesList[sourceTabIdx] || '';
@@ -1892,7 +1898,7 @@
             }, 150);
         };
 
-        window.handleCrossNoteLinkClick = function(e, targetTabIdx, targetAnchorId) {
+        window.handleCrossNoteLinkClick = function(e, targetTabNum, targetAnchorId) {
             if (e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1903,8 +1909,11 @@
                 window.finishEditingNote();
             }
 
-            if (targetTabIdx !== activeNoteIdx) {
-                activeNoteIdx = targetTabIdx;
+            // Convert 1-based number to 0-based array index (safely handles legacy 0-index)
+            const targetIdx = targetTabNum > 0 ? targetTabNum - 1 : 0;
+
+            if (targetIdx !== activeNoteIdx) {
+                activeNoteIdx = targetIdx;
                 window.renderNotesTabs();
                 window.loadActiveNoteContent();
             }
