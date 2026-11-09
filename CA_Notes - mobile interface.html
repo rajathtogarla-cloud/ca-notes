@@ -1801,6 +1801,8 @@
             window.updateStagedLinkUI();
         };
 
+        window.activeClickedCrossLink = null;
+
         window.updateStagedLinkUI = function() {
             const banner = document.getElementById('stagedLinkBanner');
             const bannerText = document.getElementById('stagedLinkBannerText');
@@ -1821,12 +1823,56 @@
             } else {
                 banner.classList.add('hidden');
                 banner.classList.remove('flex');
+
+                // Delete button stays permanently visible right after Start Link
+                const isLinkActive = !!window.activeClickedCrossLink;
+                const deleteBtnStyle = isLinkActive 
+                    ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800 font-semibold shadow-sm'
+                    : 'text-slate-400 dark:text-dark-subtext opacity-60';
+
                 ribbonGroup.innerHTML = `
                     <button id="btnStartLink" class="ribbon-btn text-purple-600 dark:text-purple-400 font-semibold" onclick="window.startStagedLink()">🔗 Start Link</button>
+                    <button id="btnDeleteCrossLink" class="ribbon-btn ${deleteBtnStyle}" onclick="window.deleteActiveCrossLink()" title="Click a cross-note link, then click here to delete it">🗑️ Delete Link</button>
                 `;
             }
 
             if (window.lucide) lucide.createIcons();
+        };
+
+        window.deleteActiveCrossLink = function() {
+            if (!window.activeClickedCrossLink) {
+                alert("Please tap or click on a cross-note link first to select it for deletion.");
+                return;
+            }
+            if (!confirm("Delete this cross-note link? (The text will be kept)")) return;
+
+            const { sourceTabIdx, sourceAnchorId, targetTabIdx, targetAnchorId } = window.activeClickedCrossLink;
+
+            function unwrapLink(text, a1, a2) {
+                if (!text) return '';
+                let res = text;
+                [a1, a2].forEach(anc => {
+                    if (!anc) return;
+                    const rSpan = new RegExp('<span id="[^"]*">\\s*\\[([^\\]]+)\\]\\(#note:[^)]*' + anc + '[^)]*\\)\\s*<\\/span>', 'g');
+                    res = res.replace(rSpan, '$1');
+                    const rExact = new RegExp('<span id="' + anc + '">\\s*\\[([^\\]]+)\\]\\(#note:[^)]+\\)\\s*<\\/span>', 'g');
+                    res = res.replace(rExact, '$1');
+                    const rBare = new RegExp('\\[([^\\]]+)\\]\\(#note:[^)]*' + anc + '[^)]*\\)', 'g');
+                    res = res.replace(rBare, '$1');
+                });
+                return res;
+            }
+
+            if (typeof sourceTabIdx === 'number' && currentNotesList[sourceTabIdx] !== undefined) {
+                currentNotesList[sourceTabIdx] = unwrapLink(currentNotesList[sourceTabIdx], targetAnchorId, sourceAnchorId);
+            }
+            if (typeof targetTabIdx === 'number' && currentNotesList[targetTabIdx] !== undefined) {
+                currentNotesList[targetTabIdx] = unwrapLink(currentNotesList[targetTabIdx], sourceAnchorId, targetAnchorId);
+            }
+
+            window.activeClickedCrossLink = null;
+            window.updateStagedLinkUI();
+            window.loadActiveNoteContent();
         };
 
         window.cancelStagedLink = function() {
@@ -1909,8 +1955,30 @@
                 window.finishEditingNote();
             }
 
+            // 1. Capture the anchor ID of the link that was clicked
+            let sourceAnchorId = null;
+            if (e && e.target) {
+                const a = e.target.closest('a.cross-note-link') || e.target.closest('a');
+                if (a) {
+                    const span = a.closest('span[id^="anc-"]') || a.parentElement;
+                    if (span && span.id && span.id.startsWith('anc-')) {
+                        sourceAnchorId = span.id;
+                    }
+                }
+            }
+
             // Convert 1-based number to 0-based array index (safely handles legacy 0-index)
             const targetIdx = targetTabNum > 0 ? targetTabNum - 1 : 0;
+            const sourceTabIdx = activeNoteIdx;
+
+            // 2. Register clicked link and activate the Delete Link button style
+            window.activeClickedCrossLink = {
+                sourceTabIdx: sourceTabIdx,
+                sourceAnchorId: sourceAnchorId,
+                targetTabIdx: targetIdx,
+                targetAnchorId: targetAnchorId
+            };
+            window.updateStagedLinkUI();
 
             if (targetIdx !== activeNoteIdx) {
                 activeNoteIdx = targetIdx;
