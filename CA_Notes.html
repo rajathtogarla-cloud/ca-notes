@@ -2305,6 +2305,7 @@
             <!-- Two-Way Linking Controls -->
             <div class="ribbon-group" id="ribbon-linking-controls">
                 <button class="ribbon-btn" id="btn-ribbon-start-link" title="Start Link from Selected Text" onclick="ribbonStartLink()">🔗 Start Link</button>
+                <button class="ribbon-btn" id="btn-ribbon-delete-link" style="color:#dc2626; border-color:#cbd5e1; font-weight:600;" title="Click a cross-note link, then click here to delete it" onclick="deleteActiveCrossLink()">🗑️ Delete Link</button>
                 <button class="ribbon-btn" id="btn-ribbon-connect-link" style="display:none; background:#ecfdf5; border-color:#6ee7b7; color:#059669;" title="Connect Selected Text with Staged Link" onclick="ribbonConnectLink()">🎯 Connect Link</button>
                 <button class="ribbon-btn" id="btn-ribbon-cancel-link" style="display:none; color:#dc2626;" title="Cancel Staged Link" onclick="cancelStagedLink()">✖ Cancel</button>
             </div>
@@ -11042,15 +11043,19 @@ function setNoteMode(mode) {
 /* --- 6. TWO-WAY LINKING --- */
 window.stagedLink = null;
 
+window.activeClickedCrossLink = null;
+
 function updateRibbonLinkingUI() {
     const btnStart = document.getElementById('btn-ribbon-start-link');
     const btnConnect = document.getElementById('btn-ribbon-connect-link');
     const btnCancel = document.getElementById('btn-ribbon-cancel-link');
+    const btnDelete = document.getElementById('btn-ribbon-delete-link');
     const banner = document.getElementById('staged-link-banner');
     const bannerLabel = document.getElementById('staged-source-label');
 
     if (window.stagedLink) {
         if (btnStart) btnStart.style.display = 'none';
+        if (btnDelete) btnDelete.style.display = 'none';
         if (btnConnect) {
             btnConnect.style.display = 'inline-flex';
             btnConnect.textContent = `🎯 Connect with Notes ${window.stagedLink.tabNum}`;
@@ -11062,6 +11067,18 @@ function updateRibbonLinkingUI() {
         }
     } else {
         if (btnStart) btnStart.style.display = 'inline-flex';
+        if (btnDelete) {
+            btnDelete.style.display = 'inline-flex';
+            if (window.activeClickedCrossLink) {
+                btnDelete.style.background = '#fef2f2';
+                btnDelete.style.borderColor = '#fca5a5';
+                btnDelete.style.opacity = '1';
+            } else {
+                btnDelete.style.background = '#ffffff';
+                btnDelete.style.borderColor = '#cbd5e1';
+                btnDelete.style.opacity = '0.7';
+            }
+        }
         if (btnConnect) btnConnect.style.display = 'none';
         if (btnCancel) btnCancel.style.display = 'none';
         if (banner) banner.style.display = 'none';
@@ -11101,7 +11118,32 @@ window.handleCrossNoteLinkClick = function(e, targetTabNum, targetAnchorId) {
     const tooltip = document.getElementById('note-link-hover-tooltip');
     if (tooltip) tooltip.style.display = 'none';
 
-    const targetIdx = targetTabNum - 1;
+    // 1. Capture the anchor ID of the clicked link
+    let sourceAnchorId = null;
+    if (e && e.target) {
+        const a = e.target.closest('a.cross-note-link') || e.target.closest('a');
+        if (a) {
+            const span = a.closest('span[id^="anc-"]') || a.parentElement;
+            if (span && span.id && span.id.startsWith('anc-')) {
+                sourceAnchorId = span.id;
+            }
+        }
+    }
+
+    // Fallback: If link was created with 0, treat as tab 0. Otherwise targetTabNum - 1.
+    const targetIdx = targetTabNum === 0 ? 0 : targetTabNum - 1;
+    const sourceTabIdx = activeNoteIndex;
+
+    // 2. Register clicked link and refresh ribbon to highlight Delete Link button
+    window.activeClickedCrossLink = {
+        nodeId: currentNoteNodeId,
+        sourceTabIdx: sourceTabIdx,
+        sourceAnchorId: sourceAnchorId,
+        targetTabIdx: targetIdx,
+        targetAnchorId: targetAnchorId
+    };
+    updateRibbonLinkingUI();
+
     if (!isNaN(targetIdx) && targetIdx >= 0) {
         switchNoteTab(targetIdx);
         if (targetAnchorId) {
@@ -11120,6 +11162,51 @@ window.handleCrossNoteLinkClick = function(e, targetTabNum, targetAnchorId) {
             }, 120);
         }
     }
+};
+
+window.deleteActiveCrossLink = function() {
+    if (!window.activeClickedCrossLink || !currentNoteNodeId) {
+        alert("Please click on a cross-note link first to select it for deletion.");
+        return;
+    }
+    if (!confirm("Delete this cross-note link? (The text will be kept)")) return;
+
+    const { nodeId, sourceTabIdx, sourceAnchorId, targetTabIdx, targetAnchorId } = window.activeClickedCrossLink;
+    const sub = getActiveSubject();
+    const nodeData = findNodePath(sub.chapters, nodeId || currentNoteNodeId);
+    if (!nodeData || !nodeData.node) return;
+
+    function unwrapLink(text, a1, a2) {
+        if (!text) return '';
+        let res = text;
+        [a1, a2].forEach(anc => {
+            if (!anc) return;
+            const rSpan = new RegExp('<span id="[^"]*">\\s*\\[([^\\]]+)\\]\\(#note:[^)]*' + anc + '[^)]*\\)\\s*<\\/span>', 'g');
+            res = res.replace(rSpan, '$1');
+            const rExact = new RegExp('<span id="' + anc + '">\\s*\\[([^\\]]+)\\]\\(#note:[^)]+\\)\\s*<\\/span>', 'g');
+            res = res.replace(rExact, '$1');
+            const rBare = new RegExp('\\[([^\\]]+)\\]\\(#note:[^)]*' + anc + '[^)]*\\)', 'g');
+            res = res.replace(rBare, '$1');
+        });
+        return res;
+    }
+
+    let notesArr = getNodeNotesArray(nodeData.node);
+
+    if (typeof sourceTabIdx === 'number' && notesArr[sourceTabIdx] !== undefined) {
+        notesArr[sourceTabIdx] = unwrapLink(notesArr[sourceTabIdx], targetAnchorId, sourceAnchorId);
+    }
+    if (typeof targetTabIdx === 'number' && notesArr[targetTabIdx] !== undefined) {
+        notesArr[targetTabIdx] = unwrapLink(notesArr[targetTabIdx], sourceAnchorId, targetAnchorId);
+    }
+
+    nodeData.node.notes = notesArr;
+    saveData();
+    renderVisualizer();
+
+    window.activeClickedCrossLink = null;
+    updateRibbonLinkingUI();
+    loadActiveNoteContent(nodeData.node);
 };
 
 function ribbonConnectLink() {
