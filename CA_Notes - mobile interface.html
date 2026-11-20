@@ -86,6 +86,8 @@
             padding-left: 1.6rem;
         }
         .markdown-body ul { list-style-type: disc; }
+        .markdown-body ul ul { list-style-type: circle; }
+        .markdown-body ul ul ul { list-style-type: square; }
         .markdown-body ol { list-style-type: decimal; }
         .markdown-body li {
             margin-top: 0.45rem;
@@ -146,6 +148,36 @@
         }
         .dark .cross-note-link.is-backlink { color: #a78bfa !important; }
 
+        /* --- INLINE COMMENTS STYLING --- */
+        .note-comment {
+            background-color: rgba(245, 158, 11, 0.18);
+            border-bottom: 2px dashed #d97706;
+            border-radius: 3px;
+            padding: 0 2px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .note-comment:hover {
+            background-color: rgba(245, 158, 11, 0.32);
+        }
+        .dark .note-comment {
+            background-color: rgba(245, 158, 11, 0.24);
+            border-bottom-color: #fbbf24;
+        }
+
+        /* --- IN-NOTE SEARCH HIGHLIGHTS --- */
+        mark.note-search-hl {
+            background-color: #fde047;
+            color: #000000;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+        mark.note-search-hl.active-match {
+            background-color: #fb923c;
+            color: #000000;
+            box-shadow: 0 0 0 2px #ea580c;
+        }
+
         @keyframes sentenceGlowPulse {
             0% { background-color: #fef08a; color: #000; box-shadow: 0 0 14px #fde047; }
             40% { background-color: #fef08a; color: #000; box-shadow: 0 0 10px #fde047; }
@@ -186,6 +218,7 @@
             height: 18px;
             background: #cbd5e1;
             margin: 0 4px;
+            flex-shrink: 0;
         }
         .dark .ribbon-sep { background: #333333; }
         .ribbon-btn {
@@ -200,9 +233,11 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 4px;
             cursor: pointer;
             transition: all 0.15s ease;
             user-select: none;
+            flex-shrink: 0;
         }
         .dark .ribbon-btn {
             background: #1a1a1a;
@@ -356,6 +391,9 @@
     <div id="notesOverlay" class="fixed inset-0 z-[60] hidden flex flex-col bg-white dark:bg-dark-card w-full h-full" aria-hidden="true">
         <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-dark-border flex-none bg-slate-50/70 dark:bg-dark-bg/70">
             <div class="flex items-center gap-2 min-w-0">
+                <button id="btnToggleHeadingsSidebar" onclick="window.toggleHeadingsSidebar()" class="p-1.5 rounded-lg text-slate-600 dark:text-dark-subtext hover:bg-slate-200/70 dark:hover:bg-dark-hover transition-colors flex-none" title="Headings Navigation">
+                    <i data-lucide="list-tree" class="w-4 h-4"></i>
+                </button>
                 <span class="text-purple-600 dark:text-purple-400 text-lg flex-none">✦</span>
                 <h3 id="notesModalTitle" class="text-base font-bold text-slate-800 dark:text-dark-text truncate">Notes</h3>
             </div>
@@ -386,7 +424,7 @@
 
         <!-- FORMATTING RIBBON WITH ACTIVE STATE IDS -->
         <div id="notesRibbonBar" class="notes-ribbon-bar">
-            <!-- INSERT UNDO / REDO GROUP HERE -->
+            <!-- UNDO / REDO GROUP -->
             <div class="ribbon-group">
                 <button id="btn-undo" class="ribbon-btn" onclick="window.noteUndo()" title="Undo">
                     <i data-lucide="undo-2" class="w-4 h-4"></i>
@@ -398,14 +436,24 @@
 
             <div class="ribbon-sep"></div>
 
+            <!-- IN-NOTE SEARCH -->
             <div class="ribbon-group">
-                <button id="btn-h1" class="ribbon-btn" onclick="window.applyHeading(1)">H1</button>
-                <button id="btn-h2" class="ribbon-btn" onclick="window.applyHeading(2)">H2</button>
-                <button id="btn-h3" class="ribbon-btn" onclick="window.applyHeading(3)">H3</button>
+                <button id="btn-note-search" class="ribbon-btn" onclick="window.toggleNoteSearch()" title="Search in current note">🔍 Search</button>
             </div>
 
             <div class="ribbon-sep"></div>
 
+            <!-- HEADINGS & NORMAL TEXT -->
+            <div class="ribbon-group">
+                <button id="btn-h1" class="ribbon-btn" onclick="window.applyHeading(1)">H1</button>
+                <button id="btn-h2" class="ribbon-btn" onclick="window.applyHeading(2)">H2</button>
+                <button id="btn-h3" class="ribbon-btn" onclick="window.applyHeading(3)">H3</button>
+                <button id="btn-normal" class="ribbon-btn" onclick="window.applyNormal()" title="Normal Text">¶</button>
+            </div>
+
+            <div class="ribbon-sep"></div>
+
+            <!-- TEXT FORMATTING -->
             <div class="ribbon-group">
                 <button id="btn-bold" class="ribbon-btn" onclick="window.applyFormat('bold')"><b>B</b></button>
                 <button id="btn-italic" class="ribbon-btn" onclick="window.applyFormat('italic')"><i>I</i></button>
@@ -415,31 +463,86 @@
 
             <div class="ribbon-sep"></div>
 
+            <!-- BULLETS & PROMOTE / DEMOTE -->
             <div class="ribbon-group">
                 <button id="btn-bullet" class="ribbon-btn" onclick="window.applyBullet()">• Bullet</button>
+                <button id="btn-promote" class="ribbon-btn" onclick="window.promoteBlock()" title="Promote Heading or Outdent Bullet">⬅ Promote</button>
+                <button id="btn-demote" class="ribbon-btn" onclick="window.demoteBlock()" title="Demote Heading or Indent Bullet">➡ Demote</button>
             </div>
 
             <div class="ribbon-sep"></div>
 
+            <!-- INLINE COMMENTS -->
+            <div class="ribbon-group">
+                <button id="btn-comment" class="ribbon-btn text-amber-700 dark:text-amber-400" onclick="window.openCommentDialog()" title="Add Comment to Selected Text">💬 Comment</button>
+            </div>
+
+            <div class="ribbon-sep"></div>
+
+            <!-- CROSS-NOTE LINKS -->
             <div id="ribbonLinkGroup" class="ribbon-group">
                 <button id="btnStartLink" class="ribbon-btn text-purple-600 dark:text-purple-400 font-semibold" onclick="window.startStagedLink()">🔗 Start Link</button>
             </div>
 
             <div class="ribbon-sep"></div>
 
+            <!-- COLORS & REMOVE COLOR -->
             <div class="ribbon-group">
-                <button class="color-dot" data-color="#ef4444" style="background:#ef4444;" onclick="window.applyColor('#ef4444')"></button>
-                <button class="color-dot" data-color="#10b981" style="background:#10b981;" onclick="window.applyColor('#10b981')"></button>
-                <button class="color-dot" data-color="#2563eb" style="background:#2563eb;" onclick="window.applyColor('#2563eb')"></button>
-                <button class="color-dot" data-color="#ea580c" style="background:#ea580c;" onclick="window.applyColor('#ea580c')"></button>
-                <button class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;" onclick="window.applyColor('#8b5cf6')"></button>
-                <button id="btn-highlight" class="ribbon-btn" style="background:#fef08a; color:#854d0e; border-color:#fde047;" onclick="window.applyHighlight()">🖍️</button>
+                <button class="color-dot" data-color="#ef4444" style="background:#ef4444;" onclick="window.applyColor('#ef4444')" title="Red"></button>
+                <button class="color-dot" data-color="#10b981" style="background:#10b981;" onclick="window.applyColor('#10b981')" title="Green"></button>
+                <button class="color-dot" data-color="#2563eb" style="background:#2563eb;" onclick="window.applyColor('#2563eb')" title="Blue"></button>
+                <button class="color-dot" data-color="#ea580c" style="background:#ea580c;" onclick="window.applyColor('#ea580c')" title="Orange"></button>
+                <button class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;" onclick="window.applyColor('#8b5cf6')" title="Purple"></button>
+                <button id="btn-remove-color" class="ribbon-btn text-xs" onclick="window.removeColor()" title="Remove Applied Text Color">🚫 Color</button>
+                <button id="btn-highlight" class="ribbon-btn" style="background:#fef08a; color:#854d0e; border-color:#fde047;" onclick="window.applyHighlight()" title="Highlight">🖍️</button>
             </div>
         </div>
 
-        <!-- Visual Canvas -->
-        <div class="flex-1 min-h-0 relative p-4 flex flex-col">
-            <div id="notesPreview" class="w-full h-full bg-slate-50/50 dark:bg-dark-bg/50 border border-slate-200 dark:border-dark-border rounded-xl p-4 overflow-y-auto markdown-body cursor-pointer select-text" title="Double click or double tap to edit text"></div>
+        <!-- IN-NOTE SEARCH BAR (JURISDICTION: ACTIVE NOTE ONLY) -->
+        <div id="noteSearchBar" class="hidden px-4 py-2 bg-slate-100 dark:bg-dark-bg border-b border-slate-200 dark:border-dark-border flex items-center gap-2 flex-none">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 flex-none"></i>
+            <input type="text" id="noteSearchInput" placeholder="Find in this note..." class="allow-select flex-1 min-w-0 bg-white dark:bg-dark-card dark:text-dark-text border border-slate-300 dark:border-dark-border rounded-lg px-2.5 py-1 text-xs outline-none focus:ring-2 focus:ring-indigo-500" oninput="window.performNoteSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault(); window.navigateNoteSearch(1);}">
+            <span id="noteSearchCount" class="text-[11px] font-semibold text-slate-500 dark:text-dark-subtext whitespace-nowrap px-1">0/0</span>
+            <button onclick="window.navigateNoteSearch(-1)" class="ribbon-btn px-2 text-xs" title="Previous match">↑</button>
+            <button onclick="window.navigateNoteSearch(1)" class="ribbon-btn px-2 text-xs" title="Next match">↓</button>
+            <button onclick="window.closeNoteSearch()" class="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-dark-text" title="Close search"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <!-- Visual Canvas + Hierarchical Headings Sidebar -->
+        <div class="flex-1 min-h-0 flex relative overflow-hidden">
+            <!-- Headings Navigation Sidebar -->
+            <aside id="notesHeadingsSidebar" class="hidden absolute sm:relative inset-y-0 left-0 z-20 w-64 max-w-[75vw] bg-slate-50 dark:bg-dark-bg border-r border-slate-200 dark:border-dark-border flex flex-col shadow-xl sm:shadow-none">
+                <div class="px-3 py-2.5 border-b border-slate-200 dark:border-dark-border flex items-center justify-between flex-none">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-dark-subtext">Headings Outline</span>
+                    <button onclick="window.toggleHeadingsSidebar(false)" class="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-dark-text"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div id="notesHeadingsList" class="flex-1 overflow-y-auto p-2 space-y-1 text-xs"></div>
+            </aside>
+
+            <!-- Main Note Content Area -->
+            <div class="flex-1 min-w-0 h-full relative p-4 flex flex-col">
+                <div id="notesPreview" class="w-full h-full bg-slate-50/50 dark:bg-dark-bg/50 border border-slate-200 dark:border-dark-border rounded-xl p-4 overflow-y-auto markdown-body cursor-pointer select-text" title="Double click or double tap to edit text"></div>
+            </div>
+        </div>
+
+        <!-- INLINE COMMENT POPOVER / MODAL -->
+        <div id="noteCommentModal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs" onclick="window.closeCommentDialog()"></div>
+            <div class="relative bg-white dark:bg-dark-card w-full max-w-sm rounded-2xl shadow-2xl p-5 border border-slate-200 dark:border-dark-border space-y-3">
+                <div class="flex items-center justify-between">
+                    <h4 id="noteCommentModalTitle" class="text-sm font-bold text-slate-800 dark:text-dark-text flex items-center gap-1.5"><span>💬</span><span>Note Comment</span></h4>
+                    <button onclick="window.closeCommentDialog()" class="text-slate-400 hover:text-slate-600 dark:hover:text-dark-text"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                <div id="noteCommentTargetQuote" class="text-xs italic text-slate-500 dark:text-dark-subtext bg-slate-100 dark:bg-dark-bg p-2 rounded-lg border-l-2 border-amber-500 line-clamp-2"></div>
+                <textarea id="noteCommentInput" rows="3" class="allow-select w-full bg-slate-50 dark:bg-dark-bg dark:text-dark-text border border-slate-200 dark:border-dark-border rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Write your comment here..."></textarea>
+                <div class="flex items-center justify-between gap-2 pt-1">
+                    <button id="btnDeleteComment" onclick="window.deleteActiveComment()" class="hidden px-3 py-2 text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl hover:bg-red-100 transition-colors">Delete Comment</button>
+                    <div class="flex items-center gap-2 ml-auto">
+                        <button onclick="window.closeCommentDialog()" class="px-3 py-2 text-xs font-semibold text-slate-600 dark:text-dark-subtext bg-slate-100 dark:bg-dark-bg rounded-xl">Cancel</button>
+                        <button onclick="window.saveCommentDialog()" class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm">Save</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -555,7 +658,6 @@
                                 const targetTab = parseInt(match[1], 10);
                                 const targetAnchor = match[2];
                                 const isBacklink = !!match[3];
-                                // If targetTab is 0 (legacy), display as 1; otherwise display targetTab
                                 const tabDisplay = targetTab === 0 ? 1 : targetTab;
                                 const linkTitle = isBacklink ? `↳ Back-link: Leads to Notes ${tabDisplay}` : `🔗 Link: Leads to Notes ${tabDisplay}`;
                                 const cls = `cross-note-link ${isBacklink ? 'is-backlink' : ''}`;
@@ -613,6 +715,20 @@
         let activeNoteIdx = 0;
         let lastTapTime = 0;
         let stagedLink = null;
+
+        // --- SESSION SCROLL POSITION MEMORY (Persists until next page reload) ---
+        const noteScrollPositions = {};
+        window.getNoteScrollKey = function() {
+            const itemId = activeItem && activeItem.id ? activeItem.id : 'global';
+            return `${itemId}_tab_${activeNoteIdx}`;
+        };
+        window.saveCurrentNoteScroll = function() {
+            const preview = document.getElementById('notesPreview');
+            const overlay = document.getElementById('notesOverlay');
+            if (preview && overlay && !overlay.classList.contains('hidden')) {
+                noteScrollPositions[window.getNoteScrollKey()] = preview.scrollTop;
+            }
+        };
 
         const overlay = document.getElementById('loading-overlay');
         const loadText = document.getElementById('loading-text');
@@ -790,7 +906,6 @@
             if (navStack.length > 0) history.back();
         }
 
-        // Reconnect stale snapshot items to live data references on back/forward
         window.reconnectItemsToMaster = function(items) {
             if (!items || !Array.isArray(items) || !rawData) return items;
             return items.map(snapItem => {
@@ -809,7 +924,6 @@
                 navStack = event.state.navStack || [];
                 currentView = event.state.currentView;
 
-                // Re-hydrate current view with latest modified live node tree
                 if (currentView && currentView.items) {
                     currentView.items = window.reconnectItemsToMaster(currentView.items);
                 }
@@ -1227,14 +1341,47 @@
 
         window.htmlToMarkdown = function(element) {
             let md = '';
-            function walk(node) {
+            function walk(node, listDepth = 0) {
                 if (node.nodeType === Node.TEXT_NODE) return node.nodeValue;
                 if (node.nodeType !== Node.ELEMENT_NODE) return '';
 
-                let inner = '';
-                node.childNodes.forEach(child => { inner += walk(child); });
-
                 const tag = node.tagName.toLowerCase();
+
+                // Strip temporary search highlight tags cleanly
+                if (tag === 'mark' && node.classList && node.classList.contains('note-search-hl')) {
+                    let unwrapped = '';
+                    node.childNodes.forEach(c => { unwrapped += walk(c, listDepth); });
+                    return unwrapped;
+                }
+
+                // Handle nested lists properly for promote/demote bullet levels
+                if (tag === 'ul' || tag === 'ol') {
+                    let listOut = '';
+                    node.childNodes.forEach(child => {
+                        listOut += walk(child, listDepth + 1);
+                    });
+                    return listDepth === 0 ? `\n${listOut}\n` : `\n${listOut}`;
+                }
+
+                if (tag === 'li') {
+                    const indent = '  '.repeat(Math.max(0, listDepth - 1));
+                    let textParts = '';
+                    let nestedParts = '';
+                    node.childNodes.forEach(child => {
+                        const cTag = child.nodeType === Node.ELEMENT_NODE ? child.tagName.toLowerCase() : '';
+                        if (cTag === 'ul' || cTag === 'ol') {
+                            nestedParts += walk(child, listDepth);
+                        } else {
+                            textParts += walk(child, listDepth);
+                        }
+                    });
+                    const line = `${indent}- ${textParts.trim()}\n`;
+                    return line + nestedParts;
+                }
+
+                let inner = '';
+                node.childNodes.forEach(child => { inner += walk(child, listDepth); });
+
                 switch (tag) {
                     case 'h1': return `\n# ${inner.trim()}\n\n`;
                     case 'h2': return `\n## ${inner.trim()}\n\n`;
@@ -1261,20 +1408,27 @@
                         return `<mark style="${style}">${inner}</mark>`;
                     }
                     case 'span': {
+                        if (node.classList && node.classList.contains('note-comment')) {
+                            const cData = node.getAttribute('data-comment') || '';
+                            return `<span class="note-comment" data-comment="${cData}">${inner}</span>`;
+                        }
+                        if (node.hasAttribute('data-staged-src')) {
+                            return `<span id="${node.id}" data-staged-src="1">${inner}</span>`;
+                        }
+                        if (node.hasAttribute('data-staged-tgt')) {
+                            return `<span id="${node.id}" data-staged-tgt="1">${inner}</span>`;
+                        }
                         if (node.id && node.id.startsWith('anc-')) {
                             return `<span id="${node.id}">${inner.trim()}</span>`;
                         }
                         const style = node.getAttribute('style');
-                        if (style) return `<span style="${style}">${inner}</span>`;
+                        if (style && style.trim()) return `<span style="${style}">${inner}</span>`;
                         return inner;
                     }
                     case 'a': {
                         const href = node.getAttribute('href') || '#';
                         return `[${inner}](${href})`;
                     }
-                    case 'ul': return `\n${inner}\n`;
-                    case 'ol': return `\n${inner}\n`;
-                    case 'li': return `- ${inner.trim()}\n`;
                     case 'blockquote': return `\n> ${inner.trim()}\n\n`;
                     case 'code': return `\`${inner}\``;
                     case 'pre': return `\n\`\`\`\n${inner.trim()}\n\`\`\`\n\n`;
@@ -1282,7 +1436,7 @@
                 }
             }
 
-            element.childNodes.forEach(child => { md += walk(child); });
+            element.childNodes.forEach(child => { md += walk(child, 0); });
             return md.replace(/\n{3,}/g, '\n\n').trim();
         };
 
@@ -1308,6 +1462,9 @@
             }
 
             stagedLink = null;
+            activeNoteIdx = 0;
+            noteTabHistories = {};
+            window.closeNoteSearch();
             window.updateStagedLinkUI();
             
             currentNotesList = window.getNotesArray(activeItem);
@@ -1385,6 +1542,8 @@
                         return;
                     }
                     if (activeNoteIdx !== idx) {
+                        window.saveCurrentNoteScroll();
+                        window.closeNoteSearch();
                         window.finishEditingNote();
                         activeNoteIdx = idx;
                         window.renderNotesTabs();
@@ -1396,7 +1555,7 @@
             });
         };
 
-        window.loadActiveNoteContent = function() {
+        window.loadActiveNoteContent = function(skipScrollRestore = false, preserveHistory = false) {
             const rawVal = currentNotesList[activeNoteIdx] || '';
             const cleaned = window.cleanMarkdownSource(rawVal);
             currentNotesList[activeNoteIdx] = cleaned;
@@ -1416,15 +1575,41 @@
             preview.classList.remove('ring-2', 'ring-purple-500', 'bg-white', 'dark:bg-dark-card');
             if (doneBtn) doneBtn.classList.add('hidden');
             window.updateRibbonState();
+            window.refreshHeadingsSidebar();
 
-            // Reset history per active tab & render lucide icons
-            window.resetNoteHistory();
+            // Restore saved scroll position until page reload
+            if (!skipScrollRestore) {
+                const savedPos = noteScrollPositions[window.getNoteScrollKey()] || 0;
+                requestAnimationFrame(() => {
+                    preview.scrollTop = savedPos;
+                });
+            }
+
+            if (preserveHistory) {
+                window.recordNoteSnapshot();
+            } else {
+                window.resetNoteHistory();
+            }
             if (window.lucide) lucide.createIcons();
         };
 
         window.startEditingNote = function() {
+            window.clearNoteSearchHighlights();
             const preview = document.getElementById('notesPreview');
             const doneBtn = document.getElementById('btnNoteDoneEditing');
+            if (!preview) return;
+
+            if (preview.isContentEditable) {
+                if (doneBtn) doneBtn.classList.remove('hidden');
+                return;
+            }
+
+            // Preserve any active selection when transitioning from View mode to Edit mode
+            const sel = window.getSelection();
+            let savedRange = null;
+            if (sel && sel.rangeCount > 0 && preview.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+                savedRange = sel.getRangeAt(0).cloneRange();
+            }
 
             if (preview.getAttribute('data-empty') === 'true') {
                 preview.innerHTML = '<div><br></div>';
@@ -1435,12 +1620,20 @@
             preview.classList.add('ring-2', 'ring-purple-500/70', 'bg-white', 'dark:bg-dark-card');
             if (doneBtn) doneBtn.classList.remove('hidden');
             preview.focus();
+
+            if (savedRange && sel) {
+                sel.removeAllRanges();
+                sel.addRange(savedRange);
+            }
             window.updateRibbonState();
         };
 
         window.finishEditingNote = function() {
+            window.clearNoteSearchHighlights();
+            window.flushPendingNoteSnapshot();
             const preview = document.getElementById('notesPreview');
             const doneBtn = document.getElementById('btnNoteDoneEditing');
+            const currentScroll = preview ? preview.scrollTop : 0;
 
             if (preview.isContentEditable) {
                 currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
@@ -1460,10 +1653,22 @@
                 preview.innerHTML = '<p class="text-slate-400 italic py-4">No content. Double-tap to write...</p>';
                 preview.setAttribute('data-empty', 'true');
             }
+
+            // Keep current history slot aligned with the normalized rendered HTML
+            const hist = window.getActiveTabHistory();
+            if (hist && hist.stack.length > 0 && hist.index >= 0) {
+                hist.stack[hist.index] = window.getNormalizedNoteSnapshot();
+            }
+
+            preview.scrollTop = currentScroll;
+            noteScrollPositions[window.getNoteScrollKey()] = currentScroll;
+            window.refreshHeadingsSidebar();
             window.updateRibbonState();
         };
 
         window.addNewNoteTab = function() {
+            window.saveCurrentNoteScroll();
+            window.closeNoteSearch();
             window.finishEditingNote();
             currentNotesList.push('');
             activeNoteIdx = currentNotesList.length - 1;
@@ -1474,6 +1679,8 @@
 
         window.deleteCurrentNoteTab = function(idx) {
             if (stagedLink) window.cancelStagedLink();
+            window.closeNoteSearch();
+            noteTabHistories = {};
             if (currentNotesList.length <= 1) {
                 currentNotesList = [''];
                 activeNoteIdx = 0;
@@ -1488,6 +1695,8 @@
         };
 
         window.saveNotes = function() {
+            window.saveCurrentNoteScroll();
+            window.closeNoteSearch();
             window.finishEditingNote();
             window.cancelStagedLink();
             const cleaned = currentNotesList.map(n => window.cleanMarkdownSource(n || ''));
@@ -1499,7 +1708,6 @@
                 delete activeItem.notes;
             }
 
-            // Sync with currentView immediately
             if (currentView && currentView.items) {
                 const targetIdx = currentView.items.findIndex(it => it.id === activeItem.id);
                 if (targetIdx !== -1) {
@@ -1509,6 +1717,410 @@
 
             window.updateUI(false);
             window.closeAllOverlays();
+        };
+
+        // --- HIERARCHICAL HEADINGS SIDEBAR ---
+        window.toggleHeadingsSidebar = function(forceState) {
+            const sidebar = document.getElementById('notesHeadingsSidebar');
+            if (!sidebar) return;
+            const shouldShow = typeof forceState === 'boolean' ? forceState : sidebar.classList.contains('hidden');
+            if (shouldShow) {
+                sidebar.classList.remove('hidden');
+                window.refreshHeadingsSidebar();
+            } else {
+                sidebar.classList.add('hidden');
+            }
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.changeOutlineHeadingStyle = function(headingIdx, targetTag) {
+            const preview = document.getElementById('notesPreview');
+            if (!preview) return;
+
+            const headings = Array.from(preview.querySelectorAll('h1, h2, h3'));
+            const targetHeading = headings[headingIdx];
+            if (!targetHeading) return;
+
+            const currentTag = targetHeading.tagName.toLowerCase();
+            if (currentTag === targetTag) {
+                window.refreshHeadingsSidebar();
+                return;
+            }
+
+            window.recordNoteSnapshot();
+
+            const replacement = document.createElement(targetTag);
+            if (targetTag !== 'p' && targetHeading.id) {
+                replacement.id = targetHeading.id;
+            }
+            while (targetHeading.firstChild) {
+                replacement.appendChild(targetHeading.firstChild);
+            }
+            targetHeading.parentNode.replaceChild(replacement, targetHeading);
+
+            currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
+            window.recordNoteSnapshot();
+            window.refreshHeadingsSidebar();
+            window.updateRibbonState();
+
+            replacement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            replacement.classList.remove('sentence-highlight');
+            void replacement.offsetWidth;
+            replacement.classList.add('sentence-highlight');
+            setTimeout(() => replacement.classList.remove('sentence-highlight'), 1800);
+        };
+
+        window.refreshHeadingsSidebar = function() {
+            const listEl = document.getElementById('notesHeadingsList');
+            const preview = document.getElementById('notesPreview');
+            if (!listEl || !preview) return;
+
+            const headings = Array.from(preview.querySelectorAll('h1, h2, h3'));
+            listEl.innerHTML = '';
+
+            if (headings.length === 0) {
+                listEl.innerHTML = `<div class="text-slate-400 italic p-3 text-center">No headings (H1–H3) in this note.</div>`;
+                return;
+            }
+
+            const styleOptions = [
+                { tag: 'h1', label: 'H1', title: 'Heading 1' },
+                { tag: 'h2', label: 'H2', title: 'Heading 2' },
+                { tag: 'h3', label: 'H3', title: 'Heading 3' },
+                { tag: 'p',  label: '¶',  title: 'Normal Text' }
+            ];
+
+            const hideAllStyleGroups = () => {
+                listEl.querySelectorAll('.outline-style-group').forEach(el => {
+                    el.classList.add('hidden');
+                    el.classList.remove('inline-flex');
+                });
+            };
+
+            headings.forEach((h, idx) => {
+                if (!h.id) h.id = `note-hdg-${activeNoteIdx}-${idx}`;
+                const level = parseInt(h.tagName.substring(1), 10);
+                const currentTag = h.tagName.toLowerCase();
+                const text = h.textContent.trim() || `Heading ${idx + 1}`;
+
+                const row = document.createElement('div');
+                const indentCls = level === 1 ? 'pl-2 font-bold text-slate-800 dark:text-dark-text'
+                    : level === 2 ? 'pl-5 font-semibold text-slate-700 dark:text-slate-200'
+                    : 'pl-8 font-normal text-slate-600 dark:text-dark-subtext';
+
+                row.className = `noselect w-full py-1.5 pr-1.5 rounded-lg hover:bg-indigo-50/80 dark:hover:bg-dark-hover transition-colors flex items-center justify-between gap-1.5 cursor-pointer ${indentCls}`;
+                row.title = 'Tap to jump • Long-press to change H1 / H2 / H3 / ¶';
+
+                const leftWrap = document.createElement('div');
+                leftWrap.className = 'flex items-center gap-1.5 min-w-0 flex-1 pointer-events-none';
+                leftWrap.innerHTML = `<span class="text-[10px] font-mono px-1 rounded bg-slate-200/70 dark:bg-dark-card text-slate-500 flex-none">H${level}</span><span class="truncate">${window.escapeHtml(text)}</span>`;
+
+                const styleGroup = document.createElement('div');
+                styleGroup.className = 'outline-style-group hidden items-center gap-0.5 flex-none bg-slate-200/90 dark:bg-dark-card p-0.5 rounded-md border border-slate-300 dark:border-dark-border shadow-xs';
+
+                styleOptions.forEach(opt => {
+                    const pill = document.createElement('button');
+                    pill.type = 'button';
+                    const isCurrent = currentTag === opt.tag;
+                    pill.textContent = opt.label;
+                    pill.title = `Set as ${opt.title}`;
+                    pill.className = isCurrent
+                        ? 'px-1.5 py-0.5 text-[10px] font-bold rounded bg-indigo-600 text-white shadow-xs'
+                        : 'px-1.5 py-0.5 text-[10px] font-semibold rounded text-slate-600 dark:text-dark-subtext hover:bg-white dark:hover:bg-dark-hover hover:text-slate-900 dark:hover:text-white transition-colors';
+
+                    pill.onclick = (e) => {
+                        e.stopPropagation();
+                        window.changeOutlineHeadingStyle(idx, opt.tag);
+                    };
+                    styleGroup.appendChild(pill);
+                });
+
+                let pressTimer = null;
+                let longPressActivated = false;
+                let startX = 0, startY = 0;
+
+                const startPress = (x, y) => {
+                    longPressActivated = false;
+                    startX = x;
+                    startY = y;
+                    clearTimeout(pressTimer);
+                    pressTimer = setTimeout(() => {
+                        longPressActivated = true;
+                        if (navigator.vibrate) navigator.vibrate(40);
+                        hideAllStyleGroups();
+                        styleGroup.classList.remove('hidden');
+                        styleGroup.classList.add('inline-flex');
+                    }, 450);
+                };
+
+                const movePress = (x, y) => {
+                    if (Math.abs(x - startX) > 10 || Math.abs(y - startY) > 10) {
+                        clearTimeout(pressTimer);
+                    }
+                };
+
+                const cancelPress = () => clearTimeout(pressTimer);
+
+                row.addEventListener('touchstart', (e) => {
+                    if (e.target.closest('.outline-style-group')) return;
+                    startPress(e.touches[0].clientX, e.touches[0].clientY);
+                }, { passive: true });
+                row.addEventListener('touchmove', (e) => movePress(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+                row.addEventListener('touchend', cancelPress);
+                row.addEventListener('touchcancel', cancelPress);
+
+                row.addEventListener('mousedown', (e) => {
+                    if (e.button !== 0 || e.target.closest('.outline-style-group')) return;
+                    startPress(e.clientX, e.clientY);
+                });
+                row.addEventListener('mousemove', (e) => {
+                    if (e.buttons === 1) movePress(e.clientX, e.clientY);
+                });
+                row.addEventListener('mouseup', cancelPress);
+                row.addEventListener('mouseleave', cancelPress);
+                row.oncontextmenu = (e) => e.preventDefault();
+
+                row.onclick = (e) => {
+                    if (e.target.closest('.outline-style-group')) return;
+                    if (longPressActivated) {
+                        longPressActivated = false;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return;
+                    }
+                    hideAllStyleGroups();
+                    h.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    h.classList.remove('sentence-highlight');
+                    void h.offsetWidth;
+                    h.classList.add('sentence-highlight');
+                    setTimeout(() => h.classList.remove('sentence-highlight'), 2200);
+                    if (window.innerWidth < 640) {
+                        window.toggleHeadingsSidebar(false);
+                    }
+                };
+
+                row.appendChild(leftWrap);
+                row.appendChild(styleGroup);
+                listEl.appendChild(row);
+            });
+        };
+
+        // --- IN-NOTE SEARCH (JURISDICTION: ACTIVE NOTE ONLY) ---
+        let noteSearchMatches = [];
+        let noteSearchCurrentIdx = -1;
+
+        window.toggleNoteSearch = function() {
+            const bar = document.getElementById('noteSearchBar');
+            const input = document.getElementById('noteSearchInput');
+            if (!bar) return;
+            if (bar.classList.contains('hidden')) {
+                bar.classList.remove('hidden');
+                if (input) {
+                    input.focus();
+                    if (input.value.trim()) window.performNoteSearch(input.value);
+                }
+            } else {
+                window.closeNoteSearch();
+            }
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.closeNoteSearch = function() {
+            const bar = document.getElementById('noteSearchBar');
+            const input = document.getElementById('noteSearchInput');
+            const countEl = document.getElementById('noteSearchCount');
+            if (bar) bar.classList.add('hidden');
+            if (input) input.value = '';
+            if (countEl) countEl.textContent = '0/0';
+            window.clearNoteSearchHighlights();
+        };
+
+        window.clearNoteSearchHighlights = function() {
+            const preview = document.getElementById('notesPreview');
+            if (!preview) return;
+            const marks = preview.querySelectorAll('mark.note-search-hl');
+            marks.forEach(m => {
+                const parent = m.parentNode;
+                while (m.firstChild) parent.insertBefore(m.firstChild, m);
+                parent.removeChild(m);
+                parent.normalize();
+            });
+            noteSearchMatches = [];
+            noteSearchCurrentIdx = -1;
+        };
+
+        window.performNoteSearch = function(query) {
+            window.clearNoteSearchHighlights();
+            const preview = document.getElementById('notesPreview');
+            const countEl = document.getElementById('noteSearchCount');
+            const q = (query || '').trim();
+            if (!preview || !q) {
+                if (countEl) countEl.textContent = '0/0';
+                return;
+            }
+
+            const lowerQ = q.toLowerCase();
+            const walker = document.createTreeWalker(preview, NodeFilter.SHOW_TEXT, null);
+            const textNodes = [];
+            let node;
+            while ((node = walker.nextNode())) {
+                if (node.nodeValue && node.nodeValue.toLowerCase().includes(lowerQ)) {
+                    textNodes.push(node);
+                }
+            }
+
+            textNodes.forEach(tNode => {
+                const val = tNode.nodeValue;
+                const lowerVal = val.toLowerCase();
+                let startIdx = 0;
+                let matchIdx = lowerVal.indexOf(lowerQ, startIdx);
+                if (matchIdx === -1) return;
+
+                const frag = document.createDocumentFragment();
+                while (matchIdx !== -1) {
+                    if (matchIdx > startIdx) {
+                        frag.appendChild(document.createTextNode(val.slice(startIdx, matchIdx)));
+                    }
+                    const mark = document.createElement('mark');
+                    mark.className = 'note-search-hl';
+                    mark.textContent = val.slice(matchIdx, matchIdx + q.length);
+                    frag.appendChild(mark);
+                    noteSearchMatches.push(mark);
+
+                    startIdx = matchIdx + q.length;
+                    matchIdx = lowerVal.indexOf(lowerQ, startIdx);
+                }
+                if (startIdx < val.length) {
+                    frag.appendChild(document.createTextNode(val.slice(startIdx)));
+                }
+                tNode.parentNode.replaceChild(frag, tNode);
+            });
+
+            if (noteSearchMatches.length > 0) {
+                noteSearchCurrentIdx = 0;
+                window.highlightCurrentSearchMatch();
+            } else if (countEl) {
+                countEl.textContent = '0/0';
+            }
+        };
+
+        window.navigateNoteSearch = function(step) {
+            if (noteSearchMatches.length === 0) return;
+            noteSearchCurrentIdx = (noteSearchCurrentIdx + step + noteSearchMatches.length) % noteSearchMatches.length;
+            window.highlightCurrentSearchMatch();
+        };
+
+        window.highlightCurrentSearchMatch = function() {
+            const countEl = document.getElementById('noteSearchCount');
+            noteSearchMatches.forEach((m, i) => {
+                m.classList.toggle('active-match', i === noteSearchCurrentIdx);
+            });
+            const activeMark = noteSearchMatches[noteSearchCurrentIdx];
+            if (activeMark) {
+                activeMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            if (countEl) {
+                countEl.textContent = `${noteSearchCurrentIdx + 1}/${noteSearchMatches.length}`;
+            }
+        };
+
+        // --- INLINE COMMENTS ON SELECTED TEXT ---
+        let activeCommentSpan = null;
+        let pendingCommentRange = null;
+
+        window.openCommentDialog = function(existingSpan = null) {
+            const modal = document.getElementById('noteCommentModal');
+            const quoteEl = document.getElementById('noteCommentTargetQuote');
+            const inputEl = document.getElementById('noteCommentInput');
+            const delBtn = document.getElementById('btnDeleteComment');
+            const preview = document.getElementById('notesPreview');
+
+            if (existingSpan) {
+                activeCommentSpan = existingSpan;
+                pendingCommentRange = null;
+                quoteEl.textContent = `"${existingSpan.textContent.trim()}"`;
+                inputEl.value = decodeURIComponent(existingSpan.getAttribute('data-comment') || '');
+                delBtn.classList.remove('hidden');
+            } else {
+                const sel = window.getSelection();
+                if (!sel || !sel.rangeCount || sel.isCollapsed) {
+                    alert("Please select the text in your note first to add a comment.");
+                    return;
+                }
+                const range = sel.getRangeAt(0);
+                if (!preview.contains(range.commonAncestorContainer)) {
+                    alert("Please select text inside the note.");
+                    return;
+                }
+                activeCommentSpan = null;
+                pendingCommentRange = range.cloneRange();
+                quoteEl.textContent = `"${sel.toString().trim()}"`;
+                inputEl.value = '';
+                delBtn.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => inputEl.focus(), 50);
+            if (window.lucide) lucide.createIcons();
+        };
+
+        window.closeCommentDialog = function() {
+            document.getElementById('noteCommentModal')?.classList.add('hidden');
+            activeCommentSpan = null;
+            pendingCommentRange = null;
+        };
+
+        window.saveCommentDialog = function() {
+            const inputEl = document.getElementById('noteCommentInput');
+            const commentText = (inputEl.value || '').trim();
+            if (!commentText) {
+                alert("Please enter a comment or tap Cancel.");
+                return;
+            }
+
+            const preview = document.getElementById('notesPreview');
+            const wasEditable = preview.isContentEditable;
+            window.recordNoteSnapshot();
+
+            if (activeCommentSpan) {
+                activeCommentSpan.setAttribute('data-comment', encodeURIComponent(commentText));
+            } else if (pendingCommentRange) {
+                const span = document.createElement('span');
+                span.className = 'note-comment';
+                span.setAttribute('data-comment', encodeURIComponent(commentText));
+                span.appendChild(pendingCommentRange.extractContents());
+                pendingCommentRange.insertNode(span);
+            }
+
+            currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
+            window.recordNoteSnapshot();
+            window.closeCommentDialog();
+
+            if (!wasEditable) {
+                window.loadActiveNoteContent(true, true);
+            }
+        };
+
+        window.deleteActiveComment = function() {
+            if (!activeCommentSpan) return;
+            const preview = document.getElementById('notesPreview');
+            const wasEditable = preview.isContentEditable;
+            window.recordNoteSnapshot();
+
+            const parent = activeCommentSpan.parentNode;
+            while (activeCommentSpan.firstChild) {
+                parent.insertBefore(activeCommentSpan.firstChild, activeCommentSpan);
+            }
+            parent.removeChild(activeCommentSpan);
+            parent.normalize();
+
+            currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
+            window.recordNoteSnapshot();
+            window.closeCommentDialog();
+
+            if (!wasEditable) {
+                window.loadActiveNoteContent(true, true);
+            }
         };
 
         // --- ACTIVE RIBBON STATE DETECTION ---
@@ -1534,11 +2146,12 @@
             const btnH1 = document.getElementById('btn-h1');
             const btnH2 = document.getElementById('btn-h2');
             const btnH3 = document.getElementById('btn-h3');
+            const btnNormal = document.getElementById('btn-normal');
             const btnHighlight = document.getElementById('btn-highlight');
             const colorDots = document.querySelectorAll('.color-dot');
 
             const clearAllActive = () => {
-                [btnBold, btnItalic, btnUnderline, btnStrike, btnH1, btnH2, btnH3, btnHighlight].forEach(btn => {
+                [btnBold, btnItalic, btnUnderline, btnStrike, btnH1, btnH2, btnH3, btnNormal, btnHighlight].forEach(btn => {
                     if (btn) btn.classList.remove('ribbon-btn-active');
                 });
                 colorDots.forEach(dot => dot.classList.remove('color-dot-active'));
@@ -1556,13 +2169,11 @@
 
             clearAllActive();
 
-            // Native browser state check
             if (document.queryCommandState('bold')) btnBold?.classList.add('ribbon-btn-active');
             if (document.queryCommandState('italic')) btnItalic?.classList.add('ribbon-btn-active');
             if (document.queryCommandState('underline')) btnUnderline?.classList.add('ribbon-btn-active');
             if (document.queryCommandState('strikeThrough')) btnStrike?.classList.add('ribbon-btn-active');
 
-            // DOM traversal for elements, colors, and marks
             let curr = node;
             let foundColor = false;
             let foundHighlight = false;
@@ -1598,9 +2209,15 @@
 
                 curr = curr.parentNode;
             }
+
+            const isHeadingActive = btnH1?.classList.contains('ribbon-btn-active')
+                || btnH2?.classList.contains('ribbon-btn-active')
+                || btnH3?.classList.contains('ribbon-btn-active');
+            if (!isHeadingActive) {
+                btnNormal?.classList.add('ribbon-btn-active');
+            }
         };
 
-        // Attach listeners for ribbon state tracking
         document.addEventListener('selectionchange', () => {
             const preview = document.getElementById('notesPreview');
             if (preview && !document.getElementById('notesOverlay').classList.contains('hidden')) {
@@ -1608,45 +2225,104 @@
             }
         });
 
-        // --- DIRECT WYSIWYG FORMATTING ACTIONS ---
-        // --- NOTES UNDO / REDO HISTORY ENGINE ---
-        let noteHistoryStack = [];
-        let noteHistoryIndex = -1;
+        // --- PER-TAB UNIFIED NOTES UNDO / REDO HISTORY ENGINE ---
+        let noteTabHistories = {};
         let noteHistoryTimer = null;
+        let isApplyingHistory = false;
 
-        window.resetNoteHistory = function() {
-            const preview = document.getElementById('notesPreview');
-            const currentHtml = preview ? preview.innerHTML : '';
-            noteHistoryStack = [currentHtml];
-            noteHistoryIndex = 0;
-            window.updateUndoRedoButtons();
+        window.getActiveTabHistory = function() {
+            if (!noteTabHistories[activeNoteIdx]) {
+                noteTabHistories[activeNoteIdx] = { stack: [], index: -1 };
+            }
+            return noteTabHistories[activeNoteIdx];
         };
 
-        window.recordNoteSnapshot = function() {
+        window.getNormalizedNoteSnapshot = function() {
             const preview = document.getElementById('notesPreview');
-            if (!preview) return;
-            const currentHtml = preview.innerHTML;
+            if (!preview) return '';
+            if (preview.getAttribute('data-empty') === 'true') return '';
 
-            if (noteHistoryIndex >= 0 && noteHistoryStack[noteHistoryIndex] === currentHtml) {
+            const clone = preview.cloneNode(true);
+            // Strip transient UI highlights/markers so snapshots stay pure
+            clone.querySelectorAll('.sentence-highlight').forEach(el => {
+                el.classList.remove('sentence-highlight');
+                if (el.getAttribute('class') === '') el.removeAttribute('class');
+            });
+            clone.querySelectorAll('mark.note-search-hl').forEach(m => {
+                const p = m.parentNode;
+                while (m.firstChild) p.insertBefore(m.firstChild, m);
+                p.removeChild(m);
+            });
+            clone.querySelectorAll('span[data-staged-src], span[data-staged-tgt]').forEach(s => {
+                const p = s.parentNode;
+                while (s.firstChild) p.insertBefore(s.firstChild, s);
+                p.removeChild(s);
+            });
+            clone.normalize();
+
+            const rawText = clone.textContent.replace(/\u200B/g, '').trim();
+            if (!rawText && !clone.querySelector('img, hr, table')) return '';
+            return clone.innerHTML;
+        };
+
+        window.resetNoteHistory = function() {
+            clearTimeout(noteHistoryTimer);
+            const existing = noteTabHistories[activeNoteIdx];
+            const currentHtml = window.getNormalizedNoteSnapshot();
+
+            // Reuse existing tab history if switching back to an already-visited tab
+            if (existing && existing.stack.length > 0) {
+                existing.stack[existing.index] = currentHtml;
+                window.updateUndoRedoButtons();
                 return;
             }
 
-            if (noteHistoryIndex < noteHistoryStack.length - 1) {
-                noteHistoryStack = noteHistoryStack.slice(0, noteHistoryIndex + 1);
+            noteTabHistories[activeNoteIdx] = {
+                stack: [currentHtml],
+                index: 0
+            };
+            window.updateUndoRedoButtons();
+        };
+
+        window.flushPendingNoteSnapshot = function() {
+            if (noteHistoryTimer) {
+                clearTimeout(noteHistoryTimer);
+                noteHistoryTimer = null;
+                window.recordNoteSnapshot();
+            }
+        };
+
+        window.recordNoteSnapshot = function() {
+            if (isApplyingHistory) return;
+            clearTimeout(noteHistoryTimer);
+            noteHistoryTimer = null;
+
+            const preview = document.getElementById('notesPreview');
+            if (!preview) return;
+            const hist = window.getActiveTabHistory();
+            const currentHtml = window.getNormalizedNoteSnapshot();
+
+            if (hist.index >= 0 && hist.stack[hist.index] === currentHtml) {
+                return;
             }
 
-            noteHistoryStack.push(currentHtml);
-            if (noteHistoryStack.length > 50) noteHistoryStack.shift();
-            noteHistoryIndex = noteHistoryStack.length - 1;
+            if (hist.index < hist.stack.length - 1) {
+                hist.stack = hist.stack.slice(0, hist.index + 1);
+            }
+
+            hist.stack.push(currentHtml);
+            if (hist.stack.length > 100) hist.stack.shift();
+            hist.index = hist.stack.length - 1;
             window.updateUndoRedoButtons();
         };
 
         window.updateUndoRedoButtons = function() {
             const undoBtn = document.getElementById('btn-undo');
             const redoBtn = document.getElementById('btn-redo');
+            const hist = window.getActiveTabHistory();
 
-            const canUndo = noteHistoryIndex > 0;
-            const canRedo = noteHistoryIndex < noteHistoryStack.length - 1;
+            const canUndo = hist.index > 0;
+            const canRedo = hist.index < hist.stack.length - 1;
 
             if (undoBtn) {
                 undoBtn.disabled = !canUndo;
@@ -1660,39 +2336,63 @@
             }
         };
 
-        window.noteUndo = function() {
-            window.startEditingNote();
-            try {
-                if (document.execCommand('undo')) {
-                    window.updateRibbonState();
-                    return;
-                }
-            } catch (e) {}
+        window.applyHistoryState = function(snapshotHtml) {
+            const preview = document.getElementById('notesPreview');
+            if (!preview) return;
+            const currentScroll = preview.scrollTop;
 
-            if (noteHistoryIndex > 0) {
-                noteHistoryIndex--;
-                const preview = document.getElementById('notesPreview');
-                preview.innerHTML = noteHistoryStack[noteHistoryIndex];
-                window.updateUndoRedoButtons();
-                window.updateRibbonState();
+            isApplyingHistory = true;
+            try {
+                if (!snapshotHtml || !snapshotHtml.trim()) {
+                    if (preview.isContentEditable) {
+                        preview.innerHTML = '<div><br></div>';
+                        preview.removeAttribute('data-empty');
+                    } else {
+                        preview.innerHTML = '<p class="text-slate-400 italic py-4">No content. Double-tap to write...</p>';
+                        preview.setAttribute('data-empty', 'true');
+                    }
+                    currentNotesList[activeNoteIdx] = '';
+                } else {
+                    preview.innerHTML = snapshotHtml;
+                    preview.removeAttribute('data-empty');
+                    currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
+                }
+            } finally {
+                isApplyingHistory = false;
+            }
+
+            preview.scrollTop = currentScroll;
+            window.updateUndoRedoButtons();
+            window.refreshHeadingsSidebar();
+            window.updateRibbonState();
+        };
+
+        window.noteUndo = function() {
+            window.clearNoteSearchHighlights();
+            clearTimeout(noteHistoryTimer);
+            noteHistoryTimer = null;
+
+            const hist = window.getActiveTabHistory();
+            const liveHtml = window.getNormalizedNoteSnapshot();
+            if (hist.index >= 0 && hist.stack[hist.index] !== liveHtml) {
+                window.recordNoteSnapshot();
+            }
+
+            if (hist.index > 0) {
+                hist.index--;
+                window.applyHistoryState(hist.stack[hist.index]);
             }
         };
 
         window.noteRedo = function() {
-            window.startEditingNote();
-            try {
-                if (document.execCommand('redo')) {
-                    window.updateRibbonState();
-                    return;
-                }
-            } catch (e) {}
+            window.clearNoteSearchHighlights();
+            clearTimeout(noteHistoryTimer);
+            noteHistoryTimer = null;
 
-            if (noteHistoryIndex < noteHistoryStack.length - 1) {
-                noteHistoryIndex++;
-                const preview = document.getElementById('notesPreview');
-                preview.innerHTML = noteHistoryStack[noteHistoryIndex];
-                window.updateUndoRedoButtons();
-                window.updateRibbonState();
+            const hist = window.getActiveTabHistory();
+            if (hist.index < hist.stack.length - 1) {
+                hist.index++;
+                window.applyHistoryState(hist.stack[hist.index]);
             }
         };
 
@@ -1701,6 +2401,21 @@
             window.recordNoteSnapshot();
             document.execCommand('formatBlock', false, `<h${level}>`);
             window.recordNoteSnapshot();
+            window.refreshHeadingsSidebar();
+            setTimeout(window.updateRibbonState, 20);
+        };
+
+        window.applyNormal = function() {
+            window.startEditingNote();
+            window.recordNoteSnapshot();
+            const blocks = window.getSelectedBlocks();
+            const liBlocks = blocks.filter(b => b.tagName === 'LI');
+            if (liBlocks.length > 0) {
+                document.execCommand('insertUnorderedList');
+            }
+            document.execCommand('formatBlock', false, '<p>');
+            window.recordNoteSnapshot();
+            window.refreshHeadingsSidebar();
             setTimeout(window.updateRibbonState, 20);
         };
 
@@ -1723,6 +2438,140 @@
             setTimeout(window.updateRibbonState, 20);
         };
 
+        // --- PROMOTE & DEMOTE BULLET POINTS AND HEADINGS ---
+        window.getSelectedBlocks = function() {
+            const preview = document.getElementById('notesPreview');
+            const sel = window.getSelection();
+            if (!sel || !sel.rangeCount || !preview) return [];
+
+            const range = sel.getRangeAt(0);
+            const blockTags = new Set(['LI', 'H1', 'H2', 'H3', 'H4', 'P', 'DIV', 'BLOCKQUOTE']);
+            const found = [];
+
+            const findNearestBlock = (node) => {
+                let curr = node && node.nodeType === Node.TEXT_NODE ? node.parentNode : node;
+                while (curr && curr !== preview) {
+                    if (curr.nodeType === Node.ELEMENT_NODE && blockTags.has(curr.tagName)) {
+                        return curr;
+                    }
+                    curr = curr.parentNode;
+                }
+                return null;
+            };
+
+            if (sel.isCollapsed) {
+                const b = findNearestBlock(sel.anchorNode);
+                if (b) found.push(b);
+                return found;
+            }
+
+            const walker = document.createTreeWalker(preview, NodeFilter.SHOW_ELEMENT, {
+                acceptNode(node) {
+                    if (!blockTags.has(node.tagName)) return NodeFilter.FILTER_SKIP;
+                    // Skip container DIVs/BLOCKQUOTEs if they wrap inner block elements
+                    if ((node.tagName === 'DIV' || node.tagName === 'BLOCKQUOTE') && node.querySelector('li, p, h1, h2, h3')) {
+                        return NodeFilter.FILTER_SKIP;
+                    }
+                    return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+                }
+            });
+
+            let curr;
+            while ((curr = walker.nextNode())) {
+                found.push(curr);
+            }
+
+            if (found.length === 0) {
+                const b = findNearestBlock(range.commonAncestorContainer);
+                if (b) found.push(b);
+            }
+            return found;
+        };
+
+        window.demoteBlock = function() {
+            window.startEditingNote();
+            window.recordNoteSnapshot();
+            const blocks = window.getSelectedBlocks();
+            const liBlocks = blocks.filter(b => b.tagName === 'LI');
+
+            if (liBlocks.length > 0) {
+                liBlocks.forEach(li => {
+                    const prevLi = li.previousElementSibling;
+                    if (!prevLi || prevLi.tagName !== 'LI') return;
+
+                    let subList = Array.from(prevLi.children).find(c => c.tagName === 'UL' || c.tagName === 'OL');
+                    if (!subList) {
+                        subList = document.createElement(li.parentElement.tagName.toLowerCase());
+                        prevLi.appendChild(subList);
+                    }
+                    subList.appendChild(li);
+                });
+            } else if (blocks.length > 0) {
+                const tag = blocks[0].tagName.toLowerCase();
+                if (tag === 'h1') document.execCommand('formatBlock', false, '<h2>');
+                else if (tag === 'h2') document.execCommand('formatBlock', false, '<h3>');
+                else if (tag === 'h3') document.execCommand('formatBlock', false, '<p>');
+                else document.execCommand('indent');
+            }
+
+            window.recordNoteSnapshot();
+            window.refreshHeadingsSidebar();
+            setTimeout(window.updateRibbonState, 20);
+        };
+
+        window.promoteBlock = function() {
+            window.startEditingNote();
+            window.recordNoteSnapshot();
+            const blocks = window.getSelectedBlocks();
+            const liBlocks = blocks.filter(b => b.tagName === 'LI');
+
+            if (liBlocks.length > 0) {
+                // Process in reverse order so sibling order is preserved when lifting out
+                [...liBlocks].reverse().forEach(li => {
+                    const parentList = li.parentElement;
+                    const parentLi = parentList ? parentList.parentElement : null;
+
+                    if (parentLi && parentLi.tagName === 'LI' && parentLi.parentElement) {
+                        // Move any following siblings inside parentList into a nested list under `li`
+                        const followingSiblings = [];
+                        let next = li.nextElementSibling;
+                        while (next) {
+                            followingSiblings.push(next);
+                            next = next.nextElementSibling;
+                        }
+                        if (followingSiblings.length > 0) {
+                            let childList = Array.from(li.children).find(c => c.tagName === 'UL' || c.tagName === 'OL');
+                            if (!childList) {
+                                childList = document.createElement(parentList.tagName.toLowerCase());
+                                li.appendChild(childList);
+                            }
+                            followingSiblings.forEach(sib => childList.appendChild(sib));
+                        }
+
+                        // Lift `li` right after `parentLi`
+                        parentLi.parentElement.insertBefore(li, parentLi.nextSibling);
+
+                        // Remove empty parentList if nothing remains
+                        if (parentList.children.length === 0) {
+                            parentList.remove();
+                        }
+                    } else {
+                        // Top-level bullet -> promote to normal paragraph
+                        document.execCommand('outdent');
+                    }
+                });
+            } else if (blocks.length > 0) {
+                const tag = blocks[0].tagName.toLowerCase();
+                if (tag === 'h3') document.execCommand('formatBlock', false, '<h2>');
+                else if (tag === 'h2') document.execCommand('formatBlock', false, '<h1>');
+                else if (tag !== 'h1') document.execCommand('outdent');
+            }
+
+            window.recordNoteSnapshot();
+            window.refreshHeadingsSidebar();
+            setTimeout(window.updateRibbonState, 20);
+        };
+
         window.applyColor = function(colorHex) {
             window.startEditingNote();
             window.recordNoteSnapshot();
@@ -1733,6 +2582,90 @@
             span.style.color = colorHex;
             span.appendChild(range.extractContents());
             range.insertNode(span);
+            window.recordNoteSnapshot();
+            setTimeout(window.updateRibbonState, 20);
+        };
+
+        // --- REMOVE APPLIED TEXT COLORS ---
+        window.removeColor = function() {
+            window.startEditingNote();
+            window.recordNoteSnapshot();
+            const preview = document.getElementById('notesPreview');
+            const sel = window.getSelection();
+            if (!sel || !sel.rangeCount || !preview) return;
+
+            const cleanSpanIfEmpty = (el) => {
+                if (!el || !el.parentNode || el === preview) return;
+                el.style.removeProperty('color');
+                if (el.getAttribute('style') !== null && el.getAttribute('style').trim() === '') {
+                    el.removeAttribute('style');
+                }
+                if (el.tagName && el.tagName.toLowerCase() === 'span' && el.attributes.length === 0) {
+                    const p = el.parentNode;
+                    while (el.firstChild) p.insertBefore(el.firstChild, el);
+                    p.removeChild(el);
+                }
+            };
+
+            if (sel.isCollapsed) {
+                let curr = sel.anchorNode;
+                if (curr && curr.nodeType === Node.TEXT_NODE) curr = curr.parentNode;
+                while (curr && curr !== preview) {
+                    const nextParent = curr.parentNode;
+                    if (curr.style && curr.style.color) {
+                        cleanSpanIfEmpty(curr);
+                    }
+                    curr = nextParent;
+                }
+            } else {
+                const range = sel.getRangeAt(0);
+                // If selection sits inside a colored ancestor span, split out the colored wrapper cleanly
+                let ancestor = range.commonAncestorContainer;
+                if (ancestor.nodeType === Node.TEXT_NODE) ancestor = ancestor.parentNode;
+                let coloredAncestor = null;
+                let walkUp = ancestor;
+                while (walkUp && walkUp !== preview) {
+                    if (walkUp.style && walkUp.style.color) {
+                        coloredAncestor = walkUp;
+                        break;
+                    }
+                    walkUp = walkUp.parentNode;
+                }
+
+                const extracted = range.extractContents();
+                extracted.querySelectorAll('[style]').forEach(el => cleanSpanIfEmpty(el));
+                extracted.querySelectorAll('font[color]').forEach(f => {
+                    f.removeAttribute('color');
+                });
+
+                const wrapper = document.createElement('span');
+                wrapper.appendChild(extracted);
+
+                if (coloredAncestor && preview.contains(coloredAncestor)) {
+                    // Split coloredAncestor around the insertion point so selected text is no longer inside coloredAncestor
+                    const afterRange = document.createRange();
+                    afterRange.setStart(range.startContainer, range.startOffset);
+                    afterRange.setEndAfter(coloredAncestor);
+                    const afterFrag = afterRange.extractContents();
+
+                    coloredAncestor.parentNode.insertBefore(wrapper, coloredAncestor.nextSibling);
+                    if (afterFrag.textContent.length > 0 || afterFrag.querySelector('*')) {
+                        coloredAncestor.parentNode.insertBefore(afterFrag, wrapper.nextSibling);
+                    }
+                    if (!coloredAncestor.textContent.length && !coloredAncestor.querySelector('*')) {
+                        coloredAncestor.remove();
+                    }
+                } else {
+                    range.insertNode(wrapper);
+                }
+
+                // Unwrap temporary wrapper
+                const wParent = wrapper.parentNode;
+                while (wrapper.firstChild) wParent.insertBefore(wrapper.firstChild, wrapper);
+                wParent.removeChild(wrapper);
+                preview.normalize();
+            }
+
             window.recordNoteSnapshot();
             setTimeout(window.updateRibbonState, 20);
         };
@@ -1756,42 +2689,35 @@
             return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         };
 
-        window.replaceFirstOccurrence = function(str, findText, replaceWith, startIndex = 0) {
-            if (!str || !findText) return { result: str || '', nextIndex: 0 };
-            const escaped = findText.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-            const sub = str.slice(startIndex);
-            const match = sub.match(new RegExp(escaped));
-            if (match && match.index !== undefined) {
-                const actualIdx = startIndex + match.index;
-                return {
-                    result: str.substring(0, actualIdx) + replaceWith + str.substring(actualIdx + match[0].length),
-                    nextIndex: actualIdx + replaceWith.length
-                };
-            }
-            return {
-                result: str + '\n\n' + replaceWith,
-                nextIndex: (str + '\n\n' + replaceWith).length
-            };
-        };
-
+        // --- EXACT-SELECTION CROSS-NOTE LINKS (FORWARD & BACKWARD) ---
         window.startStagedLink = function() {
+            window.clearNoteSearchHighlights();
+            const preview = document.getElementById('notesPreview');
             const sel = window.getSelection();
             let selectedText = "";
-            if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+            if (sel && sel.rangeCount > 0 && !sel.isCollapsed && preview && preview.contains(sel.getRangeAt(0).commonAncestorContainer)) {
                 selectedText = sel.toString().trim();
             }
 
             if (!selectedText) {
-                alert("Please highlight the text in your note first to start linking.");
+                alert("Please highlight the exact text in your note first to start linking.");
                 return;
             }
 
-            const preview = document.getElementById('notesPreview');
-            if (preview && preview.isContentEditable) {
-                currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
-            }
-
+            window.recordNoteSnapshot();
+            const range = sel.getRangeAt(0);
             const sourceAnchorId = 'anc-' + Math.random().toString(36).substr(2, 7);
+
+            // Wrap the exact selected range in the DOM so position is preserved even for duplicate words
+            const markerSpan = document.createElement('span');
+            markerSpan.id = sourceAnchorId;
+            markerSpan.setAttribute('data-staged-src', '1');
+            markerSpan.appendChild(range.extractContents());
+            range.insertNode(markerSpan);
+            sel.removeAllRanges();
+
+            currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
+
             stagedLink = {
                 sourceTabIdx: activeNoteIdx,
                 sourceText: selectedText,
@@ -1824,7 +2750,6 @@
                 banner.classList.add('hidden');
                 banner.classList.remove('flex');
 
-                // Delete button stays permanently visible right after Start Link
                 const isLinkActive = !!window.activeClickedCrossLink;
                 const deleteBtnStyle = isLinkActive 
                     ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800 font-semibold shadow-sm'
@@ -1870,67 +2795,86 @@
                 currentNotesList[targetTabIdx] = unwrapLink(currentNotesList[targetTabIdx], sourceAnchorId, targetAnchorId);
             }
 
+            window.recordNoteSnapshot();
             window.activeClickedCrossLink = null;
             window.updateStagedLinkUI();
-            window.loadActiveNoteContent();
+            window.loadActiveNoteContent(true, true);
         };
 
         window.cancelStagedLink = function() {
+            if (stagedLink) {
+                const { sourceTabIdx, sourceAnchorId } = stagedLink;
+                if (typeof sourceTabIdx === 'number' && currentNotesList[sourceTabIdx]) {
+                    const re = new RegExp(`<span id="${sourceAnchorId}" data-staged-src="1">([\\s\\S]*?)<\\/span>`, 'g');
+                    currentNotesList[sourceTabIdx] = currentNotesList[sourceTabIdx].replace(re, '$1');
+                }
+                const stagedEl = document.querySelector(`span[id="${sourceAnchorId}"][data-staged-src="1"]`);
+                if (stagedEl && stagedEl.parentNode) {
+                    const p = stagedEl.parentNode;
+                    while (stagedEl.firstChild) p.insertBefore(stagedEl.firstChild, stagedEl);
+                    p.removeChild(stagedEl);
+                    p.normalize();
+                }
+            }
             stagedLink = null;
             window.updateStagedLinkUI();
         };
 
         window.connectStagedLink = function() {
             if (!stagedLink) return;
+            window.clearNoteSearchHighlights();
 
+            const preview = document.getElementById('notesPreview');
             const sel = window.getSelection();
             let targetText = "";
-            if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+            if (sel && sel.rangeCount > 0 && !sel.isCollapsed && preview && preview.contains(sel.getRangeAt(0).commonAncestorContainer)) {
                 targetText = sel.toString().trim();
             }
 
             if (!targetText) {
-                alert("Please highlight the target text in the destination note to connect.");
+                alert("Please highlight the exact target text in the destination note to connect.");
                 return;
             }
 
-            const preview = document.getElementById('notesPreview');
-            if (preview && preview.isContentEditable) {
-                currentNotesList[activeNoteIdx] = window.htmlToMarkdown(preview);
-            }
-
-            // Replace this block in connectStagedLink:
+            const range = sel.getRangeAt(0);
             const targetTabIdx = activeNoteIdx;
             const targetAnchorId = 'anc-' + Math.random().toString(36).substr(2, 7);
             const sourceTabIdx = stagedLink.sourceTabIdx;
             const sourceAnchorId = stagedLink.sourceAnchorId;
             const sourceText = stagedLink.sourceText;
 
-            // --- CHANGED: Use 1-based tab numbers ---
+            // Wrap exact target selection range in DOM
+            const targetMarker = document.createElement('span');
+            targetMarker.id = targetAnchorId;
+            targetMarker.setAttribute('data-staged-tgt', '1');
+            targetMarker.appendChild(range.extractContents());
+            range.insertNode(targetMarker);
+            sel.removeAllRanges();
+
+            currentNotesList[targetTabIdx] = window.htmlToMarkdown(preview);
+
             const targetTabNum = targetTabIdx + 1;
             const sourceTabNum = sourceTabIdx + 1;
 
             const forwardLinkHtml = `<span id="${sourceAnchorId}">[${sourceText}](#note:${targetTabNum}:${targetAnchorId})</span>`;
             const backLinkHtml = `<span id="${targetAnchorId}">[${targetText}](#note:${sourceTabNum}:${sourceAnchorId}?backlink=1)</span>`;
 
+            const srcMarkerRegex = new RegExp(`<span id="${sourceAnchorId}" data-staged-src="1">[\\s\\S]*?<\\/span>`);
+            const tgtMarkerRegex = new RegExp(`<span id="${targetAnchorId}" data-staged-tgt="1">[\\s\\S]*?<\\/span>`);
+
             if (sourceTabIdx === targetTabIdx) {
                 let content = currentNotesList[sourceTabIdx] || '';
-                const firstRes = window.replaceFirstOccurrence(content, sourceText, forwardLinkHtml, 0);
-                content = firstRes.result;
-                const startIdx = (sourceText === targetText) ? firstRes.nextIndex : 0;
-                const secondRes = window.replaceFirstOccurrence(content, targetText, backLinkHtml, startIdx);
-                currentNotesList[sourceTabIdx] = secondRes.result;
+                content = content.replace(srcMarkerRegex, forwardLinkHtml);
+                content = content.replace(tgtMarkerRegex, backLinkHtml);
+                currentNotesList[sourceTabIdx] = content;
             } else {
-                let srcContent = currentNotesList[sourceTabIdx] || '';
-                currentNotesList[sourceTabIdx] = window.replaceFirstOccurrence(srcContent, sourceText, forwardLinkHtml, 0).result;
-
-                let tgtContent = currentNotesList[targetTabIdx] || '';
-                currentNotesList[targetTabIdx] = window.replaceFirstOccurrence(tgtContent, targetText, backLinkHtml, 0).result;
+                currentNotesList[sourceTabIdx] = (currentNotesList[sourceTabIdx] || '').replace(srcMarkerRegex, forwardLinkHtml);
+                currentNotesList[targetTabIdx] = (currentNotesList[targetTabIdx] || '').replace(tgtMarkerRegex, backLinkHtml);
             }
 
             stagedLink = null;
             window.updateStagedLinkUI();
-            window.loadActiveNoteContent();
+            window.loadActiveNoteContent(true, true);
 
             setTimeout(() => {
                 const targetEl = document.getElementById(targetAnchorId);
@@ -1950,12 +2894,13 @@
                 e.stopPropagation();
             }
 
+            window.saveCurrentNoteScroll();
+
             const preview = document.getElementById('notesPreview');
             if (preview && preview.isContentEditable) {
                 window.finishEditingNote();
             }
 
-            // 1. Capture the anchor ID of the link that was clicked
             let sourceAnchorId = null;
             if (e && e.target) {
                 const a = e.target.closest('a.cross-note-link') || e.target.closest('a');
@@ -1967,11 +2912,9 @@
                 }
             }
 
-            // Convert 1-based number to 0-based array index (safely handles legacy 0-index)
             const targetIdx = targetTabNum > 0 ? targetTabNum - 1 : 0;
             const sourceTabIdx = activeNoteIdx;
 
-            // 2. Register clicked link and activate the Delete Link button style.
             window.activeClickedCrossLink = {
                 sourceTabIdx: sourceTabIdx,
                 sourceAnchorId: sourceAnchorId,
@@ -1983,7 +2926,7 @@
             if (targetIdx !== activeNoteIdx) {
                 activeNoteIdx = targetIdx;
                 window.renderNotesTabs();
-                window.loadActiveNoteContent();
+                window.loadActiveNoteContent(true);
             }
 
             setTimeout(() => {
@@ -2003,12 +2946,28 @@
 
         const previewEl = document.getElementById('notesPreview');
         if (previewEl) {
+            // Save scroll position on scroll until reload
+            previewEl.addEventListener('scroll', () => {
+                window.saveCurrentNoteScroll();
+            }, { passive: true });
+
+            // Single-click handler for viewing/editing inline comments
+            previewEl.addEventListener('click', (e) => {
+                const commentSpan = e.target.closest('.note-comment');
+                if (commentSpan) {
+                    e.stopPropagation();
+                    window.openCommentDialog(commentSpan);
+                }
+            });
+
             previewEl.addEventListener('dblclick', (e) => {
+                if (e.target.closest('.note-comment')) return;
                 e.preventDefault();
                 window.startEditingNote();
             });
 
             previewEl.addEventListener('touchend', (e) => {
+                if (e.target.closest('.note-comment')) return;
                 const now = new Date().getTime();
                 const tapDifference = now - lastTapTime;
                 if (tapDifference < 350 && tapDifference > 0) {
@@ -2021,12 +2980,97 @@
             previewEl.addEventListener('keyup', () => window.updateRibbonState());
             previewEl.addEventListener('mouseup', () => window.updateRibbonState());
 
-            previewEl.addEventListener('input', () => {
+            let isImeComposing = false;
+
+            // Capture exact pre-edit state BEFORE browser mutates DOM (typing, paste, cut, autocorrect)
+            previewEl.addEventListener('beforeinput', (e) => {
+                if (isApplyingHistory) return;
+                if (e.inputType === 'historyUndo') {
+                    e.preventDefault();
+                    window.noteUndo();
+                    return;
+                }
+                if (e.inputType === 'historyRedo') {
+                    e.preventDefault();
+                    window.noteRedo();
+                    return;
+                }
+                if (!isImeComposing && !noteHistoryTimer) {
+                    window.recordNoteSnapshot();
+                }
+            });
+
+            previewEl.addEventListener('compositionstart', () => {
+                isImeComposing = true;
+                window.flushPendingNoteSnapshot();
+                window.recordNoteSnapshot();
+            });
+
+            previewEl.addEventListener('compositionend', () => {
+                isImeComposing = false;
                 clearTimeout(noteHistoryTimer);
                 noteHistoryTimer = setTimeout(() => {
+                    noteHistoryTimer = null;
                     window.recordNoteSnapshot();
-                }, 400);
+                    window.refreshHeadingsSidebar();
+                }, 250);
             });
+
+            previewEl.addEventListener('paste', () => {
+                window.recordNoteSnapshot();
+                setTimeout(() => {
+                    window.recordNoteSnapshot();
+                    window.refreshHeadingsSidebar();
+                }, 0);
+            });
+
+            previewEl.addEventListener('cut', () => {
+                window.recordNoteSnapshot();
+                setTimeout(() => {
+                    window.recordNoteSnapshot();
+                    window.refreshHeadingsSidebar();
+                }, 0);
+            });
+
+            previewEl.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+                    const k = e.key.toLowerCase();
+                    if (k === 'z' && !e.shiftKey) {
+                        e.preventDefault();
+                        window.noteUndo();
+                        return;
+                    }
+                    if (k === 'y' || (k === 'z' && e.shiftKey)) {
+                        e.preventDefault();
+                        window.noteRedo();
+                        return;
+                    }
+                }
+                if (e.key === 'Enter' || e.key === 'Backspace' || e.key === 'Delete') {
+                    window.flushPendingNoteSnapshot();
+                    window.recordNoteSnapshot();
+                }
+            });
+
+            previewEl.addEventListener('input', () => {
+                if (isApplyingHistory || isImeComposing) return;
+                clearTimeout(noteHistoryTimer);
+                noteHistoryTimer = setTimeout(() => {
+                    noteHistoryTimer = null;
+                    window.recordNoteSnapshot();
+                    window.refreshHeadingsSidebar();
+                }, 300);
+            });
+
+            // Prevent ribbon clicks from clearing text selection or stealing focus
+            const ribbonBarEl = document.getElementById('notesRibbonBar');
+            if (ribbonBarEl) {
+                ribbonBarEl.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('button')) {
+                        e.preventDefault();
+                    }
+                });
+            }
         }
 
         window.addLevelItem = function() {
@@ -2108,6 +3152,9 @@
         }
 
         window.closeAllOverlays = function() {
+            window.saveCurrentNoteScroll();
+            window.closeNoteSearch();
+            window.closeCommentDialog();
             ['optionsOverlay','editOverlay','notesOverlay','pathOverlay','fileActionsOverlay'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('hidden');
