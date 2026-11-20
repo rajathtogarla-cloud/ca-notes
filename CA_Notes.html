@@ -1700,6 +1700,200 @@
         #notes-modal.is-edit-mode #notes-ribbon-bar {
             display: none !important;
         }
+
+        /* --- INLINE COMMENTS --- */
+        .note-comment {
+            background-color: rgba(245, 158, 11, 0.18);
+            border-bottom: 2px dashed #d97706;
+            border-radius: 3px;
+            padding: 0 2px;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .note-comment:hover {
+            background-color: rgba(245, 158, 11, 0.34);
+        }
+
+        /* --- IN-NOTE SEARCH HIGHLIGHTS --- */
+        mark.note-search-hl {
+            background-color: #fde047;
+            color: #000000;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+        mark.note-search-hl.active-match {
+            background-color: #fb923c;
+            color: #000000;
+            box-shadow: 0 0 0 2px #ea580c;
+        }
+
+        /* --- NOTES BODY SPLIT LAYOUT (SIDEBAR + CONTENT) --- */
+        .notes-workspace-row {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            gap: 12px;
+            position: relative;
+        }
+        .notes-headings-sidebar {
+            width: 275px;
+            flex-shrink: 0;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .notes-headings-sidebar.hidden-sidebar {
+            display: none !important;
+        }
+        .notes-headings-header {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #64748b;
+        }
+        .notes-headings-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .heading-nav-row {
+            position: relative;
+            width: 100%;
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 0.82rem;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.12s ease;
+        }
+        .heading-nav-row:hover {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+        .heading-nav-row.h-lvl-1 { font-weight: 700; padding-left: 6px; }
+        .heading-nav-row.h-lvl-2 { font-weight: 600; padding-left: 18px; }
+        .heading-nav-row.h-lvl-3 { font-weight: 400; padding-left: 30px; color: #475569; }
+
+        .outline-collapse-btn {
+            width: 16px;
+            height: 16px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 0.72rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            flex-shrink: 0;
+            padding: 0;
+        }
+        .outline-collapse-btn:hover {
+            background: #cbd5e1;
+            color: #0f172a;
+        }
+        .outline-collapse-spacer {
+            width: 14px;
+            flex-shrink: 0;
+        }
+        .outline-title-btn {
+            flex: 1;
+            min-width: 0;
+            text-align: left;
+            background: transparent;
+            border: none;
+            color: inherit;
+            font: inherit;
+            cursor: pointer;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            padding: 1px 0;
+        }
+
+        /* Hidden at rest so titles get 100% width; floats cleanly on row hover */
+        .outline-level-switcher {
+            display: none;
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            align-items: center;
+            gap: 2px;
+            background: rgba(238, 242, 255, 0.96);
+            padding: 2px 4px;
+            border-radius: 6px;
+            box-shadow: -6px 0 10px rgba(238, 242, 255, 0.95), 0 1px 4px rgba(0, 0, 0, 0.12);
+            z-index: 5;
+        }
+        .heading-nav-row:hover .outline-level-switcher {
+            display: inline-flex;
+        }
+
+        .outline-lvl-pill {
+            font-size: 0.65rem;
+            font-family: monospace;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 4px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+            cursor: pointer;
+            line-height: 1.25;
+        }
+        .outline-lvl-pill:hover {
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+        .outline-lvl-pill.active-lvl {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: #ffffff;
+        }
+
+        /* --- IN-NOTE SEARCH BAR --- */
+        .note-search-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 5px 10px;
+            margin-bottom: 8px;
+        }
+        .note-search-bar.hidden-search {
+            display: none !important;
+        }
+        .note-search-input {
+            flex: 1;
+            min-width: 120px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.85rem;
+            outline: none;
+            background: #ffffff;
+        }
+        .note-search-input:focus {
+            border-color: #4f46e5;
+        }
         
     </style>
 </head>
@@ -2220,9 +2414,12 @@
 <div id="notes-modal" class="modal-overlay">
     <div class="modal large-modal" style="border-top: 5px solid #6366f1;">
         <div class="notes-modal-header">
-            <h2 class="notes-modal-title">Notes &amp; Documentation</h2>
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                <button id="btn-toggle-headings-sidebar" class="ribbon-btn" onclick="toggleHeadingsSidebar()" title="Toggle Headings Outline Sidebar">📑 Outline</button>
+                <h2 class="notes-modal-title">Notes &amp; Documentation</h2>
+            </div>
             
-            <!-- Notes Tabs Track (No box, no <> buttons, + button follows the tabs) -->
+            <!-- Notes Tabs Track -->
             <div class="notes-tabs-wrapper">
                 <div id="notes-tabs-scroll-area" class="notes-tabs-scroll-area">
                     <div id="notes-tabs-container" class="notes-tabs-container"></div>
@@ -2232,12 +2429,9 @@
 
             <!-- Header Action Controls -->
             <div class="notes-modal-actions">
-                <!-- Ribbon Visibility Toggle -->
-                <!-- Optional: hide or remove this button -->
                 <button id="btn-toggle-ribbon" style="display: none;"></button>
                 <div id="note-mode-badge" class="mode-badge badge-view">VIEW MODE</div>
                 <button onclick="deleteCurrentNote()" class="btn-note-clear" title="Clear active note text">Clear</button>
-                <!-- Raw Code Edit Mode Toggle -->
                 <button id="btn-note-action" onclick="toggleNoteMode()" class="emoji-btn" title="Toggle Raw Markdown Edit Mode (Shift+Enter)">✏️</button>
                 <button onclick="closeNotesModal()" title="Esc" class="btn-note-close">Close</button>
             </div>
@@ -2246,7 +2440,7 @@
         <!-- STAGED LINK BANNER -->
         <div id="staged-link-banner" style="display:none; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:6px 14px; margin-bottom:8px; align-items:center; justify-content:space-between; font-size:0.85rem; color:#1e40af;">
             <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:1.1rem; animation: pulse 1.5s infinite;">🔗</span>
+                <span style="font-size:1.1rem;">🔗</span>
                 <span><strong>Linking on Hold:</strong> <span id="staged-source-label" style="font-style:italic; color:#1d4ed8;"></span>. Switch to any note, highlight target text, and click <b>Connect Link</b> on the ribbon.</span>
             </div>
             <button onclick="cancelStagedLink()" style="background:#fee2e2; border:1px solid #fca5a5; color:#dc2626; border-radius:4px; padding:2px 8px; cursor:pointer; font-weight:600; font-size:0.75rem;">Cancel</button>
@@ -2254,13 +2448,21 @@
 
         <!-- TOP FORMATTING RIBBON -->
         <div class="notes-ribbon-bar" id="notes-ribbon-bar">
-            <!-- 0. Undo / Redo (Front of Ribbon) -->
+            <!-- 0. Undo / Redo -->
             <div class="ribbon-group">
                 <button class="ribbon-btn" id="rbtn-undo" title="Undo (Ctrl+Z)" onclick="applyRibbonUndo()">↩</button>
                 <button class="ribbon-btn" id="rbtn-redo" title="Redo (Ctrl+Y)" onclick="applyRibbonRedo()">↪</button>
             </div>
 
             <div class="ribbon-sep"></div>
+
+            <!-- In-Note Search -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn" id="rbtn-note-search" title="Search within current note only (Ctrl+F)" onclick="toggleNoteSearch()">🔍 Search</button>
+            </div>
+
+            <div class="ribbon-sep"></div>
+
             <!-- Headings -->
             <div class="ribbon-group">
                 <button class="ribbon-btn" id="rbtn-h1" title="Heading 1" onclick="applyRibbonHeading(1)">H1</button>
@@ -2271,11 +2473,11 @@
 
             <div class="ribbon-sep"></div>
 
-            <!-- Bullet Points & Indentation -->
+            <!-- Bullet Points & Promote / Demote -->
             <div class="ribbon-group">
                 <button class="ribbon-btn" id="rbtn-bullet" title="Convert to Bullet Point" onclick="applyRibbonBullet()">• Bullet</button>
-                <button class="ribbon-btn" title="Demote (Indent Point) [Tab]" onclick="applyRibbonIndent()">⇥ Demote</button>
-                <button class="ribbon-btn" title="Promote (Outdent Point) [Shift+Tab]" onclick="applyRibbonOutdent()">⇤ Promote</button>
+                <button class="ribbon-btn" id="rbtn-promote" title="Promote Heading or Outdent Bullet [Shift+Tab]" onclick="promoteNoteBlock()">⇤ Promote</button>
+                <button class="ribbon-btn" id="rbtn-demote" title="Demote Heading or Indent Bullet [Tab]" onclick="demoteNoteBlock()">⇥ Demote</button>
             </div>
 
             <div class="ribbon-sep"></div>
@@ -2290,13 +2492,21 @@
 
             <div class="ribbon-sep"></div>
 
-            <!-- Text Colors & Highlighter -->
+            <!-- Inline Comments -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn" id="rbtn-comment" style="color:#b45309; border-color:#fcd34d;" title="Add Comment to Selected Text" onclick="openCommentDialog()">💬 Comment</button>
+            </div>
+
+            <div class="ribbon-sep"></div>
+
+            <!-- Text Colors, Remove Color & Highlighter -->
             <div class="ribbon-group">
                 <button class="color-dot" id="rbtn-color-red" data-color="#ef4444" style="background:#ef4444;" title="Red Text" onclick="applyRibbonColor('#ef4444')"></button>
                 <button class="color-dot" id="rbtn-color-green" data-color="#10b981" style="background:#10b981;" title="Green Text" onclick="applyRibbonColor('#10b981')"></button>
                 <button class="color-dot" id="rbtn-color-blue" data-color="#2563eb" style="background:#2563eb;" title="Blue Text" onclick="applyRibbonColor('#2563eb')"></button>
                 <button class="color-dot" id="rbtn-color-orange" data-color="#ea580c" style="background:#ea580c;" title="Orange Text" onclick="applyRibbonColor('#ea580c')"></button>
                 <button class="color-dot" id="rbtn-color-purple" data-color="#8b5cf6" style="background:#8b5cf6;" title="Purple Text" onclick="applyRibbonColor('#8b5cf6')"></button>
+                <button class="ribbon-btn" id="rbtn-remove-color" title="Remove Applied Text Color" onclick="removeRibbonColor()">🚫 Color</button>
                 <button class="color-dot" id="rbtn-highlight" style="background:#fef08a; border-color:#eab308; font-size:0.75rem;" title="Yellow Marker" onclick="applyRibbonHighlight()">🖍️</button>
             </div>
 
@@ -2311,10 +2521,48 @@
             </div>
         </div>
 
-        <!-- Note Body: Editable View Pane + Raw Code Textarea -->
+        <!-- IN-NOTE SEARCH BAR (JURISDICTION: ACTIVE NOTE ONLY) -->
+        <div id="note-search-bar" class="note-search-bar hidden-search">
+            <span>🔍</span>
+            <input type="text" id="note-search-input" class="note-search-input" placeholder="Search in this note only..." oninput="performNoteSearch(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault(); navigateNoteSearch(event.shiftKey ? -1 : 1);} else if(event.key==='Escape'){event.stopPropagation(); closeNoteSearch();}">
+            <span id="note-search-count" style="font-size:0.8rem; font-weight:600; color:#64748b; min-width:42px; text-align:center;">0/0</span>
+            <button class="ribbon-btn" title="Previous match" onclick="navigateNoteSearch(-1)">↑</button>
+            <button class="ribbon-btn" title="Next match" onclick="navigateNoteSearch(1)">↓</button>
+            <button class="ribbon-btn" title="Close search" onclick="closeNoteSearch()">✖</button>
+        </div>
+
+        <!-- Note Body: Headings Sidebar + Editable View Pane + Raw Code Textarea -->
         <div class="modal-body-single">
-            <textarea id="note-content" class="notes-textarea hidden-pane" placeholder="Use Markdown syntax..."></textarea>
-            <div id="note-preview" class="markdown-preview active-pane" contenteditable="false" spellcheck="false"></div>
+            <div class="notes-workspace-row">
+                <aside id="notes-headings-sidebar" class="notes-headings-sidebar hidden-sidebar">
+                    <div class="notes-headings-header">
+                        <span>Headings Outline</span>
+                        <button onclick="toggleHeadingsSidebar(false)" style="background:none; border:none; cursor:pointer; color:#64748b; font-size:1rem;">×</button>
+                    </div>
+                    <div id="notes-headings-list" class="notes-headings-list"></div>
+                </aside>
+                <textarea id="note-content" class="notes-textarea hidden-pane" placeholder="Use Markdown syntax..."></textarea>
+                <div id="note-preview" class="markdown-preview active-pane" contenteditable="false" spellcheck="false"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- INLINE COMMENT DIALOG -->
+<div id="note-comment-modal" class="modal-overlay" style="z-index: 100050;">
+    <div class="modal" style="width: 440px; max-width: 92%; padding: 1.5rem; gap: 0.85rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:1.1rem; color:#1e293b;">💬 Note Comment</h3>
+            <button class="btn-icon" onclick="closeCommentDialog()">×</button>
+        </div>
+        <div id="note-comment-quote" style="font-size:0.85rem; font-style:italic; color:#475569; background:#f8fafc; padding:8px 12px; border-left:3px solid #f59e0b; border-radius:4px; max-height:70px; overflow-y:auto;"></div>
+        <textarea id="note-comment-input" class="text-input" rows="3" placeholder="Write your comment here..." style="resize:vertical; font-size:0.92rem;"></textarea>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+            <button id="btn-delete-comment" class="btn-action btn-reset" style="display:none;" onclick="deleteActiveComment()">Delete Comment</button>
+            <div style="display:flex; gap:8px; margin-left:auto;">
+                <button class="btn-action" style="background:#f1f5f9; color:#475569;" onclick="closeCommentDialog()">Cancel</button>
+                <button class="btn-action btn-save" onclick="saveCommentDialog()">Save Comment</button>
+            </div>
         </div>
     </div>
 </div>
@@ -8440,8 +8688,12 @@
         const noteModal = document.querySelector('#notes-modal .modal.large-modal');
         if (noteModal) {
             noteModal.onmouseleave = function() {
-                // Guard 1: Do not close if edit mode is active
+                // Guard 1: Do not close if edit mode or comment dialog is active
                 if (window.isNoteEditMode || (typeof isNoteEditMode !== 'undefined' && isNoteEditMode)) {
+                    return;
+                }
+                const commentModal = document.getElementById('note-comment-modal');
+                if (commentModal && commentModal.classList.contains('open')) {
                     return;
                 }
 
@@ -10655,15 +10907,114 @@ function renderNotesTabs(notesArray) {
     }
 })();
 
-/* --- 2. HTML TO MARKDOWN CONVERTER (DIRECT VIEW EDITING SYNC) --- */
-function htmlToMarkdown(node) {
+/* --- 1. SESSION SCROLL POSITION MEMORY (Persists until next reload) --- */
+window.noteScrollPositions = {};
+
+function getNoteScrollKey() {
+    return `${currentNoteNodeId || 'global'}_tab_${activeNoteIndex}`;
+}
+
+function saveCurrentNoteScroll() {
+    if (!currentNoteNodeId) return;
+    const modal = document.getElementById('notes-modal');
+    if (!modal || !modal.classList.contains('open')) return;
+    const preview = document.getElementById('note-preview');
+    const textarea = document.getElementById('note-content');
+    const activeEl = (typeof isNoteEditMode !== 'undefined' && isNoteEditMode) ? textarea : preview;
+    if (activeEl) {
+        window.noteScrollPositions[getNoteScrollKey()] = activeEl.scrollTop;
+    }
+}
+
+function restoreCurrentNoteScroll() {
+    const saved = window.noteScrollPositions[getNoteScrollKey()] || 0;
+    const preview = document.getElementById('note-preview');
+    const textarea = document.getElementById('note-content');
+    requestAnimationFrame(() => {
+        if (preview) preview.scrollTop = saved;
+        if (textarea) textarea.scrollTop = saved;
+    });
+}
+
+// Wrap switchNoteTab, loadActiveNoteContent, and closeNotesModal to persist scroll positions
+(function hookNoteScrollPersistence() {
+    const origSwitch = window.switchNoteTab;
+    if (typeof origSwitch === 'function') {
+        window.switchNoteTab = function(newIndex) {
+            saveCurrentNoteScroll();
+            closeNoteSearch();
+            origSwitch(newIndex);
+        };
+    }
+
+    const origLoad = window.loadActiveNoteContent;
+    if (typeof origLoad === 'function') {
+        window.loadActiveNoteContent = function(node, skipScrollRestore = false) {
+            origLoad(node);
+            refreshHeadingsSidebar();
+            if (!skipScrollRestore) {
+                restoreCurrentNoteScroll();
+            }
+        };
+    }
+
+    const origClose = window.closeNotesModal;
+    if (typeof origClose === 'function') {
+        window.closeNotesModal = function() {
+            saveCurrentNoteScroll();
+            closeNoteSearch();
+            closeCommentDialog();
+            origClose();
+        };
+    }
+
+    const preview = document.getElementById('note-preview');
+    const textarea = document.getElementById('note-content');
+    if (preview) preview.addEventListener('scroll', saveCurrentNoteScroll, { passive: true });
+    if (textarea) textarea.addEventListener('scroll', saveCurrentNoteScroll, { passive: true });
+})();
+
+/* --- 2. HTML TO MARKDOWN CONVERTER (SUPPORTS NESTED LISTS, COMMENTS, STAGED LINKS) --- */
+function htmlToMarkdown(node, listDepth = 0) {
     if (!node) return '';
     if (node.nodeType === Node.TEXT_NODE) return node.nodeValue;
     if (node.nodeType !== Node.ELEMENT_NODE) return '';
 
     const tag = node.tagName.toLowerCase();
+
+    // Strip temporary search highlight tags cleanly
+    if (tag === 'mark' && node.classList && node.classList.contains('note-search-hl')) {
+        let unwrapped = '';
+        node.childNodes.forEach(child => { unwrapped += htmlToMarkdown(child, listDepth); });
+        return unwrapped;
+    }
+
+    // Properly serialize nested bullet/numbered lists for Promote & Demote
+    if (tag === 'ul' || tag === 'ol') {
+        let listOut = '';
+        node.childNodes.forEach(child => {
+            listOut += htmlToMarkdown(child, listDepth + 1);
+        });
+        return listDepth === 0 ? `\n${listOut}\n` : `\n${listOut}`;
+    }
+
+    if (tag === 'li') {
+        const indent = '  '.repeat(Math.max(0, listDepth - 1));
+        let inlineText = '';
+        let nestedLists = '';
+        node.childNodes.forEach(child => {
+            const cTag = child.nodeType === Node.ELEMENT_NODE ? child.tagName.toLowerCase() : '';
+            if (cTag === 'ul' || cTag === 'ol') {
+                nestedLists += htmlToMarkdown(child, listDepth);
+            } else {
+                inlineText += htmlToMarkdown(child, listDepth);
+            }
+        });
+        return `${indent}- ${inlineText.trim()}\n${nestedLists}`;
+    }
+
     let childrenText = '';
-    node.childNodes.forEach(child => { childrenText += htmlToMarkdown(child); });
+    node.childNodes.forEach(child => { childrenText += htmlToMarkdown(child, listDepth); });
 
     switch (tag) {
         case 'h1': return `\n# ${childrenText.trim()}\n\n`;
@@ -10687,6 +11038,16 @@ function htmlToMarkdown(node) {
             return childrenText;
         }
         case 'span': {
+            if (node.classList && node.classList.contains('note-comment')) {
+                const cData = node.getAttribute('data-comment') || '';
+                return `<span class="note-comment" data-comment="${cData}">${childrenText}</span>`;
+            }
+            if (node.hasAttribute('data-staged-src')) {
+                return `<span id="${node.id}" data-staged-src="1">${childrenText}</span>`;
+            }
+            if (node.hasAttribute('data-staged-tgt')) {
+                return `<span id="${node.id}" data-staged-tgt="1">${childrenText}</span>`;
+            }
             let styleAttr = '';
             if (node.style && node.style.color) {
                 styleAttr += `color:${node.style.color}; font-weight:600;`;
@@ -10702,7 +11063,6 @@ function htmlToMarkdown(node) {
         case 'img': {
             const src = node.getAttribute('src') || '';
             const alt = node.getAttribute('alt') || '';
-            // If wrapped in an <a> tag, the <a> case below handles saving the URL
             if (node.parentElement && node.parentElement.tagName.toLowerCase() === 'a') {
                 return '';
             }
@@ -10715,26 +11075,11 @@ function htmlToMarkdown(node) {
             if (isBack && !finalHref.includes('backlink=1')) {
                 finalHref += (finalHref.includes('?') ? '&' : '?') + 'backlink=1';
             }
-
-            // If this link wraps an image or points to an image URL, preserve the clean URL
             const isImgLink = node.querySelector('img') || /\.(png|jpe?g|gif|webp|svg|avif|bmp)($|[?#])/i.test(finalHref);
             if (isImgLink) {
                 return `\n${finalHref}\n`;
             }
-
             return `[${childrenText}](${finalHref})`;
-        }
-        case 'ul':
-        case 'ol': return `\n${childrenText}\n`;
-        case 'li': {
-            let depth = 0;
-            let parent = node.parentElement;
-            while (parent && (parent.tagName.toLowerCase() === 'ul' || parent.tagName.toLowerCase() === 'ol')) {
-                depth++;
-                parent = parent.parentElement ? parent.parentElement.closest('ul, ol') : null;
-            }
-            const indent = '  '.repeat(Math.max(0, depth - 1));
-            return `${indent}- ${childrenText.trim()}\n`;
         }
         case 'blockquote': return `\n> ${childrenText.trim()}\n\n`;
         case 'pre': return `\n\`\`\`\n${childrenText}\n\`\`\`\n\n`;
@@ -10766,7 +11111,8 @@ function syncViewToData(immediate = false) {
             renderNotesTabs(notesArr);
         }
 
-        // Record history snapshot for the ribbon buttons
+        refreshHeadingsSidebar();
+
         if (typeof captureNoteHistoryState === 'function') {
             captureNoteHistoryState();
         }
@@ -10801,34 +11147,28 @@ function captureNoteHistoryState() {
 
     window.noteUndoStack.push(currentVal);
     if (window.noteUndoStack.length > 50) window.noteUndoStack.shift();
-    window.noteRedoStack = []; // Reset forward redo path on new change
+    window.noteRedoStack = [];
     updateRibbonActiveStates();
 }
 
 function applyRibbonUndo() {
     if (!currentNoteNodeId || window.noteUndoStack.length <= 1) return;
 
-    const isEdit = typeof isNoteEditMode !== 'undefined' && isNoteEditMode;
     const textarea = document.getElementById('note-content');
     const preview = document.getElementById('note-preview');
 
     window.isNoteHistoryNavigating = true;
-
-    // Move current state to redo stack
     const currentState = window.noteUndoStack.pop();
     window.noteRedoStack.push(currentState);
 
-    // Get previous state
     const targetState = window.noteUndoStack[window.noteUndoStack.length - 1] || '';
 
-    // Apply to DOM
     if (textarea) textarea.value = targetState;
     if (preview) {
         preview.removeAttribute('data-empty');
         preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(targetState) : targetState;
     }
 
-    // Persist to data model
     const sub = getActiveSubject();
     const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
     if (nodeData && nodeData.node) {
@@ -10840,30 +11180,27 @@ function applyRibbonUndo() {
     }
 
     window.isNoteHistoryNavigating = false;
+    refreshHeadingsSidebar();
+    setupCrossNoteLinks();
     updateRibbonActiveStates();
 }
 
 function applyRibbonRedo() {
     if (!currentNoteNodeId || window.noteRedoStack.length === 0) return;
 
-    const isEdit = typeof isNoteEditMode !== 'undefined' && isNoteEditMode;
     const textarea = document.getElementById('note-content');
     const preview = document.getElementById('note-preview');
 
     window.isNoteHistoryNavigating = true;
-
-    // Pop state from redo and put back on undo
     const nextState = window.noteRedoStack.pop();
     window.noteUndoStack.push(nextState);
 
-    // Apply to DOM
     if (textarea) textarea.value = nextState;
     if (preview) {
         preview.removeAttribute('data-empty');
         preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(nextState) : nextState;
     }
 
-    // Persist to data model
     const sub = getActiveSubject();
     const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
     if (nodeData && nodeData.node) {
@@ -10875,10 +11212,12 @@ function applyRibbonRedo() {
     }
 
     window.isNoteHistoryNavigating = false;
+    refreshHeadingsSidebar();
+    setupCrossNoteLinks();
     updateRibbonActiveStates();
 }
 
-/* --- 3. RIBBON COMMAND ACTIONS --- */
+/* --- 3. RIBBON COMMAND ACTIONS (HEADINGS, BULLETS, PROMOTE/DEMOTE, COLORS, REMOVE COLOR) --- */
 function applyRibbonHeading(level) {
     const preview = document.getElementById('note-preview');
     if (!preview) return;
@@ -10901,23 +11240,139 @@ function applyRibbonBullet() {
     syncViewToData(true);
 }
 
-function applyRibbonIndent() {
+function getSelectedNoteBlocks() {
+    const preview = document.getElementById('note-preview');
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !preview) return [];
+
+    const range = sel.getRangeAt(0);
+    const blockTags = new Set(['LI', 'H1', 'H2', 'H3', 'H4', 'P', 'DIV', 'BLOCKQUOTE']);
+    const found = [];
+
+    const findNearestBlock = (node) => {
+        let curr = node && node.nodeType === Node.TEXT_NODE ? node.parentNode : node;
+        while (curr && curr !== preview) {
+            if (curr.nodeType === Node.ELEMENT_NODE && blockTags.has(curr.tagName)) return curr;
+            curr = curr.parentNode;
+        }
+        return null;
+    };
+
+    if (sel.isCollapsed) {
+        const b = findNearestBlock(sel.anchorNode);
+        if (b) found.push(b);
+        return found;
+    }
+
+    const walker = document.createTreeWalker(preview, NodeFilter.SHOW_ELEMENT, {
+        acceptNode(node) {
+            if (!blockTags.has(node.tagName)) return NodeFilter.FILTER_SKIP;
+            if ((node.tagName === 'DIV' || node.tagName === 'BLOCKQUOTE') && node.querySelector('li, p, h1, h2, h3')) {
+                return NodeFilter.FILTER_SKIP;
+            }
+            return range.intersectsNode(node) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        }
+    });
+
+    let curr;
+    while ((curr = walker.nextNode())) found.push(curr);
+    if (found.length === 0) {
+        const b = findNearestBlock(range.commonAncestorContainer);
+        if (b) found.push(b);
+    }
+    return found;
+}
+
+function restoreBlockSelection(blocks) {
+    if (!blocks || blocks.length === 0) return;
+    const sel = window.getSelection();
+    if (!sel) return;
+    const range = document.createRange();
+    range.setStartBefore(blocks[0]);
+    range.setEndAfter(blocks[blocks.length - 1]);
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+function demoteNoteBlock() {
     const preview = document.getElementById('note-preview');
     if (!preview) return;
     preview.setAttribute('contenteditable', 'true');
     preview.focus();
-    document.execCommand('indent');
+
+    const blocks = getSelectedNoteBlocks();
+    const liBlocks = blocks.filter(b => b.tagName === 'LI');
+
+    if (liBlocks.length > 0) {
+        liBlocks.forEach(li => {
+            const prevLi = li.previousElementSibling;
+            if (!prevLi || prevLi.tagName !== 'LI') return;
+            let subList = Array.from(prevLi.children).find(c => c.tagName === 'UL' || c.tagName === 'OL');
+            if (!subList) {
+                subList = document.createElement(li.parentElement.tagName.toLowerCase());
+                prevLi.appendChild(subList);
+            }
+            subList.appendChild(li);
+        });
+        restoreBlockSelection(liBlocks);
+    } else if (blocks.length > 0) {
+        const tag = blocks[0].tagName.toLowerCase();
+        if (tag === 'h1') document.execCommand('formatBlock', false, '<h2>');
+        else if (tag === 'h2') document.execCommand('formatBlock', false, '<h3>');
+        else if (tag === 'h3') document.execCommand('formatBlock', false, '<p>');
+        else document.execCommand('indent');
+    }
     syncViewToData(true);
 }
 
-function applyRibbonOutdent() {
+function promoteNoteBlock() {
     const preview = document.getElementById('note-preview');
     if (!preview) return;
     preview.setAttribute('contenteditable', 'true');
     preview.focus();
-    document.execCommand('outdent');
+
+    const blocks = getSelectedNoteBlocks();
+    const liBlocks = blocks.filter(b => b.tagName === 'LI');
+
+    if (liBlocks.length > 0) {
+        [...liBlocks].reverse().forEach(li => {
+            const parentList = li.parentElement;
+            const parentLi = parentList ? parentList.parentElement : null;
+
+            if (parentLi && parentLi.tagName === 'LI' && parentLi.parentElement) {
+                const followingSiblings = [];
+                let next = li.nextElementSibling;
+                while (next) {
+                    followingSiblings.push(next);
+                    next = next.nextElementSibling;
+                }
+                if (followingSiblings.length > 0) {
+                    let childList = Array.from(li.children).find(c => c.tagName === 'UL' || c.tagName === 'OL');
+                    if (!childList) {
+                        childList = document.createElement(parentList.tagName.toLowerCase());
+                        li.appendChild(childList);
+                    }
+                    followingSiblings.forEach(sib => childList.appendChild(sib));
+                }
+                parentLi.parentElement.insertBefore(li, parentLi.nextSibling);
+                if (parentList.children.length === 0) parentList.remove();
+            } else {
+                // Also unwraps legacy <blockquote> indentation or converts top-level bullet to paragraph
+                document.execCommand('outdent');
+            }
+        });
+        restoreBlockSelection(liBlocks);
+    } else if (blocks.length > 0) {
+        const tag = blocks[0].tagName.toLowerCase();
+        if (tag === 'h3') document.execCommand('formatBlock', false, '<h2>');
+        else if (tag === 'h2') document.execCommand('formatBlock', false, '<h1>');
+        else if (tag !== 'h1') document.execCommand('outdent');
+    }
     syncViewToData(true);
 }
+
+function applyRibbonIndent() { demoteNoteBlock(); }
+function applyRibbonOutdent() { promoteNoteBlock(); }
 
 function applyRibbonFormat(command) {
     const preview = document.getElementById('note-preview');
@@ -10937,6 +11392,88 @@ function applyRibbonColor(color) {
     syncViewToData(true);
 }
 
+function removeRibbonColor() {
+    const preview = document.getElementById('note-preview');
+    const sel = window.getSelection();
+    if (!preview || !sel || !sel.rangeCount) return;
+
+    preview.setAttribute('contenteditable', 'true');
+    preview.focus();
+
+    const stripColorStyle = (el) => {
+        if (!el || !el.parentNode || el === preview) return;
+        el.style.removeProperty('color');
+        el.style.removeProperty('font-weight');
+        if (el.getAttribute('style') !== null && el.getAttribute('style').trim() === '') {
+            el.removeAttribute('style');
+        }
+        if (el.tagName && el.tagName.toLowerCase() === 'font') {
+            el.removeAttribute('color');
+        }
+        if (el.tagName && (el.tagName.toLowerCase() === 'span' || el.tagName.toLowerCase() === 'font') && el.attributes.length === 0) {
+            const p = el.parentNode;
+            while (el.firstChild) p.insertBefore(el.firstChild, el);
+            p.removeChild(el);
+        }
+    };
+
+    if (sel.isCollapsed) {
+        let curr = sel.anchorNode;
+        if (curr && curr.nodeType === Node.TEXT_NODE) curr = curr.parentNode;
+        while (curr && curr !== preview) {
+            const nextParent = curr.parentNode;
+            if ((curr.style && curr.style.color) || (curr.tagName && curr.tagName.toLowerCase() === 'font' && curr.hasAttribute('color'))) {
+                stripColorStyle(curr);
+            }
+            curr = nextParent;
+        }
+    } else {
+        const range = sel.getRangeAt(0);
+        let ancestor = range.commonAncestorContainer;
+        if (ancestor.nodeType === Node.TEXT_NODE) ancestor = ancestor.parentNode;
+
+        let coloredAncestor = null;
+        let walkUp = ancestor;
+        while (walkUp && walkUp !== preview) {
+            if ((walkUp.style && walkUp.style.color) || (walkUp.tagName && walkUp.tagName.toLowerCase() === 'font' && walkUp.hasAttribute('color'))) {
+                coloredAncestor = walkUp;
+                break;
+            }
+            walkUp = walkUp.parentNode;
+        }
+
+        const extracted = range.extractContents();
+        extracted.querySelectorAll('[style], font[color]').forEach(el => stripColorStyle(el));
+
+        const wrapper = document.createElement('span');
+        wrapper.appendChild(extracted);
+
+        if (coloredAncestor && preview.contains(coloredAncestor)) {
+            const afterRange = document.createRange();
+            afterRange.setStart(range.startContainer, range.startOffset);
+            afterRange.setEndAfter(coloredAncestor);
+            const afterFrag = afterRange.extractContents();
+
+            coloredAncestor.parentNode.insertBefore(wrapper, coloredAncestor.nextSibling);
+            if (afterFrag.textContent.length > 0 || afterFrag.querySelector('*')) {
+                coloredAncestor.parentNode.insertBefore(afterFrag, wrapper.nextSibling);
+            }
+            if (!coloredAncestor.textContent.length && !coloredAncestor.querySelector('*')) {
+                coloredAncestor.remove();
+            }
+        } else {
+            range.insertNode(wrapper);
+        }
+
+        const wParent = wrapper.parentNode;
+        while (wrapper.firstChild) wParent.insertBefore(wrapper.firstChild, wrapper);
+        wParent.removeChild(wrapper);
+        preview.normalize();
+    }
+
+    syncViewToData(true);
+}
+
 function applyRibbonHighlight() {
     const preview = document.getElementById('note-preview');
     if (!preview) return;
@@ -10946,103 +11483,350 @@ function applyRibbonHighlight() {
     syncViewToData(true);
 }
 
-/* --- 4. RIBBON VISIBILITY TOGGLE --- */
-window.isRibbonVisible = true;
-function toggleNotesRibbon() {
-    const ribbon = document.getElementById('notes-ribbon-bar');
-    const btn = document.getElementById('btn-toggle-ribbon');
-    if (!ribbon) return;
-
-    window.isRibbonVisible = !window.isRibbonVisible;
-    if (window.isRibbonVisible) {
-        ribbon.classList.remove('ribbon-hidden');
-        if (btn) {
-            btn.classList.remove('active-hidden');
-            btn.title = "Hide Ribbon Toolbar";
-        }
+/* --- 4. HIERARCHICAL HEADINGS SIDEBAR --- */
+function toggleHeadingsSidebar(forceState) {
+    const sidebar = document.getElementById('notes-headings-sidebar');
+    if (!sidebar) return;
+    const shouldShow = typeof forceState === 'boolean' ? forceState : sidebar.classList.contains('hidden-sidebar');
+    if (shouldShow) {
+        sidebar.classList.remove('hidden-sidebar');
+        refreshHeadingsSidebar();
     } else {
-        ribbon.classList.add('ribbon-hidden');
-        if (btn) {
-            btn.classList.add('active-hidden');
-            btn.title = "Show Ribbon Toolbar";
-        }
+        sidebar.classList.add('hidden-sidebar');
     }
 }
 
-/* --- 5. EDIT MODE (RAW CODE) / VIEW MODE SWITCHING --- */
-function toggleNoteMode() {
-    if (isNoteEditMode) {
-        saveNotes();
-    } else {
-        syncViewToData(true);
-        setNoteMode('EDIT');
-    }
-}
+window.collapsedOutlineItems = new Set();
 
-function setNoteMode(mode) {
-    const isEdit = (mode === 'EDIT');
-    isNoteEditMode = isEdit;
-    window.isNoteEditMode = isEdit;
-
-    const modal = document.getElementById('notes-modal');
-    const textarea = document.getElementById('note-content');
+function changeOutlineHeadingLevel(headingEl, newLevel) {
     const preview = document.getElementById('note-preview');
-    const badge = document.getElementById('note-mode-badge');
-    const actionBtn = document.getElementById('btn-note-action');
+    if (!preview || !headingEl || !preview.contains(headingEl)) return;
 
-    if (isEdit) {
-        // --- EDIT MODE: Hide Ribbon completely ---
-        if (modal) modal.classList.add('is-edit-mode');
-        if (typeof setRibbonCollapsed === 'function') setRibbonCollapsed(true);
+    const currentLevel = parseInt(headingEl.tagName.substring(1), 10);
+    if (currentLevel === newLevel) return;
 
-        if (textarea) textarea.classList.remove('hidden-pane');
-        if (preview) preview.classList.add('hidden-pane');
-        if (badge) {
-            badge.className = 'mode-badge badge-edit';
-            badge.innerText = 'EDIT MODE';
-        }
-        if (actionBtn) {
-            actionBtn.innerText = '✅️';
-            actionBtn.title = 'Save & View Preview (Shift+Enter)';
-        }
-        if (textarea) textarea.focus();
-    } else {
-        // --- VIEW MODE: Save content & Show Ribbon ---
-        syncAndSaveActiveNote();
+    const newTag = newLevel === 0 ? 'p' : `h${newLevel}`;
+    const replacement = document.createElement(newTag);
+    replacement.innerHTML = headingEl.innerHTML;
+    headingEl.parentNode.replaceChild(replacement, headingEl);
 
-        if (modal) modal.classList.remove('is-edit-mode');
-        if (typeof setRibbonCollapsed === 'function') setRibbonCollapsed(false);
+    syncViewToData(true);
+}
 
-        const rawContent = (textarea ? textarea.value : '').trim();
-        const isEmpty = !rawContent || rawContent === '*No content*' || rawContent === 'No content';
+function refreshHeadingsSidebar() {
+    const listEl = document.getElementById('notes-headings-list');
+    const preview = document.getElementById('note-preview');
+    if (!listEl || !preview) return;
 
-        if (preview) {
-            if (!isEmpty) {
-                preview.removeAttribute('data-empty');
-                preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(rawContent) : `<p>${rawContent}</p>`;
-            } else {
-                preview.innerHTML = '';
-                preview.setAttribute('data-empty', 'true');
+    const headings = Array.from(preview.querySelectorAll('h1, h2, h3'));
+    listEl.innerHTML = '';
+
+    if (headings.length === 0) {
+        listEl.innerHTML = `<div style="color:#94a3b8; font-style:italic; padding:12px; text-align:center; font-size:0.8rem;">No headings (H1–H3) in this note.</div>`;
+        return;
+    }
+
+    // Precompute whether each H1/H2 has nested child headings beneath it
+    const meta = headings.map((h, idx) => {
+        const level = parseInt(h.tagName.substring(1), 10);
+        let hasChildren = false;
+        if (level < 3) {
+            for (let j = idx + 1; j < headings.length; j++) {
+                const nextLvl = parseInt(headings[j].tagName.substring(1), 10);
+                if (nextLvl <= level) break;
+                hasChildren = true;
+                break;
             }
-            preview.classList.remove('hidden-pane');
-            preview.classList.remove('is-editing-active');
+        }
+        const key = `${currentNoteNodeId || 'note'}_${activeNoteIndex}_${idx}`;
+        return { el: h, idx, level, hasChildren, key };
+    });
+
+    let h1Collapsed = false;
+    let h2Collapsed = false;
+
+    meta.forEach(item => {
+        const { el, idx, level, hasChildren, key } = item;
+        if (!el.id) el.id = `note-hdg-${activeNoteIndex}-${idx}`;
+
+        if (level === 1) {
+            h1Collapsed = hasChildren && window.collapsedOutlineItems.has(key);
+            h2Collapsed = false;
+        } else if (level === 2) {
+            if (h1Collapsed) return; // Hidden inside collapsed H1
+            h2Collapsed = hasChildren && window.collapsedOutlineItems.has(key);
+        } else if (level === 3) {
+            if (h1Collapsed || h2Collapsed) return; // Hidden inside collapsed H1 or H2
         }
 
-        if (textarea) textarea.classList.add('hidden-pane');
-        if (badge) {
-            badge.className = 'mode-badge badge-view';
-            badge.innerText = 'VIEW MODE';
+        const isCollapsed = window.collapsedOutlineItems.has(key);
+        const text = el.textContent.trim() || `Heading ${idx + 1}`;
+
+        const row = document.createElement('div');
+        row.className = `heading-nav-row h-lvl-${level}`;
+
+        // 1. Collapse/Expand arrow for H1 and H2 parents
+        if (hasChildren) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'outline-collapse-btn';
+            toggleBtn.textContent = isCollapsed ? '▸' : '▾';
+            toggleBtn.title = isCollapsed ? 'Expand subheadings' : 'Collapse subheadings';
+            toggleBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (window.collapsedOutlineItems.has(key)) {
+                    window.collapsedOutlineItems.delete(key);
+                } else {
+                    window.collapsedOutlineItems.add(key);
+                }
+                refreshHeadingsSidebar();
+            };
+            row.appendChild(toggleBtn);
+        } else {
+            const spacer = document.createElement('span');
+            spacer.className = 'outline-collapse-spacer';
+            row.appendChild(spacer);
         }
-        if (actionBtn) {
-            actionBtn.innerText = '✏️';
-            actionBtn.title = 'Edit Markdown (Shift+Enter)';
+
+        // 2. Clickable heading title (scrolls & flashes heading in note)
+        const titleBtn = document.createElement('button');
+        titleBtn.className = 'outline-title-btn';
+        titleBtn.textContent = text;
+        titleBtn.title = text;
+        titleBtn.onclick = () => {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.remove('sentence-highlight');
+            void el.offsetWidth;
+            el.classList.add('sentence-highlight');
+            setTimeout(() => el.classList.remove('sentence-highlight'), 1800);
+        };
+        row.appendChild(titleBtn);
+
+        // 3. Inline H1 / H2 / H3 / ¶ switcher inside the outline row
+        const switcher = document.createElement('div');
+        switcher.className = 'outline-level-switcher';
+        [
+            { lvl: 1, label: 'H1', title: 'Convert to Heading 1' },
+            { lvl: 2, label: 'H2', title: 'Convert to Heading 2' },
+            { lvl: 3, label: 'H3', title: 'Convert to Heading 3' },
+            { lvl: 0, label: '¶',  title: 'Convert to Normal Text' }
+        ].forEach(opt => {
+            const pill = document.createElement('button');
+            pill.className = `outline-lvl-pill ${level === opt.lvl ? 'active-lvl' : ''}`;
+            pill.textContent = opt.label;
+            pill.title = opt.title;
+            pill.onclick = (e) => {
+                e.stopPropagation();
+                changeOutlineHeadingLevel(el, opt.lvl);
+            };
+            switcher.appendChild(pill);
+        });
+        row.appendChild(switcher);
+
+        listEl.appendChild(row);
+    });
+}
+
+/* --- 5. IN-NOTE SEARCH (JURISDICTION: ACTIVE NOTE ONLY) --- */
+window.noteSearchMatches = [];
+window.noteSearchCurrentIdx = -1;
+
+function toggleNoteSearch() {
+    const bar = document.getElementById('note-search-bar');
+    const input = document.getElementById('note-search-input');
+    if (!bar) return;
+    if (bar.classList.contains('hidden-search')) {
+        bar.classList.remove('hidden-search');
+        if (input) {
+            input.focus();
+            input.select();
+            if (input.value.trim()) performNoteSearch(input.value);
         }
+    } else {
+        closeNoteSearch();
     }
 }
 
-/* --- 6. TWO-WAY LINKING --- */
-window.stagedLink = null;
+function closeNoteSearch() {
+    const bar = document.getElementById('note-search-bar');
+    const input = document.getElementById('note-search-input');
+    const countEl = document.getElementById('note-search-count');
+    if (bar) bar.classList.add('hidden-search');
+    if (input) input.value = '';
+    if (countEl) countEl.textContent = '0/0';
+    clearNoteSearchHighlights();
+}
 
+function clearNoteSearchHighlights() {
+    const preview = document.getElementById('note-preview');
+    if (!preview) return;
+    preview.querySelectorAll('mark.note-search-hl').forEach(m => {
+        const parent = m.parentNode;
+        while (m.firstChild) parent.insertBefore(m.firstChild, m);
+        parent.removeChild(m);
+        parent.normalize();
+    });
+    window.noteSearchMatches = [];
+    window.noteSearchCurrentIdx = -1;
+}
+
+function performNoteSearch(query) {
+    clearNoteSearchHighlights();
+    const preview = document.getElementById('note-preview');
+    const countEl = document.getElementById('note-search-count');
+    const q = (query || '').trim();
+    if (!preview || !q) {
+        if (countEl) countEl.textContent = '0/0';
+        return;
+    }
+
+    const lowerQ = q.toLowerCase();
+    const walker = document.createTreeWalker(preview, NodeFilter.SHOW_TEXT, null);
+    const textNodes = [];
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node.nodeValue && node.nodeValue.toLowerCase().includes(lowerQ)) {
+            textNodes.push(node);
+        }
+    }
+
+    textNodes.forEach(tNode => {
+        const val = tNode.nodeValue;
+        const lowerVal = val.toLowerCase();
+        let startIdx = 0;
+        let matchIdx = lowerVal.indexOf(lowerQ, startIdx);
+        if (matchIdx === -1) return;
+
+        const frag = document.createDocumentFragment();
+        while (matchIdx !== -1) {
+            if (matchIdx > startIdx) {
+                frag.appendChild(document.createTextNode(val.slice(startIdx, matchIdx)));
+            }
+            const mark = document.createElement('mark');
+            mark.className = 'note-search-hl';
+            mark.textContent = val.slice(matchIdx, matchIdx + q.length);
+            frag.appendChild(mark);
+            window.noteSearchMatches.push(mark);
+
+            startIdx = matchIdx + q.length;
+            matchIdx = lowerVal.indexOf(lowerQ, startIdx);
+        }
+        if (startIdx < val.length) {
+            frag.appendChild(document.createTextNode(val.slice(startIdx)));
+        }
+        tNode.parentNode.replaceChild(frag, tNode);
+    });
+
+    if (window.noteSearchMatches.length > 0) {
+        window.noteSearchCurrentIdx = 0;
+        highlightCurrentSearchMatch();
+    } else if (countEl) {
+        countEl.textContent = '0/0';
+    }
+}
+
+function navigateNoteSearch(step) {
+    if (window.noteSearchMatches.length === 0) return;
+    window.noteSearchCurrentIdx = (window.noteSearchCurrentIdx + step + window.noteSearchMatches.length) % window.noteSearchMatches.length;
+    highlightCurrentSearchMatch();
+}
+
+function highlightCurrentSearchMatch() {
+    const countEl = document.getElementById('note-search-count');
+    window.noteSearchMatches.forEach((m, i) => {
+        m.classList.toggle('active-match', i === window.noteSearchCurrentIdx);
+    });
+    const activeMark = window.noteSearchMatches[window.noteSearchCurrentIdx];
+    if (activeMark) {
+        activeMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    if (countEl) {
+        countEl.textContent = `${window.noteSearchCurrentIdx + 1}/${window.noteSearchMatches.length}`;
+    }
+}
+
+/* --- 6. INLINE COMMENTS ON ANY TEXT --- */
+window.activeCommentSpan = null;
+window.pendingCommentRange = null;
+
+function openCommentDialog(existingSpan = null) {
+    const modal = document.getElementById('note-comment-modal');
+    const quoteEl = document.getElementById('note-comment-quote');
+    const inputEl = document.getElementById('note-comment-input');
+    const delBtn = document.getElementById('btn-delete-comment');
+    const preview = document.getElementById('note-preview');
+
+    if (existingSpan) {
+        window.activeCommentSpan = existingSpan;
+        window.pendingCommentRange = null;
+        quoteEl.textContent = `"${existingSpan.textContent.trim()}"`;
+        inputEl.value = decodeURIComponent(existingSpan.getAttribute('data-comment') || '');
+        delBtn.style.display = 'inline-flex';
+    } else {
+        const sel = window.getSelection();
+        if (!sel || !sel.rangeCount || sel.isCollapsed) {
+            alert("Please select the text in the note first to add a comment.");
+            return;
+        }
+        const range = sel.getRangeAt(0);
+        if (!preview || !preview.contains(range.commonAncestorContainer)) {
+            alert("Please select text inside the note.");
+            return;
+        }
+        window.activeCommentSpan = null;
+        window.pendingCommentRange = range.cloneRange();
+        quoteEl.textContent = `"${sel.toString().trim()}"`;
+        inputEl.value = '';
+        delBtn.style.display = 'none';
+    }
+
+    modal.classList.add('open');
+    setTimeout(() => inputEl.focus(), 50);
+}
+
+function closeCommentDialog() {
+    const modal = document.getElementById('note-comment-modal');
+    if (modal) modal.classList.remove('open');
+    window.activeCommentSpan = null;
+    window.pendingCommentRange = null;
+}
+
+function saveCommentDialog() {
+    const inputEl = document.getElementById('note-comment-input');
+    const commentText = (inputEl.value || '').trim();
+    if (!commentText) {
+        alert("Please write a comment or click Cancel.");
+        return;
+    }
+
+    if (window.activeCommentSpan) {
+        window.activeCommentSpan.setAttribute('data-comment', encodeURIComponent(commentText));
+    } else if (window.pendingCommentRange) {
+        const span = document.createElement('span');
+        span.className = 'note-comment';
+        span.setAttribute('data-comment', encodeURIComponent(commentText));
+        span.appendChild(window.pendingCommentRange.extractContents());
+        window.pendingCommentRange.insertNode(span);
+    }
+
+    syncViewToData(true);
+    closeCommentDialog();
+}
+
+function deleteActiveComment() {
+    if (!window.activeCommentSpan) return;
+    const parent = window.activeCommentSpan.parentNode;
+    while (window.activeCommentSpan.firstChild) {
+        parent.insertBefore(window.activeCommentSpan.firstChild, window.activeCommentSpan);
+    }
+    parent.removeChild(window.activeCommentSpan);
+    parent.normalize();
+
+    syncViewToData(true);
+    closeCommentDialog();
+}
+
+/* --- 7. EXACT-SELECTION TWO-WAY LINKING (FORWARD & BACKWARD) --- */
+window.stagedLink = null;
 window.activeClickedCrossLink = null;
 
 function updateRibbonLinkingUI() {
@@ -11086,14 +11870,30 @@ function updateRibbonLinkingUI() {
 }
 
 function ribbonStartLink() {
+    clearNoteSearchHighlights();
+    const preview = document.getElementById('note-preview');
     const sel = window.getSelection();
-    const text = sel ? sel.toString().trim() : '';
+    const text = (sel && sel.rangeCount > 0 && !sel.isCollapsed && preview && preview.contains(sel.getRangeAt(0).commonAncestorContainer))
+        ? sel.toString().trim()
+        : '';
     if (!text || !currentNoteNodeId) {
-        alert("Please highlight text in the note to start a link.");
+        alert("Please highlight the exact text in the note to start a link.");
         return;
     }
 
+    const range = sel.getRangeAt(0);
     const anchorId = 'anc-' + Math.random().toString(36).substr(2, 7);
+
+    // Wrap the exact selected range in the DOM so position is locked even when duplicate words exist
+    const markerSpan = document.createElement('span');
+    markerSpan.id = anchorId;
+    markerSpan.setAttribute('data-staged-src', '1');
+    markerSpan.appendChild(range.extractContents());
+    range.insertNode(markerSpan);
+    sel.removeAllRanges();
+
+    syncViewToData(true);
+
     window.stagedLink = {
         nodeId: currentNoteNodeId,
         tabIndex: activeNoteIndex,
@@ -11106,6 +11906,27 @@ function ribbonStartLink() {
 }
 
 function cancelStagedLink() {
+    if (window.stagedLink) {
+        const { nodeId, tabIndex, anchorId } = window.stagedLink;
+        const sub = getActiveSubject();
+        const sourceData = findNodePath(sub.chapters, nodeId);
+        if (sourceData && sourceData.node) {
+            let sNotes = getNodeNotesArray(sourceData.node);
+            if (sNotes[tabIndex]) {
+                const re = new RegExp(`<span id="${anchorId}" data-staged-src="1">([\\s\\S]*?)<\\/span>`, 'g');
+                sNotes[tabIndex] = sNotes[tabIndex].replace(re, '$1');
+                sourceData.node.notes = sNotes;
+                saveData(false);
+            }
+        }
+        const stagedEl = document.querySelector(`span[id="${anchorId}"][data-staged-src="1"]`);
+        if (stagedEl && stagedEl.parentNode) {
+            const p = stagedEl.parentNode;
+            while (stagedEl.firstChild) p.insertBefore(stagedEl.firstChild, stagedEl);
+            p.removeChild(stagedEl);
+            p.normalize();
+        }
+    }
     window.stagedLink = null;
     updateRibbonLinkingUI();
 }
@@ -11115,10 +11936,10 @@ window.handleCrossNoteLinkClick = function(e, targetTabNum, targetAnchorId) {
         e.preventDefault();
         e.stopPropagation();
     }
+    saveCurrentNoteScroll();
     const tooltip = document.getElementById('note-link-hover-tooltip');
     if (tooltip) tooltip.style.display = 'none';
 
-    // 1. Capture the anchor ID of the clicked link
     let sourceAnchorId = null;
     if (e && e.target) {
         const a = e.target.closest('a.cross-note-link') || e.target.closest('a');
@@ -11130,11 +11951,9 @@ window.handleCrossNoteLinkClick = function(e, targetTabNum, targetAnchorId) {
         }
     }
 
-    // Fallback: If link was created with 0, treat as tab 0. Otherwise targetTabNum - 1.
     const targetIdx = targetTabNum === 0 ? 0 : targetTabNum - 1;
     const sourceTabIdx = activeNoteIndex;
 
-    // 2. Register clicked link and refresh ribbon to highlight Delete Link button
     window.activeClickedCrossLink = {
         nodeId: currentNoteNodeId,
         sourceTabIdx: sourceTabIdx,
@@ -11145,13 +11964,12 @@ window.handleCrossNoteLinkClick = function(e, targetTabNum, targetAnchorId) {
     updateRibbonLinkingUI();
 
     if (!isNaN(targetIdx) && targetIdx >= 0) {
-        switchNoteTab(targetIdx);
+        if (targetIdx !== activeNoteIndex) {
+            switchNoteTab(targetIdx);
+        }
         if (targetAnchorId) {
             setTimeout(() => {
-                let targetEl = document.getElementById(targetAnchorId);
-                if (!targetEl) {
-                    targetEl = document.querySelector(`[id="${targetAnchorId}"]`);
-                }
+                let targetEl = document.getElementById(targetAnchorId) || document.querySelector(`[id="${targetAnchorId}"]`);
                 if (targetEl) {
                     targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     targetEl.classList.remove('sentence-highlight');
@@ -11192,7 +12010,6 @@ window.deleteActiveCrossLink = function() {
     }
 
     let notesArr = getNodeNotesArray(nodeData.node);
-
     if (typeof sourceTabIdx === 'number' && notesArr[sourceTabIdx] !== undefined) {
         notesArr[sourceTabIdx] = unwrapLink(notesArr[sourceTabIdx], targetAnchorId, sourceAnchorId);
     }
@@ -11206,51 +12023,70 @@ window.deleteActiveCrossLink = function() {
 
     window.activeClickedCrossLink = null;
     updateRibbonLinkingUI();
-    loadActiveNoteContent(nodeData.node);
+    loadActiveNoteContent(nodeData.node, true);
 };
 
 function ribbonConnectLink() {
     if (!window.stagedLink || !currentNoteNodeId) return;
+    clearNoteSearchHighlights();
 
+    const preview = document.getElementById('note-preview');
     const sel = window.getSelection();
-    const targetText = sel ? sel.toString().trim() : '';
+    const targetText = (sel && sel.rangeCount > 0 && !sel.isCollapsed && preview && preview.contains(sel.getRangeAt(0).commonAncestorContainer))
+        ? sel.toString().trim()
+        : '';
     if (!targetText) {
-        alert("Please highlight destination text in this note to complete the link.");
+        alert("Please highlight the exact destination text in this note to complete the link.");
         return;
     }
 
+    const range = sel.getRangeAt(0);
     const source = window.stagedLink;
     const targetTabIndex = activeNoteIndex;
     const targetTabNum = activeNoteIndex + 1;
     const targetAnchorId = 'anc-' + Math.random().toString(36).substr(2, 7);
 
-    const sub = getActiveSubject();
+    // Wrap exact target range in DOM
+    const targetMarker = document.createElement('span');
+    targetMarker.id = targetAnchorId;
+    targetMarker.setAttribute('data-staged-tgt', '1');
+    targetMarker.appendChild(range.extractContents());
+    range.insertNode(targetMarker);
+    sel.removeAllRanges();
 
-    // 1. Source Note update (Forward link)
+    syncViewToData(true);
+
+    const sub = getActiveSubject();
+    const sourceWrapped = `<span id="${source.anchorId}">[${source.text}](#note:${targetTabNum}:${targetAnchorId})</span>`;
+    const targetWrapped = `<span id="${targetAnchorId}">[${targetText}](#note:${source.tabNum}:${source.anchorId}?backlink=1)</span>`;
+
+    const srcMarkerRegex = new RegExp(`<span id="${source.anchorId}" data-staged-src="1">[\\s\\S]*?<\\/span>`);
+    const tgtMarkerRegex = new RegExp(`<span id="${targetAnchorId}" data-staged-tgt="1">[\\s\\S]*?<\\/span>`);
+
     const sourceData = findNodePath(sub.chapters, source.nodeId);
-    if (sourceData && sourceData.node) {
-        let sNotes = getNodeNotesArray(sourceData.node);
-        let sContent = sNotes[source.tabIndex] || '';
-        const sourceWrapped = `<span id="${source.anchorId}">[${source.text}](#note:${targetTabNum}:${targetAnchorId})</span>`;
-        if (sContent.includes(source.text)) {
-            sNotes[source.tabIndex] = sContent.replace(source.text, sourceWrapped);
+    const targetData = findNodePath(sub.chapters, currentNoteNodeId);
+
+    if (source.nodeId === currentNoteNodeId && source.tabIndex === targetTabIndex) {
+        let notesArr = getNodeNotesArray(targetData.node);
+        let content = notesArr[targetTabIndex] || '';
+        content = content.replace(srcMarkerRegex, sourceWrapped).replace(tgtMarkerRegex, targetWrapped);
+        notesArr[targetTabIndex] = content;
+        targetData.node.notes = notesArr;
+    } else {
+        if (sourceData && sourceData.node) {
+            let sNotes = getNodeNotesArray(sourceData.node);
+            sNotes[source.tabIndex] = (sNotes[source.tabIndex] || '').replace(srcMarkerRegex, sourceWrapped);
             sourceData.node.notes = sNotes;
         }
-    }
-
-    // 2. Target Note update (Back-link with ?backlink=1)
-    const targetData = findNodePath(sub.chapters, currentNoteNodeId);
-    if (targetData && targetData.node) {
-        let tNotes = getNodeNotesArray(targetData.node);
-        let tContent = tNotes[targetTabIndex] || '';
-        const targetWrapped = `<span id="${targetAnchorId}">[${targetText}](#note:${source.tabNum}:${source.anchorId}?backlink=1)</span>`;
-        if (tContent.includes(targetText)) {
-            tNotes[targetTabIndex] = tContent.replace(targetText, targetWrapped);
+        if (targetData && targetData.node) {
+            let tNotes = getNodeNotesArray(targetData.node);
+            tNotes[targetTabIndex] = (tNotes[targetTabIndex] || '').replace(tgtMarkerRegex, targetWrapped);
             targetData.node.notes = tNotes;
         }
     }
 
-    cancelStagedLink();
+    window.stagedLink = null;
+    updateRibbonLinkingUI();
     saveData();
     renderVisualizer();
 
@@ -11258,14 +12094,103 @@ function ribbonConnectLink() {
     let tNotes = getNodeNotesArray(targetNode);
     renderNotesTabs(tNotes);
 
-    const preview = document.getElementById('note-preview');
     const textarea = document.getElementById('note-content');
     if (textarea) textarea.value = tNotes[targetTabIndex];
     if (preview && typeof marked !== 'undefined') {
         preview.innerHTML = marked.parse(tNotes[targetTabIndex] || '');
     }
 
+    refreshHeadingsSidebar();
     if (typeof setupCrossNoteLinks === 'function') {
+        setupCrossNoteLinks();
+    }
+}
+
+/* --- 8. INTERACTIONS: COMMENTS CLICK, DOUBLE-CLICK EDIT, SHORTCUTS --- */
+(function setupEnhancedNoteInteractions() {
+    const preview = document.getElementById('note-preview');
+    if (!preview) return;
+
+    preview.addEventListener('click', (e) => {
+        const commentSpan = e.target.closest('.note-comment');
+        if (commentSpan) {
+            e.stopPropagation();
+            openCommentDialog(commentSpan);
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        const isNotesOpen = document.getElementById('notes-modal')?.classList.contains('open');
+        if (!isNotesOpen) return;
+
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+            e.preventDefault();
+            toggleNoteSearch();
+        }
+    });
+})();
+
+/* --- RESTORED CORE NOTE FUNCTIONS --- */
+window.isRibbonVisible = true;
+function toggleNotesRibbon() {
+    const ribbon = document.getElementById('notes-ribbon-bar');
+    const btn = document.getElementById('btn-toggle-ribbon');
+    if (!ribbon) return;
+    window.isRibbonVisible = !window.isRibbonVisible;
+    ribbon.classList.toggle('ribbon-hidden', !window.isRibbonVisible);
+    if (btn) btn.classList.toggle('active-hidden', !window.isRibbonVisible);
+}
+
+function toggleNoteMode() {
+    if (isNoteEditMode) {
+        saveNotes();
+    } else {
+        syncViewToData(true);
+        setNoteMode('EDIT');
+    }
+}
+
+function setNoteMode(mode) {
+    const isEdit = (mode === 'EDIT');
+    isNoteEditMode = isEdit;
+    window.isNoteEditMode = isEdit;
+
+    const modal = document.getElementById('notes-modal');
+    const textarea = document.getElementById('note-content');
+    const preview = document.getElementById('note-preview');
+    const badge = document.getElementById('note-mode-badge');
+    const actionBtn = document.getElementById('btn-note-action');
+
+    if (isEdit) {
+        if (modal) modal.classList.add('is-edit-mode');
+        if (typeof setRibbonCollapsed === 'function') setRibbonCollapsed(true);
+        if (textarea) textarea.classList.remove('hidden-pane');
+        if (preview) preview.classList.add('hidden-pane');
+        if (badge) { badge.className = 'mode-badge badge-edit'; badge.innerText = 'EDIT MODE'; }
+        if (actionBtn) { actionBtn.innerText = '✅️'; actionBtn.title = 'Save & View Preview (Shift+Enter)'; }
+        if (textarea) textarea.focus();
+    } else {
+        syncAndSaveActiveNote();
+        if (modal) modal.classList.remove('is-edit-mode');
+        if (typeof setRibbonCollapsed === 'function') setRibbonCollapsed(false);
+
+        const rawContent = (textarea ? textarea.value : '').trim();
+        const isEmpty = !rawContent || rawContent === '*No content*' || rawContent === 'No content';
+
+        if (preview) {
+            if (!isEmpty) {
+                preview.removeAttribute('data-empty');
+                preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(rawContent) : `<p>${rawContent}</p>`;
+            } else {
+                preview.innerHTML = '';
+                preview.setAttribute('data-empty', 'true');
+            }
+            preview.classList.remove('hidden-pane', 'is-editing-active');
+        }
+        if (textarea) textarea.classList.add('hidden-pane');
+        if (badge) { badge.className = 'mode-badge badge-view'; badge.innerText = 'VIEW MODE'; }
+        if (actionBtn) { actionBtn.innerText = '✏️'; actionBtn.title = 'Edit Markdown (Shift+Enter)'; }
+        refreshHeadingsSidebar();
         setupCrossNoteLinks();
     }
 }
@@ -11275,11 +12200,9 @@ function setupCrossNoteLinks() {
     const tooltip = document.getElementById('note-link-hover-tooltip');
     if (!preview) return;
 
-    const noteLinks = preview.querySelectorAll('a[href^="#note:"]');
-    noteLinks.forEach(link => {
+    preview.querySelectorAll('a[href^="#note:"]').forEach(link => {
         const href = link.getAttribute('href') || '';
         const isBackLink = href.includes('backlink=1') || link.classList.contains('is-backlink');
-        
         link.classList.add('cross-note-link');
         if (isBackLink) link.classList.add('is-backlink');
 
@@ -11296,11 +12219,7 @@ function setupCrossNoteLinks() {
             tooltip.style.top = rect.top + 'px';
             tooltip.style.display = 'block';
         };
-
-        link.onmouseleave = () => {
-            if (tooltip) tooltip.style.display = 'none';
-        };
-
+        link.onmouseleave = () => { if (tooltip) tooltip.style.display = 'none'; };
         link.onclick = (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -11309,23 +12228,19 @@ function setupCrossNoteLinks() {
     });
 }
 
-/* --- 7. DOUBLE CLICK TO EDIT IN VIEW MODE --- */
 (function setupViewModeInteractions() {
     const preview = document.getElementById('note-preview');
     if (!preview) return;
-
-    // View mode is non-editable initially
     preview.setAttribute('contenteditable', 'false');
 
-    // Double-click activates the text cursor
     preview.addEventListener('dblclick', function(e) {
+        if (e.target.closest('.note-comment')) return;
         if (typeof isNoteEditMode !== 'undefined' && isNoteEditMode) return;
         preview.setAttribute('contenteditable', 'true');
         preview.classList.add('is-editing-active');
         preview.focus();
     });
 
-    // Clicking outside or blurring turns off the active cursor and saves
     preview.addEventListener('blur', function() {
         if (typeof isNoteEditMode !== 'undefined' && isNoteEditMode) return;
         preview.setAttribute('contenteditable', 'false');
@@ -11334,44 +12249,21 @@ function setupCrossNoteLinks() {
     });
 
     preview.addEventListener('input', () => {
-        if (preview.getAttribute('contenteditable') === 'true') {
-            syncViewToData(false);
-        }
+        if (preview.getAttribute('contenteditable') === 'true') syncViewToData(false);
     });
 
     preview.addEventListener('keydown', (e) => {
         if (e.key === 'Tab') {
             e.preventDefault();
-            if (e.shiftKey) {
-                applyRibbonOutdent();
-            } else {
-                applyRibbonIndent();
-            }
-        }
-    });
-
-    preview.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-    });
-
-    document.addEventListener('keydown', (e) => {
-        const isNotesOpen = document.getElementById('notes-modal')?.classList.contains('open');
-        if (!isNotesOpen) return;
-
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'b') {
-            e.preventDefault();
-            toggleNotesRibbon();
+            if (e.shiftKey) promoteNoteBlock();
+            else demoteNoteBlock();
         }
     });
 })();
 
-/* --- RIBBON CURSOR / ACTIVE FORMAT TRACKING --- */
 function updateRibbonActiveStates() {
-    // Check our dedicated note history stacks instead of native queryCommandEnabled
     const btnUndo = document.getElementById('rbtn-undo');
     const btnRedo = document.getElementById('rbtn-redo');
-
     if (btnUndo) {
         const canUndo = (window.noteUndoStack && window.noteUndoStack.length > 1);
         btnUndo.style.opacity = canUndo ? '1' : '0.4';
@@ -11384,16 +12276,12 @@ function updateRibbonActiveStates() {
     }
 
     const preview = document.getElementById('note-preview');
-    if (!preview) return;
-
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
+    if (!preview || !sel || sel.rangeCount === 0) return;
 
     const anchorNode = sel.anchorNode;
-    // Only evaluate if cursor or selection is inside note-preview
     if (!anchorNode || !preview.contains(anchorNode)) return;
 
-    // 1. Native queryCommandState for inline styles
     const toggle = (id, active) => {
         const el = document.getElementById(id);
         if (el) el.classList.toggle('active-format', !!active);
@@ -11404,27 +12292,15 @@ function updateRibbonActiveStates() {
     toggle('rbtn-underline', document.queryCommandState('underline'));
     toggle('rbtn-strike', document.queryCommandState('strikeThrough'));
 
-    // 2. Ascend parent tree for Headings, Bullets, and Highlights
     let curr = anchorNode.nodeType === Node.ELEMENT_NODE ? anchorNode : anchorNode.parentElement;
-    let headingTag = null;
-    let isBullet = false;
-    let isHighlighted = false;
-    let activeTextColor = null;
+    let headingTag = null, isBullet = false, isHighlighted = false, activeTextColor = null;
 
     while (curr && curr !== preview) {
         const tag = curr.tagName ? curr.tagName.toUpperCase() : '';
-        if (['H1', 'H2', 'H3'].includes(tag) && !headingTag) {
-            headingTag = tag;
-        }
-        if (tag === 'LI') {
-            isBullet = true;
-        }
-        if (tag === 'MARK' || (curr.style && curr.style.backgroundColor)) {
-            isHighlighted = true;
-        }
-        if (curr.style && curr.style.color && !activeTextColor) {
-            activeTextColor = curr.style.color;
-        }
+        if (['H1', 'H2', 'H3'].includes(tag) && !headingTag) headingTag = tag;
+        if (tag === 'LI') isBullet = true;
+        if (tag === 'MARK' || (curr.style && curr.style.backgroundColor)) isHighlighted = true;
+        if (curr.style && curr.style.color && !activeTextColor) activeTextColor = curr.style.color;
         curr = curr.parentElement;
     }
 
@@ -11435,7 +12311,6 @@ function updateRibbonActiveStates() {
     toggle('rbtn-bullet', isBullet);
     toggle('rbtn-highlight', isHighlighted);
 
-    // 3. Match Text Color Dots
     document.querySelectorAll('#notes-ribbon-bar .color-dot[data-color]').forEach(dot => {
         dot.classList.remove('active-format');
         if (activeTextColor) {
@@ -11444,74 +12319,47 @@ function updateRibbonActiveStates() {
             document.body.appendChild(dummy);
             const expectedRgb = window.getComputedStyle(dummy).color;
             dummy.remove();
-
-            if (activeTextColor === expectedRgb) {
-                dot.classList.add('active-format');
-            }
+            if (activeTextColor === expectedRgb) dot.classList.add('active-format');
         }
     });
 }
 
-// Fire on cursor move / text selection
 document.addEventListener('selectionchange', () => {
     const modal = document.getElementById('notes-modal');
-    if (modal && modal.classList.contains('open')) {
-        updateRibbonActiveStates();
-    }
+    if (modal && modal.classList.contains('open')) updateRibbonActiveStates();
 });
 
-const previewArea = document.getElementById('note-preview');
-if (previewArea) {
-    previewArea.addEventListener('keyup', updateRibbonActiveStates);
-    previewArea.addEventListener('mouseup', updateRibbonActiveStates);
-}
-
-// --- AUTO-SAVE ON CURSOR INACTIVITY & ACCIDENTAL CLOSE PROTECTION ---
 (function setupNoteProtection() {
     const textarea = document.getElementById('note-content');
     const preview = document.getElementById('note-preview');
     const notesModalOverlay = document.getElementById('notes-modal');
 
-    // 1. Auto-save when cursor leaves the textarea / preview
-    if (textarea) {
-        textarea.addEventListener('blur', () => syncAndSaveActiveNote());
-    }
-    if (preview) {
-        preview.addEventListener('blur', () => syncAndSaveActiveNote());
-        preview.addEventListener('focusout', () => syncAndSaveActiveNote());
-    }
+    if (textarea) textarea.addEventListener('blur', () => syncAndSaveActiveNote());
+    if (preview) preview.addEventListener('focusout', () => syncAndSaveActiveNote());
 
-    // 2. Accidental click outside modal (on backdrop overlay)
     if (notesModalOverlay) {
-        notesModalOverlay.addEventListener('mousedown', function (e) {
-            if (e.target === notesModalOverlay) {
-                closeNotesModal(); // Calls syncAndSaveActiveNote() inside
-            }
+        notesModalOverlay.addEventListener('mousedown', function(e) {
+            if (e.target === notesModalOverlay) closeNotesModal();
         });
     }
 
-    // 3. Escape key pressed
-    document.addEventListener('keydown', function (e) {
+    document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            const modal = document.getElementById('notes-modal');
-            if (modal && modal.classList.contains('open')) {
-                closeNotesModal();
+            const commentModal = document.getElementById('note-comment-modal');
+            if (commentModal && commentModal.classList.contains('open')) {
+                closeCommentDialog();
+                return;
             }
+            const modal = document.getElementById('notes-modal');
+            if (modal && modal.classList.contains('open')) closeNotesModal();
         }
     });
 
-    // 4. Tab switch or window minimized
-    document.addEventListener('visibilitychange', function () {
-        if (document.visibilityState === 'hidden' && currentNoteNodeId) {
-            syncAndSaveActiveNote();
-        }
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && currentNoteNodeId) syncAndSaveActiveNote();
     });
-
-    // 5. Window refresh or close-
-    window.addEventListener('beforeunload', function () {
-        if (currentNoteNodeId) {
-            syncAndSaveActiveNote();
-        }
+    window.addEventListener('beforeunload', () => {
+        if (currentNoteNodeId) syncAndSaveActiveNote();
     });
 })();
 </script>
