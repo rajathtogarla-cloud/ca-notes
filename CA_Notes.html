@@ -2583,16 +2583,19 @@
                         linkText = this.parser ? this.parser.parseInline(href.tokens) : (href.text || '');
                     }
 
-                    // 1. Cross-Note Links (Internal note jump)
+                    // 1. Cross-Note Links (Internal note & cross-node jump)
                     if (actualHref && actualHref.startsWith('#note:')) {
-                        const match = actualHref.match(/^#note:(\d+):([^?]+)(\?backlink=1)?/);
+                        const match = actualHref.match(/^#note:(\d+):([^?]+)(?:\?(.*))?$/);
                         if (match) {
                             const targetTab = parseInt(match[1], 10);
                             const targetAnchor = match[2];
-                            const isBacklink = !!match[3];
+                            const queryStr = match[3] || '';
+                            const isBacklink = queryStr.includes('backlink=1');
+                            const nodeMatch = queryStr.match(/(?:^|&)node=([^&]+)/);
+                            const targetNodeAttr = nodeMatch ? ` data-target-node="${decodeURIComponent(nodeMatch[1])}"` : '';
                             const linkTitle = isBacklink ? `↳ Back-link: Leads to Notes ${targetTab}` : `🔗 Link: Leads to Notes ${targetTab}`;
                             const cls = `cross-note-link ${isBacklink ? 'is-backlink' : ''}`;
-                            return `<a href="${actualHref}" class="${cls}" data-target-tab="${targetTab}" data-target-anchor="${targetAnchor}" title="${linkTitle}" onclick="window.handleCrossNoteLinkClick(event, ${targetTab}, '${targetAnchor}')">${linkText}</a>`;
+                            return `<a href="${actualHref}" class="${cls}" data-target-tab="${targetTab}" data-target-anchor="${targetAnchor}"${targetNodeAttr} title="${linkTitle}" onclick="window.handleCrossNoteLinkClick(event, ${targetTab}, '${targetAnchor}')">${linkText}</a>`;
                         }
                     }
 
@@ -3792,29 +3795,46 @@
 
     function switchNoteTab(newIndex) {
         if (newIndex === activeNoteIndex || !currentNoteNodeId) return;
-        const sub = getActiveSubject();
-        const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+        const nodeData = findNodeAcrossAllSubjects(currentNoteNodeId);
         if (!nodeData || !nodeData.node) return;
 
-        let notesArr = getNodeNotesArray(nodeData.node);
+        if (typeof _viewSyncTimer !== 'undefined') clearTimeout(_viewSyncTimer);
         const textarea = document.getElementById('note-content');
+        const preview = document.getElementById('note-preview');
 
-        // Preserve current tab text
+        // 1. Save current tab BEFORE changing activeNoteIndex
         if (isNoteEditMode && textarea) {
+            let notesArr = getNodeNotesArray(nodeData.node);
             notesArr[activeNoteIndex] = textarea.value;
             nodeData.node.notes = notesArr;
             saveData(false);
+        } else if (preview && preview.getAttribute('contenteditable') === 'true') {
+            preview.setAttribute('contenteditable', 'false');
+            preview.classList.remove('is-editing-active');
+            syncViewToData(true);
         }
 
-        activeNoteIndex = newIndex;
-        loadActiveNoteContent(nodeData.node);
-        scrollToActiveTab();
+        // 2. Lock saving & reset edit flag while swapping pointers and DOM
+        window.isSwitchingNote = true;
+        try {
+            if (document.activeElement) document.activeElement.blur();
+            isNoteEditMode = false;
+            window.isNoteEditMode = false;
+
+            activeNoteIndex = newIndex;
+            loadActiveNoteContent(nodeData.node);
+            if (typeof updateRibbonLinkingUI === 'function') {
+                updateRibbonLinkingUI();
+            }
+            scrollToActiveTab();
+        } finally {
+            window.isSwitchingNote = false;
+        }
     }
 
     function addNewNoteTab() {
         if (!currentNoteNodeId) return;
-        const sub = getActiveSubject();
-        const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+        const nodeData = findNodeAcrossAllSubjects(currentNoteNodeId);
         if (!nodeData || !nodeData.node) return;
 
         let notesArr = getNodeNotesArray(nodeData.node);
@@ -3849,8 +3869,7 @@
             ev.preventDefault();
         }
         if (!currentNoteNodeId) return;
-        const sub = getActiveSubject();
-        const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+        const nodeData = findNodeAcrossAllSubjects(currentNoteNodeId);
         if (!nodeData || !nodeData.node) return;
 
         if (!confirm(`Delete Notes ${indexToRemove + 1}?`)) return;
@@ -3894,7 +3913,10 @@
         if (preview) {
             if (cleanContent) {
                 preview.removeAttribute('data-empty');
-                preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(cleanContent) : `<p>${cleanContent}</p>`;
+                const hasBlockHtml = /<(p|div|h[1-6]|ul|ol|li|table|thead|tbody|tr|td|th|blockquote)\b/i.test(cleanContent);
+                preview.innerHTML = hasBlockHtml
+                    ? cleanContent
+                    : (typeof marked !== 'undefined' ? marked.parse(cleanContent) : `<p>${cleanContent}</p>`);
             } else {
                 preview.innerHTML = '';
                 preview.setAttribute('data-empty', 'true');
@@ -3914,6 +3936,9 @@
     }
 
     function openNotesModal(e, id) {
+        if (e && e.type === 'mouseenter' && document.getElementById('notes-modal')?.classList.contains('open')) {
+            return;
+        }
         if (e && e.stopPropagation) e.stopPropagation();
         currentNoteNodeId = id;
         activeNoteIndex = 0;
@@ -3922,11 +3947,18 @@
         userRibbonVisibleBeforeEdit = true;
         setRibbonCollapsed(false);
 
-        const sub = getActiveSubject();
-        const nodeData = findNodePath(sub.chapters, id);
+        const nodeData = typeof findNodeAcrossAllSubjects === 'function'
+            ? findNodeAcrossAllSubjects(id)
+            : findNodePath(getActiveSubject().chapters, id);
 
         if (nodeData && nodeData.node) {
+            if (typeof window.updateNotesModalHeaderTitle === 'function') {
+                window.updateNotesModalHeaderTitle(nodeData.node);
+            }
             loadActiveNoteContent(nodeData.node);
+            if (typeof updateRibbonLinkingUI === 'function') {
+                updateRibbonLinkingUI();
+            }
             document.getElementById('notes-modal').classList.add('open');
             scrollToActiveTab();
         }
@@ -3934,9 +3966,8 @@
 
     // Universal fail-safe note saver
     function syncAndSaveActiveNote() {
-        if (!currentNoteNodeId) return;
-        const sub = getActiveSubject();
-        const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+        if (window.isSwitchingNote || !currentNoteNodeId) return;
+        const nodeData = findNodeAcrossAllSubjects(currentNoteNodeId);
         if (!nodeData || !nodeData.node) return;
 
         const textarea = document.getElementById('note-content');
@@ -3946,7 +3977,6 @@
         if (isNoteEditMode && textarea) {
             updatedContent = textarea.value;
         } else if (preview) {
-            // Always serialize HTML to Markdown so formatting spans/colors are preserved
             updatedContent = typeof htmlToMarkdown === 'function' ? htmlToMarkdown(preview).trim() : preview.innerText;
             if (textarea) textarea.value = updatedContent;
         } else if (textarea) {
@@ -4014,8 +4044,7 @@
 
     function deleteCurrentNote() {
         if (!currentNoteNodeId) return;
-        const sub = getActiveSubject();
-        const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+        const nodeData = findNodeAcrossAllSubjects(currentNoteNodeId);
 
         if (nodeData && nodeData.node) {
             let notesArr = getNodeNotesArray(nodeData.node);
@@ -5530,14 +5559,16 @@
         box-shadow: 0 0 0 2px #4f46e5;
     }
 
-    /* Highlight Flash Animation for Destination Sentence */
+    /* Highlight Flash Animation for Destination Sentence (Synced with Mobile) */
+    @keyframes sentenceGlowPulse {
+        0% { background-color: #fef08a; color: #000000; box-shadow: 0 0 14px #fde047; }
+        40% { background-color: #fef08a; color: #000000; box-shadow: 0 0 10px #fde047; }
+        100% { background-color: transparent; }
+    }
     .sentence-highlight {
-        background-color: #fef08a !important;
-        color: #000000 !important;
+        animation: sentenceGlowPulse 2.2s ease-out forwards;
         border-radius: 4px;
-        padding: 2px 4px;
-        box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.45);
-        transition: background-color 0.4s ease;
+        padding: 1px 3px;
     }
 </style>
 
@@ -7598,7 +7629,9 @@
 
         const isCollapsed = appState.expandedNodes.has(node.id);
 
-        const hasNotes = node.notes && node.notes.trim().length > 0;
+        const hasNotes = Array.isArray(node.notes)
+            ? node.notes.some(n => n && n.trim().length > 0)
+            : (node.notes && typeof node.notes === 'string' && node.notes.trim().length > 0);
 
        
 
@@ -8229,7 +8262,9 @@
         const card = document.createElement('div');
         const hasChild = node.children && node.children.length > 0;
         const isCollapsed = appState.expandedNodes.has(node.id);
-        const hasNotes = node.notes && node.notes.trim().length > 0;
+        const hasNotes = Array.isArray(node.notes)
+            ? node.notes.some(n => n && n.trim().length > 0)
+            : (node.notes && typeof node.notes === 'string' && node.notes.trim().length > 0);
         const isSelected = selectedNodeIds.has(node.id);
         
         const nodePage = node.pdfPage; 
@@ -8688,8 +8723,8 @@
         const noteModal = document.querySelector('#notes-modal .modal.large-modal');
         if (noteModal) {
             noteModal.onmouseleave = function() {
-                // Guard 1: Do not close if edit mode or comment dialog is active
-                if (window.isNoteEditMode || (typeof isNoteEditMode !== 'undefined' && isNoteEditMode)) {
+                // Guard 1: Do not close if edit mode, comment dialog, or staged cross-note link is active
+                if (window.isNoteEditMode || (typeof isNoteEditMode !== 'undefined' && isNoteEditMode) || window.stagedLink) {
                     return;
                 }
                 const commentModal = document.getElementById('note-comment-modal');
@@ -8790,10 +8825,10 @@
             const expander = hasChild ? `<span class="expander">${isCollapsed?'+':'-'}</span>` : '';
             const desc = node.desc ? `<p>${node.desc}</p>` : '';
             
-            // *** UPDATED BULB BUTTON: Added onmouseenter event ***
+            // *** UPDATED BULB BUTTON: Guard onmouseenter when modal is already open ***
             const bulb = `<button class="bulb-btn ${hasNotes?'has-notes':''}" 
                             onclick="openNotesModal(event,'${node.id}')" 
-                            onmouseenter="openNotesModal(event,'${node.id}')">✦</button>`;
+                            onmouseenter="if(!document.getElementById('notes-modal')?.classList.contains('open')) openNotesModal(event,'${node.id}')">✦</button>`;
             
             card.innerHTML = `<h4>${node.title}</h4>${desc}${expander}${bulb}${redirectBtn}`;
             
@@ -10897,6 +10932,30 @@ function renderNotesTabs(notesArray) {
             }
         });
 
+        preview.addEventListener('paste', (e) => {
+            if (preview.getAttribute('contenteditable') !== 'true') return;
+            const htmlData = e.clipboardData && e.clipboardData.getData('text/html');
+            if (htmlData) {
+                e.preventDefault();
+                const doc = new DOMParser().parseFromString(htmlData, 'text/html');
+                // Only remove hidden metadata/script tags that could interfere with the page
+                doc.querySelectorAll('style, meta, script, link, xml, title').forEach(el => el.remove());
+
+                // Only strip positioning properties so pasted elements cannot float over the modal
+                doc.querySelectorAll('[style]').forEach(el => {
+                    el.style.removeProperty('position');
+                    el.style.removeProperty('top');
+                    el.style.removeProperty('left');
+                    el.style.removeProperty('right');
+                    el.style.removeProperty('bottom');
+                    el.style.removeProperty('z-index');
+                });
+
+                document.execCommand('insertHTML', false, doc.body.innerHTML);
+                syncViewToData(true);
+            }
+        });
+
         preview.addEventListener('blur', function() {
             const text = this.innerText.trim();
             if (!text || text === '') {
@@ -10974,138 +11033,52 @@ function restoreCurrentNoteScroll() {
     if (textarea) textarea.addEventListener('scroll', saveCurrentNoteScroll, { passive: true });
 })();
 
-/* --- 2. HTML TO MARKDOWN CONVERTER (SUPPORTS NESTED LISTS, COMMENTS, STAGED LINKS) --- */
-function htmlToMarkdown(node, listDepth = 0) {
-    if (!node) return '';
-    if (node.nodeType === Node.TEXT_NODE) return node.nodeValue;
-    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+/* --- 2. DIRECT HTML SERIALIZER (PRESERVES EXACT PASTED & EDITED FORMATTING) --- */
+function serializePreviewHTML(previewEl) {
+    if (!previewEl) return '';
+    const clone = previewEl.cloneNode(true);
 
-    const tag = node.tagName.toLowerCase();
+    // Unwrap temporary search highlight marks without touching surrounding styles
+    clone.querySelectorAll('mark.note-search-hl').forEach(m => {
+        const parent = m.parentNode;
+        while (m.firstChild) parent.insertBefore(m.firstChild, m);
+        parent.removeChild(m);
+        parent.normalize();
+    });
 
-    // Strip temporary search highlight tags cleanly
-    if (tag === 'mark' && node.classList && node.classList.contains('note-search-hl')) {
-        let unwrapped = '';
-        node.childNodes.forEach(child => { unwrapped += htmlToMarkdown(child, listDepth); });
-        return unwrapped;
-    }
+    // Clean transient UI states
+    clone.querySelectorAll('.sentence-highlight').forEach(el => el.classList.remove('sentence-highlight'));
+    clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
 
-    // Properly serialize nested bullet/numbered lists for Promote & Demote
-    if (tag === 'ul' || tag === 'ol') {
-        let listOut = '';
-        node.childNodes.forEach(child => {
-            listOut += htmlToMarkdown(child, listDepth + 1);
-        });
-        return listDepth === 0 ? `\n${listOut}\n` : `\n${listOut}`;
-    }
-
-    if (tag === 'li') {
-        const indent = '  '.repeat(Math.max(0, listDepth - 1));
-        let inlineText = '';
-        let nestedLists = '';
-        node.childNodes.forEach(child => {
-            const cTag = child.nodeType === Node.ELEMENT_NODE ? child.tagName.toLowerCase() : '';
-            if (cTag === 'ul' || cTag === 'ol') {
-                nestedLists += htmlToMarkdown(child, listDepth);
-            } else {
-                inlineText += htmlToMarkdown(child, listDepth);
-            }
-        });
-        return `${indent}- ${inlineText.trim()}\n${nestedLists}`;
-    }
-
-    let childrenText = '';
-    node.childNodes.forEach(child => { childrenText += htmlToMarkdown(child, listDepth); });
-
-    switch (tag) {
-        case 'h1': return `\n# ${childrenText.trim()}\n\n`;
-        case 'h2': return `\n## ${childrenText.trim()}\n\n`;
-        case 'h3': return `\n### ${childrenText.trim()}\n\n`;
-        case 'p': return childrenText.trim() ? `\n${childrenText.trim()}\n\n` : '\n';
-        case 'strong':
-        case 'b': return childrenText ? `**${childrenText}**` : '';
-        case 'em':
-        case 'i': return childrenText ? `*${childrenText}*` : '';
-        case 'u': return childrenText ? `<u>${childrenText}</u>` : '';
-        case 's':
-        case 'strike':
-        case 'del': return childrenText ? `~~${childrenText}~~` : '';
-        case 'mark': return childrenText ? `<mark style="background:#fef08a; padding:1px 4px; border-radius:3px;">${childrenText}</mark>` : '';
-        case 'font': {
-            const fontColor = node.getAttribute('color');
-            if (fontColor) {
-                return `<span style="color:${fontColor}; font-weight:600;">${childrenText}</span>`;
-            }
-            return childrenText;
-        }
-        case 'span': {
-            if (node.classList && node.classList.contains('note-comment')) {
-                const cData = node.getAttribute('data-comment') || '';
-                return `<span class="note-comment" data-comment="${cData}">${childrenText}</span>`;
-            }
-            if (node.hasAttribute('data-staged-src')) {
-                return `<span id="${node.id}" data-staged-src="1">${childrenText}</span>`;
-            }
-            if (node.hasAttribute('data-staged-tgt')) {
-                return `<span id="${node.id}" data-staged-tgt="1">${childrenText}</span>`;
-            }
-            let styleAttr = '';
-            if (node.style && node.style.color) {
-                styleAttr += `color:${node.style.color}; font-weight:600;`;
-            }
-            if (node.id && node.id.startsWith('anc-')) {
-                return `<span id="${node.id}"${styleAttr ? ` style="${styleAttr}"` : ''}>${childrenText}</span>`;
-            }
-            if (styleAttr) {
-                return `<span style="${styleAttr}">${childrenText}</span>`;
-            }
-            return childrenText;
-        }
-        case 'img': {
-            const src = node.getAttribute('src') || '';
-            const alt = node.getAttribute('alt') || '';
-            if (node.parentElement && node.parentElement.tagName.toLowerCase() === 'a') {
-                return '';
-            }
-            return `\n![${alt}](${src})\n`;
-        }
-        case 'a': {
-            const href = node.getAttribute('href') || '';
-            const isBack = node.classList.contains('is-backlink') || node.getAttribute('data-backlink') === 'true' || href.includes('backlink=1');
-            let finalHref = href;
-            if (isBack && !finalHref.includes('backlink=1')) {
-                finalHref += (finalHref.includes('?') ? '&' : '?') + 'backlink=1';
-            }
-            const isImgLink = node.querySelector('img') || /\.(png|jpe?g|gif|webp|svg|avif|bmp)($|[?#])/i.test(finalHref);
-            if (isImgLink) {
-                return `\n${finalHref}\n`;
-            }
-            return `[${childrenText}](${finalHref})`;
-        }
-        case 'blockquote': return `\n> ${childrenText.trim()}\n\n`;
-        case 'pre': return `\n\`\`\`\n${childrenText}\n\`\`\`\n\n`;
-        case 'code': return node.parentElement && node.parentElement.tagName.toLowerCase() === 'pre' ? childrenText : `\`${childrenText}\``;
-        case 'br': return '\n';
-        case 'hr': return '\n---\n\n';
-        default: return childrenText;
-    }
+    // Strip leading line indentation so marked.parse() never misreads HTML lines as code blocks
+    return clone.innerHTML.replace(/^[ \t]+/gm, '').trim();
 }
 
+function htmlToMarkdown(node) {
+    if (!node) return '';
+    if (node.id === 'note-preview') return serializePreviewHTML(node);
+    return node.innerHTML !== undefined ? node.innerHTML : (node.nodeValue || '');
+}
+
+window.isSwitchingNote = false;
 let _viewSyncTimer = null;
+
 function syncViewToData(immediate = false) {
+    if (window.isSwitchingNote) return;
     clearTimeout(_viewSyncTimer);
     const executeSync = () => {
+        if (window.isSwitchingNote) return;
         const preview = document.getElementById('note-preview');
         const textarea = document.getElementById('note-content');
         if (!preview || !currentNoteNodeId) return;
 
-        const md = htmlToMarkdown(preview).trim();
-        if (textarea) textarea.value = md;
+        const serialized = serializePreviewHTML(preview);
+        if (textarea) textarea.value = serialized;
 
-        const sub = getActiveSubject();
-        const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+        const nodeData = findNodeAcrossAllSubjects(currentNoteNodeId);
         if (nodeData && nodeData.node) {
             let notesArr = getNodeNotesArray(nodeData.node);
-            notesArr[activeNoteIndex] = md;
+            notesArr[activeNoteIndex] = serialized;
             nodeData.node.notes = notesArr;
             saveData(false);
             renderNotesTabs(notesArr);
@@ -11169,8 +11142,7 @@ function applyRibbonUndo() {
         preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(targetState) : targetState;
     }
 
-    const sub = getActiveSubject();
-    const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+    const nodeData = findNodeAcrossAllSubjects(currentNoteNodeId);
     if (nodeData && nodeData.node) {
         let notesArr = getNodeNotesArray(nodeData.node);
         notesArr[activeNoteIndex] = targetState;
@@ -11201,8 +11173,7 @@ function applyRibbonRedo() {
         preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(nextState) : nextState;
     }
 
-    const sub = getActiveSubject();
-    const nodeData = findNodePath(sub.chapters, currentNoteNodeId);
+    const nodeData = findNodeAcrossAllSubjects(currentNoteNodeId);
     if (nodeData && nodeData.node) {
         let notesArr = getNodeNotesArray(nodeData.node);
         notesArr[activeNoteIndex] = nextState;
@@ -11825,9 +11796,21 @@ function deleteActiveComment() {
     closeCommentDialog();
 }
 
-/* --- 7. EXACT-SELECTION TWO-WAY LINKING (FORWARD & BACKWARD) --- */
+/* --- 7. EXACT-SELECTION TWO-WAY LINKING (FORWARD & BACKWARD ACROSS TABS & NODES) --- */
 window.stagedLink = null;
 window.activeClickedCrossLink = null;
+
+// Prevent ribbon buttons from clearing highlighted text selection on click (matches mobile)
+(function preventRibbonSelectionLoss() {
+    const ribbonBar = document.getElementById('notes-ribbon-bar');
+    if (ribbonBar) {
+        ribbonBar.addEventListener('mousedown', (e) => {
+            if (e.target.closest('button')) {
+                e.preventDefault();
+            }
+        });
+    }
+})();
 
 function updateRibbonLinkingUI() {
     const btnStart = document.getElementById('btn-ribbon-start-link');
@@ -11846,7 +11829,7 @@ function updateRibbonLinkingUI() {
         }
         if (btnCancel) btnCancel.style.display = 'inline-flex';
         if (banner && bannerLabel) {
-            bannerLabel.textContent = `"${window.stagedLink.text.slice(0, 25)}" in Notes ${window.stagedLink.tabNum}`;
+            bannerLabel.textContent = `"${window.stagedLink.text.slice(0, 30)}" in Notes ${window.stagedLink.tabNum}`;
             banner.style.display = 'flex';
         }
     } else {
@@ -11905,11 +11888,21 @@ function ribbonStartLink() {
     updateRibbonLinkingUI();
 }
 
+function findNodeAcrossAllSubjects(targetId) {
+    if (!targetId || !appState || !Array.isArray(appState.subjects)) return null;
+    for (const sub of appState.subjects) {
+        const found = findNodePath(sub.chapters || [], targetId);
+        if (found) {
+            return { subject: sub, ...found };
+        }
+    }
+    return null;
+}
+
 function cancelStagedLink() {
     if (window.stagedLink) {
         const { nodeId, tabIndex, anchorId } = window.stagedLink;
-        const sub = getActiveSubject();
-        const sourceData = findNodePath(sub.chapters, nodeId);
+        const sourceData = findNodeAcrossAllSubjects(nodeId);
         if (sourceData && sourceData.node) {
             let sNotes = getNodeNotesArray(sourceData.node);
             if (sNotes[tabIndex]) {
@@ -11931,19 +11924,46 @@ function cancelStagedLink() {
     updateRibbonLinkingUI();
 }
 
+window.updateNotesModalHeaderTitle = function(node) {
+    const titleEl = document.querySelector('#notes-modal .notes-modal-title');
+    if (titleEl && node) {
+        titleEl.textContent = node.title || node.name || 'Notes & Documentation';
+    }
+};
+
 window.handleCrossNoteLinkClick = function(e, targetTabNum, targetAnchorId) {
     if (e) {
         e.preventDefault();
         e.stopPropagation();
     }
     saveCurrentNoteScroll();
+    if (typeof _viewSyncTimer !== 'undefined') clearTimeout(_viewSyncTimer);
+
+    const preview = document.getElementById('note-preview');
+
+    // 1. Flush & save the SOURCE note BEFORE mutating currentNoteNodeId / activeNoteIndex
+    if (isNoteEditMode) {
+        syncAndSaveActiveNote();
+    } else if (preview && preview.getAttribute('contenteditable') === 'true') {
+        preview.setAttribute('contenteditable', 'false');
+        preview.classList.remove('is-editing-active');
+        syncViewToData(true);
+    }
+
     const tooltip = document.getElementById('note-link-hover-tooltip');
     if (tooltip) tooltip.style.display = 'none';
 
     let sourceAnchorId = null;
+    let targetNodeId = currentNoteNodeId;
+
     if (e && e.target) {
         const a = e.target.closest('a.cross-note-link') || e.target.closest('a');
         if (a) {
+            const href = a.getAttribute('href') || '';
+            const nodeMatch = href.match(/[?&]node=([^&]+)/);
+            if (nodeMatch && nodeMatch[1]) {
+                targetNodeId = decodeURIComponent(nodeMatch[1]);
+            }
             const span = a.closest('span[id^="anc-"]') || a.parentElement;
             if (span && span.id && span.id.startsWith('anc-')) {
                 sourceAnchorId = span.id;
@@ -11951,34 +11971,81 @@ window.handleCrossNoteLinkClick = function(e, targetTabNum, targetAnchorId) {
         }
     }
 
-    const targetIdx = targetTabNum === 0 ? 0 : targetTabNum - 1;
+    const targetIdx = targetTabNum > 0 ? targetTabNum - 1 : 0;
+    const sourceNodeId = currentNoteNodeId;
     const sourceTabIdx = activeNoteIndex;
 
     window.activeClickedCrossLink = {
-        nodeId: currentNoteNodeId,
+        sourceNodeId: sourceNodeId,
         sourceTabIdx: sourceTabIdx,
         sourceAnchorId: sourceAnchorId,
+        targetNodeId: targetNodeId,
         targetTabIdx: targetIdx,
         targetAnchorId: targetAnchorId
     };
     updateRibbonLinkingUI();
 
-    if (!isNaN(targetIdx) && targetIdx >= 0) {
-        if (targetIdx !== activeNoteIndex) {
-            switchNoteTab(targetIdx);
-        }
-        if (targetAnchorId) {
-            setTimeout(() => {
-                let targetEl = document.getElementById(targetAnchorId) || document.querySelector(`[id="${targetAnchorId}"]`);
-                if (targetEl) {
-                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    targetEl.classList.remove('sentence-highlight');
-                    void targetEl.offsetWidth;
-                    targetEl.classList.add('sentence-highlight');
-                    setTimeout(() => targetEl.classList.remove('sentence-highlight'), 400);
+    const scrollToTargetAnchor = () => {
+        if (!targetAnchorId) return;
+        setTimeout(() => {
+            let targetEl = document.getElementById(targetAnchorId) || document.querySelector(`[id="${targetAnchorId}"]`);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetEl.classList.remove('sentence-highlight');
+                void targetEl.offsetWidth;
+                targetEl.classList.add('sentence-highlight');
+                setTimeout(() => targetEl.classList.remove('sentence-highlight'), 2400);
+            }
+        }, 120);
+    };
+
+    // 2. Lock saving while switching pointers and rendering the destination note
+    window.isSwitchingNote = true;
+    try {
+        if (document.activeElement) document.activeElement.blur();
+        isNoteEditMode = false;
+        window.isNoteEditMode = false;
+
+        if (targetNodeId && targetNodeId !== currentNoteNodeId) {
+            const destData = findNodeAcrossAllSubjects(targetNodeId);
+            if (destData && destData.node) {
+                if (destData.subject && destData.subject.id !== appState.activeSubjectId) {
+                    appState.activeSubjectId = destData.subject.id;
+                    renderSubjectSelector();
                 }
-            }, 120);
+                if (Array.isArray(destData.path)) {
+                    destData.path.forEach(pid => appState.expandedNodes.delete(pid));
+                    if (destData.path.length > 0) appState.activeChapterId = destData.path[0];
+                    if (destData.path.length > 1) appState.activeLevel1Id = destData.path[1];
+                }
+                window.navFocusId = targetNodeId;
+                renderInputView();
+                renderVisualizer();
+
+                currentNoteNodeId = targetNodeId;
+                activeNoteIndex = Math.max(0, targetIdx);
+                window.updateNotesModalHeaderTitle(destData.node);
+                loadActiveNoteContent(destData.node, true);
+                updateRibbonLinkingUI();
+                scrollToActiveTab();
+                scrollToTargetAnchor();
+                return;
+            }
         }
+
+        if (!isNaN(targetIdx) && targetIdx >= 0) {
+            if (targetIdx !== activeNoteIndex) {
+                activeNoteIndex = targetIdx;
+                const sameNodeData = findNodeAcrossAllSubjects(currentNoteNodeId);
+                if (sameNodeData && sameNodeData.node) {
+                    loadActiveNoteContent(sameNodeData.node, true);
+                    scrollToActiveTab();
+                }
+            }
+            scrollToTargetAnchor();
+        }
+    } finally {
+        window.isSwitchingNote = false;
     }
 };
 
@@ -11989,41 +12056,65 @@ window.deleteActiveCrossLink = function() {
     }
     if (!confirm("Delete this cross-note link? (The text will be kept)")) return;
 
-    const { nodeId, sourceTabIdx, sourceAnchorId, targetTabIdx, targetAnchorId } = window.activeClickedCrossLink;
-    const sub = getActiveSubject();
-    const nodeData = findNodePath(sub.chapters, nodeId || currentNoteNodeId);
-    if (!nodeData || !nodeData.node) return;
+    const { sourceNodeId, sourceTabIdx, sourceAnchorId, targetNodeId, targetTabIdx, targetAnchorId } = window.activeClickedCrossLink;
+    const preview = document.getElementById('note-preview');
+
+    // Unwrap matching cross-note link directly in the active DOM without touching any other element
+    if (preview) {
+        [sourceAnchorId, targetAnchorId].forEach(anc => {
+            if (!anc) return;
+            const span = preview.querySelector(`span[id="${anc}"]`);
+            if (span) {
+                const a = span.querySelector('a.cross-note-link');
+                if (a) {
+                    while (a.firstChild) span.insertBefore(a.firstChild, a);
+                    a.remove();
+                }
+                const p = span.parentNode;
+                while (span.firstChild) p.insertBefore(span.firstChild, span);
+                span.remove();
+                p.normalize();
+            }
+        });
+        syncViewToData(true);
+    }
 
     function unwrapLink(text, a1, a2) {
         if (!text) return '';
         let res = text;
         [a1, a2].forEach(anc => {
             if (!anc) return;
-            const rSpan = new RegExp('<span id="[^"]*">\\s*\\[([^\\]]+)\\]\\(#note:[^)]*' + anc + '[^)]*\\)\\s*<\\/span>', 'g');
-            res = res.replace(rSpan, '$1');
-            const rExact = new RegExp('<span id="' + anc + '">\\s*\\[([^\\]]+)\\]\\(#note:[^)]+\\)\\s*<\\/span>', 'g');
-            res = res.replace(rExact, '$1');
-            const rBare = new RegExp('\\[([^\\]]+)\\]\\(#note:[^)]*' + anc + '[^)]*\\)', 'g');
-            res = res.replace(rBare, '$1');
+            const rHtmlSpan = new RegExp('<span id="' + anc + '"[^>]*>\\s*<a[^>]*>([\\s\\S]*?)<\\/a>\\s*<\\/span>', 'gi');
+            res = res.replace(rHtmlSpan, '$1');
+            const rHtmlA = new RegExp('<a[^>]*href=["\']#(?:x?note):[^"\']*' + anc + '[^"\']*["\'][^>]*>([\\s\\S]*?)<\\/a>', 'gi');
+            res = res.replace(rHtmlA, '$1');
         });
         return res;
     }
 
-    let notesArr = getNodeNotesArray(nodeData.node);
-    if (typeof sourceTabIdx === 'number' && notesArr[sourceTabIdx] !== undefined) {
-        notesArr[sourceTabIdx] = unwrapLink(notesArr[sourceTabIdx], targetAnchorId, sourceAnchorId);
+    const srcNodeInfo = findNodeAcrossAllSubjects(sourceNodeId || currentNoteNodeId);
+    const tgtNodeInfo = findNodeAcrossAllSubjects(targetNodeId || currentNoteNodeId);
+
+    if (srcNodeInfo && srcNodeInfo.node) {
+        let sNotes = getNodeNotesArray(srcNodeInfo.node);
+        if (typeof sourceTabIdx === 'number' && sNotes[sourceTabIdx] !== undefined) {
+            sNotes[sourceTabIdx] = unwrapLink(sNotes[sourceTabIdx], targetAnchorId, sourceAnchorId);
+            srcNodeInfo.node.notes = sNotes;
+        }
     }
-    if (typeof targetTabIdx === 'number' && notesArr[targetTabIdx] !== undefined) {
-        notesArr[targetTabIdx] = unwrapLink(notesArr[targetTabIdx], sourceAnchorId, targetAnchorId);
+    if (tgtNodeInfo && tgtNodeInfo.node) {
+        let tNotes = getNodeNotesArray(tgtNodeInfo.node);
+        if (typeof targetTabIdx === 'number' && tNotes[targetTabIdx] !== undefined) {
+            tNotes[targetTabIdx] = unwrapLink(tNotes[targetTabIdx], sourceAnchorId, targetAnchorId);
+            tgtNodeInfo.node.notes = tNotes;
+        }
     }
 
-    nodeData.node.notes = notesArr;
     saveData();
     renderVisualizer();
 
     window.activeClickedCrossLink = null;
     updateRibbonLinkingUI();
-    loadActiveNoteContent(nodeData.node, true);
 };
 
 function ribbonConnectLink() {
@@ -12046,67 +12137,71 @@ function ribbonConnectLink() {
     const targetTabNum = activeNoteIndex + 1;
     const targetAnchorId = 'anc-' + Math.random().toString(36).substr(2, 7);
 
-    // Wrap exact target range in DOM
-    const targetMarker = document.createElement('span');
-    targetMarker.id = targetAnchorId;
-    targetMarker.setAttribute('data-staged-tgt', '1');
-    targetMarker.appendChild(range.extractContents());
-    range.insertNode(targetMarker);
+    const isCrossNode = source.nodeId !== currentNoteNodeId;
+
+    const forwardHref = isCrossNode
+        ? `#note:${targetTabNum}:${targetAnchorId}?node=${encodeURIComponent(currentNoteNodeId)}`
+        : `#note:${targetTabNum}:${targetAnchorId}`;
+    const backHref = isCrossNode
+        ? `#note:${source.tabNum}:${source.anchorId}?backlink=1&node=${encodeURIComponent(source.nodeId)}`
+        : `#note:${source.tabNum}:${source.anchorId}?backlink=1`;
+
+    // 1. Wrap ONLY the exact target selection in the live DOM (preserving all inner formatting)
+    const targetSpan = document.createElement('span');
+    targetSpan.id = targetAnchorId;
+    const targetLink = document.createElement('a');
+    targetLink.href = backHref;
+    targetLink.className = 'cross-note-link is-backlink';
+    targetLink.appendChild(range.extractContents());
+    targetSpan.appendChild(targetLink);
+    range.insertNode(targetSpan);
     sel.removeAllRanges();
 
+    // 2. If source is also in the currently visible note tab, convert its staged span in-place
+    const liveSrcSpan = preview.querySelector(`span[id="${source.anchorId}"][data-staged-src="1"]`);
+    if (liveSrcSpan) {
+        liveSrcSpan.removeAttribute('data-staged-src');
+        const srcLink = document.createElement('a');
+        srcLink.href = forwardHref;
+        srcLink.className = 'cross-note-link';
+        while (liveSrcSpan.firstChild) srcLink.appendChild(liveSrcSpan.firstChild);
+        liveSrcSpan.appendChild(srcLink);
+    }
+
+    // 3. Persist current note directly from the live DOM without re-parsing the rest of the note
     syncViewToData(true);
 
-    const sub = getActiveSubject();
-    const sourceWrapped = `<span id="${source.anchorId}">[${source.text}](#note:${targetTabNum}:${targetAnchorId})</span>`;
-    const targetWrapped = `<span id="${targetAnchorId}">[${targetText}](#note:${source.tabNum}:${source.anchorId}?backlink=1)</span>`;
-
-    const srcMarkerRegex = new RegExp(`<span id="${source.anchorId}" data-staged-src="1">[\\s\\S]*?<\\/span>`);
-    const tgtMarkerRegex = new RegExp(`<span id="${targetAnchorId}" data-staged-tgt="1">[\\s\\S]*?<\\/span>`);
-
-    const sourceData = findNodePath(sub.chapters, source.nodeId);
-    const targetData = findNodePath(sub.chapters, currentNoteNodeId);
-
-    if (source.nodeId === currentNoteNodeId && source.tabIndex === targetTabIndex) {
-        let notesArr = getNodeNotesArray(targetData.node);
-        let content = notesArr[targetTabIndex] || '';
-        content = content.replace(srcMarkerRegex, sourceWrapped).replace(tgtMarkerRegex, targetWrapped);
-        notesArr[targetTabIndex] = content;
-        targetData.node.notes = notesArr;
-    } else {
+    // 4. If source was in a different tab or node, update its stored HTML string in-place
+    if (!liveSrcSpan) {
+        const srcMarkerRegex = new RegExp(`<span id="${source.anchorId}" data-staged-src="1">([\\s\\S]*?)<\\/span>`);
+        const sourceWrapped = `<span id="${source.anchorId}"><a href="${forwardHref}" class="cross-note-link">$1</a></span>`;
+        const sourceData = findNodeAcrossAllSubjects(source.nodeId);
         if (sourceData && sourceData.node) {
             let sNotes = getNodeNotesArray(sourceData.node);
             sNotes[source.tabIndex] = (sNotes[source.tabIndex] || '').replace(srcMarkerRegex, sourceWrapped);
             sourceData.node.notes = sNotes;
-        }
-        if (targetData && targetData.node) {
-            let tNotes = getNodeNotesArray(targetData.node);
-            tNotes[targetTabIndex] = (tNotes[targetTabIndex] || '').replace(tgtMarkerRegex, targetWrapped);
-            targetData.node.notes = tNotes;
+            saveData();
         }
     }
 
     window.stagedLink = null;
     updateRibbonLinkingUI();
-    saveData();
     renderVisualizer();
+    setupCrossNoteLinks();
 
-    const targetNode = targetData.node;
-    let tNotes = getNodeNotesArray(targetNode);
-    renderNotesTabs(tNotes);
-
-    const textarea = document.getElementById('note-content');
-    if (textarea) textarea.value = tNotes[targetTabIndex];
-    if (preview && typeof marked !== 'undefined') {
-        preview.innerHTML = marked.parse(tNotes[targetTabIndex] || '');
-    }
-
-    refreshHeadingsSidebar();
-    if (typeof setupCrossNoteLinks === 'function') {
-        setupCrossNoteLinks();
-    }
+    setTimeout(() => {
+        const targetEl = document.getElementById(targetAnchorId);
+        if (targetEl) {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            targetEl.classList.remove('sentence-highlight');
+            void targetEl.offsetWidth;
+            targetEl.classList.add('sentence-highlight');
+            setTimeout(() => targetEl.classList.remove('sentence-highlight'), 2400);
+        }
+    }, 150);
 }
 
-/* --- 8. INTERACTIONS: COMMENTS CLICK, DOUBLE-CLICK EDIT, SHORTCUTS ---. */
+/* --- 8. INTERACTIONS: COMMENTS CLICK, DOUBLE-CLICK EDIT, SHORTCUTS --- */
 (function setupEnhancedNoteInteractions() {
     const preview = document.getElementById('note-preview');
     if (!preview) return;
@@ -12151,6 +12246,7 @@ function toggleNoteMode() {
 }
 
 function setNoteMode(mode) {
+    const wasEdit = isNoteEditMode;
     const isEdit = (mode === 'EDIT');
     isNoteEditMode = isEdit;
     window.isNoteEditMode = isEdit;
@@ -12170,7 +12266,7 @@ function setNoteMode(mode) {
         if (actionBtn) { actionBtn.innerText = '✅️'; actionBtn.title = 'Save & View Preview (Shift+Enter)'; }
         if (textarea) textarea.focus();
     } else {
-        syncAndSaveActiveNote();
+        if (wasEdit) syncAndSaveActiveNote();
         if (modal) modal.classList.remove('is-edit-mode');
         if (typeof setRibbonCollapsed === 'function') setRibbonCollapsed(false);
 
@@ -12180,7 +12276,10 @@ function setNoteMode(mode) {
         if (preview) {
             if (!isEmpty) {
                 preview.removeAttribute('data-empty');
-                preview.innerHTML = typeof marked !== 'undefined' ? marked.parse(rawContent) : `<p>${rawContent}</p>`;
+                const hasBlockHtml = /<(p|div|h[1-6]|ul|ol|li|table|thead|tbody|tr|td|th|blockquote)\b/i.test(rawContent);
+                preview.innerHTML = hasBlockHtml
+                    ? rawContent
+                    : (typeof marked !== 'undefined' ? marked.parse(rawContent) : `<p>${rawContent}</p>`);
             } else {
                 preview.innerHTML = '';
                 preview.setAttribute('data-empty', 'true');
@@ -12202,13 +12301,16 @@ function setupCrossNoteLinks() {
 
     preview.querySelectorAll('a[href^="#note:"]').forEach(link => {
         const href = link.getAttribute('href') || '';
-        const isBackLink = href.includes('backlink=1') || link.classList.contains('is-backlink');
+        const match = href.match(/^#note:(\d+):([^?]+)(?:\?(.*))?$/);
+        if (!match) return;
+
+        const targetTabNum = parseInt(match[1], 10);
+        const targetAnchorId = match[2];
+        const queryStr = match[3] || '';
+        const isBackLink = queryStr.includes('backlink=1') || link.classList.contains('is-backlink');
+
         link.classList.add('cross-note-link');
         if (isBackLink) link.classList.add('is-backlink');
-
-        const parts = href.split(':');
-        const targetTabNum = parseInt(parts[1], 10);
-        const targetAnchorId = (parts[2] || '').split('?')[0];
 
         link.onmouseenter = () => {
             if (!tooltip) return;
@@ -12234,7 +12336,7 @@ function setupCrossNoteLinks() {
     preview.setAttribute('contenteditable', 'false');
 
     preview.addEventListener('dblclick', function(e) {
-        if (e.target.closest('.note-comment')) return;
+        if (e.target.closest('.note-comment') || e.target.closest('a')) return;
         if (typeof isNoteEditMode !== 'undefined' && isNoteEditMode) return;
         preview.setAttribute('contenteditable', 'true');
         preview.classList.add('is-editing-active');
